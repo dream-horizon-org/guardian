@@ -6,7 +6,9 @@ public class Constants {
 
   // Request Body Params
   public static final String BODY_PARAM_USERNAME = "username";
+  public static final String BODY_PARAM_PHONE_NUMBER_V2 = "phone_number";
   public static final String BODY_PARAM_PASSWORD = "password";
+  public static final String BODY_PARAM_PIN = "pin";
   public static final String OIDC_BODY_PARAM_REFRESH_TOKEN = "refresh_token";
   public static final String BODY_PARAM_REFRESH_TOKEN = "refreshToken";
   public static final String BODY_PARAM_RESPONSE_TYPE = "responseType";
@@ -47,6 +49,13 @@ public class Constants {
   public static final String BODY_PARAM_CLIENT_ID = "client_id";
   public static final String BODY_PARAM_GUEST_IDENTIFIER = "guest_identifier";
   public static final String BODY_PARAM_SCOPES = "scopes";
+  public static final String MFA_POLICY_NOT_REQUIRED = "not_required";
+  public static final String MFA_POLICY_MANDATORY = "mandatory";
+  public static final String MFA_FACTOR_PASSWORD = "password";
+  public static final String MFA_FACTOR_PIN = "pin";
+  public static final String MFA_FACTOR_SMS_OTP = "sms-otp";
+  public static final String MFA_FACTOR_EMAIL_OTP = "email-otp";
+  public static final String MFA_FACTORS = "mfa_factors";
 
   public static final String RESPONSE_BODY_PARAM_ACCESS_TOKEN = "access_token";
   public static final String RESPONSE_BODY_PARAM_TOKEN_TYPE = "token_type";
@@ -173,6 +182,7 @@ public class Constants {
   public static final String JWT_CLAIM_RFT_ID = "rft_id";
   public static final String JWT_CLAIM_TENANT_ID = "tid";
   public static final String JWT_CLAIMS_AMR = "amr";
+  public static final String HTTP_STATUS_CODE = "http_status_code";
 
   // Test Constants for OIDC Client Management
   public static final String TENANT_ID_HEADER = "tenant-id";
@@ -184,6 +194,7 @@ public class Constants {
   public static final String METADATA = "metadata";
   public static final String ERROR_INCORRECT_OTP = "incorrect_otp";
   public static final String ERROR_INVALID_REQUEST = "invalid_request";
+  public static final String ERROR_MFA_FACTOR_ALREADY_ENROLLED = "mfa_factor_already_enrolled";
   public static final String INVALID_GUEST_IDENTIFIER = "invalid_guest_identifier";
   public static final String INVALID_SCOPE = "invalid_scope";
   public static final String ERROR_USER_NOT_EXISTS = "user_not_exists";
@@ -543,6 +554,24 @@ public class Constants {
   public static final String CHECK_RESPONSE_TYPES = "client.responseTypes";
   public static final String CHECK_CLIENT_TYPE = "client.clientType";
   public static final String CHECK_IS_DEFAULT = "client.isDefault";
+
+  // V2SignIn Test Constants
+  public static final String V2_SIGNIN_TEST_USERNAME_1 = "user1";
+  public static final String V2_SIGNIN_TEST_USERNAME_2 = "user2";
+  public static final String V2_SIGNIN_TEST_EMAIL_1 = "john.doe@test.com";
+  public static final String V2_SIGNIN_TEST_EMAIL_2 = "jane.doe@test.com";
+  public static final String V2_SIGNIN_TEST_PHONE_1 = "777777777";
+  public static final String V2_SIGNIN_TEST_PHONE_2 = "888888888";
+  public static final String V2_SIGNIN_TEST_PASSWORD_1 = "pass1";
+  public static final String V2_SIGNIN_TEST_PIN_2 = "4321";
+  public static final String V2_SIGNIN_TEST_NONEXISTENT_USER = "nonexistent";
+  public static final String V2_SIGNIN_TEST_NONEXISTENT_EMAIL = "nonexistent@example.com";
+  public static final String V2_SIGNIN_TEST_INVALID_SCOPE_1 = "invalid_scope";
+  public static final String V2_SIGNIN_CREDENTIAL_TYPE_PASSWORD = "password";
+  public static final String V2_SIGNIN_CREDENTIAL_TYPE_PIN = "pin";
+  public static final String V2_SIGNIN_ERROR_USER_NOT_EXIST = "User does not exist";
+  public static final String V2_SIGNIN_ERROR_UNAUTHORIZED = "Unauthorized";
+  public static final String V2_SIGNIN_INCORRECT_CREDENTIAL = "Your credentials are incorrect";
 
   // Mock user data constants
   public static final String MOCK_USER_NAME = "John Doe";

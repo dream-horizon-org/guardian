@@ -3,6 +3,7 @@ package com.dreamsportslabs.guardian.service;
 import static com.dreamsportslabs.guardian.constant.Constants.ACCESS_TOKEN_COOKIE_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.CODE;
 import static com.dreamsportslabs.guardian.constant.Constants.IS_NEW_USER;
+import static com.dreamsportslabs.guardian.constant.Constants.MFA_POLICY_MANDATORY;
 import static com.dreamsportslabs.guardian.constant.Constants.REFRESH_TOKEN_COOKIE_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.SSO_TOKEN_COOKIE_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.TOKEN;
@@ -22,6 +23,7 @@ import com.dreamsportslabs.guardian.constant.AuthMethod;
 import com.dreamsportslabs.guardian.dao.CodeDao;
 import com.dreamsportslabs.guardian.dao.RefreshTokenDao;
 import com.dreamsportslabs.guardian.dao.RevocationDao;
+import com.dreamsportslabs.guardian.dao.model.ClientModel;
 import com.dreamsportslabs.guardian.dao.model.CodeModel;
 import com.dreamsportslabs.guardian.dao.model.RefreshTokenModel;
 import com.dreamsportslabs.guardian.dao.model.SsoTokenModel;
@@ -32,6 +34,7 @@ import com.dreamsportslabs.guardian.dto.request.v2.V2LogoutRequestDto;
 import com.dreamsportslabs.guardian.dto.request.v2.V2RefreshTokenRequestDto;
 import com.dreamsportslabs.guardian.dto.response.CodeResponseDto;
 import com.dreamsportslabs.guardian.dto.response.IdpConnectResponseDto;
+import com.dreamsportslabs.guardian.dto.response.MfaFactorDto;
 import com.dreamsportslabs.guardian.dto.response.RefreshTokenResponseDto;
 import com.dreamsportslabs.guardian.dto.response.TokenResponseDto;
 import com.dreamsportslabs.guardian.registry.Registry;
@@ -81,6 +84,59 @@ public class AuthorizationService {
     throw INVALID_REQUEST.getException();
   }
 
+  public Single<TokenResponseDto> generateMfaSignInTokens(
+      JsonObject user,
+      String refreshToken,
+      List<String> scopes,
+      List<AuthMethod> authMethods,
+      String clientId,
+      String tenantId) {
+    TenantConfig config = registry.get(tenantId, TenantConfig.class);
+    long iat = getCurrentTimeInSeconds();
+
+    Single<ClientModel> clientModelSingle = clientService.getClient(clientId, tenantId);
+
+    return Single.zip(
+            tokenIssuer.generateAccessToken(
+                refreshToken,
+                iat,
+                String.join(" ", scopes),
+                user,
+                authMethods,
+                clientId,
+                tenantId,
+                config),
+            tokenIssuer.generateIdToken(
+                iat,
+                null,
+                user,
+                config.getTokenConfig().getIdTokenClaims(),
+                clientId,
+                config.getTenantId()),
+            clientModelSingle,
+            (accessToken, idToken, clientModel) -> {
+              String mfaPolicy = clientModel.getMfaPolicy();
+              List<String> clientMfaMethods = clientModel.getAllowedMfaMethods();
+              List<MfaFactorDto> mfaFactors = new ArrayList<>();
+              if (MFA_POLICY_MANDATORY.equals(mfaPolicy)) {
+                mfaFactors = MfaService.buildMfaFactors(authMethods, user, clientMfaMethods);
+              }
+              return new TokenResponseDto(
+                  accessToken,
+                  refreshToken,
+                  idToken,
+                  null,
+                  TOKEN_TYPE,
+                  config.getTokenConfig().getAccessTokenExpiry(),
+                  user.getBoolean(IS_NEW_USER, false),
+                  mfaFactors);
+            })
+        .flatMap(
+            tokenResponseDto ->
+                updateRefreshToken(refreshToken, authMethods, scopes, clientId, tenantId)
+                    .andThen(Single.just(tokenResponseDto)));
+  }
+
   public NewCookie[] getCookies(TokenResponseDto responseDto, String tenantId) {
     NewCookie accessTokenCookie = getAccessTokenCookie(responseDto.getAccessToken(), tenantId);
     NewCookie refreshTokenCookie = getRefreshTokenCookie(responseDto.getRefreshToken(), tenantId);
@@ -110,6 +166,9 @@ public class AuthorizationService {
     String refreshToken = tokenIssuer.generateRefreshToken();
     String ssoToken = tokenIssuer.generateSsoToken();
     long iat = getCurrentTimeInSeconds();
+
+    Single<ClientModel> clientModelSingle = clientService.getClient(clientId, tenantId);
+
     return Single.zip(
             tokenIssuer.generateAccessToken(
                 refreshToken, iat, scopes, user, authMethods, clientId, tenantId, config),
@@ -120,15 +179,24 @@ public class AuthorizationService {
                 config.getTokenConfig().getIdTokenClaims(),
                 clientId,
                 config.getTenantId()),
-            (accessToken, idToken) ->
-                new TokenResponseDto(
-                    accessToken,
-                    refreshToken,
-                    idToken,
-                    ssoToken,
-                    TOKEN_TYPE,
-                    config.getTokenConfig().getAccessTokenExpiry(),
-                    user.getBoolean(IS_NEW_USER, false)))
+            clientModelSingle,
+            (accessToken, idToken, clientModel) -> {
+              String mfaPolicy = clientModel.getMfaPolicy();
+              List<String> clientMfaMethods = clientModel.getAllowedMfaMethods();
+              List<MfaFactorDto> mfaFactors = new ArrayList<>();
+              if (MFA_POLICY_MANDATORY.equals(mfaPolicy)) {
+                mfaFactors = MfaService.buildMfaFactors(authMethods, user, clientMfaMethods);
+              }
+              return new TokenResponseDto(
+                  accessToken,
+                  refreshToken,
+                  idToken,
+                  ssoToken,
+                  TOKEN_TYPE,
+                  config.getTokenConfig().getAccessTokenExpiry(),
+                  user.getBoolean(IS_NEW_USER, false),
+                  mfaFactors);
+            })
         .flatMap(
             dto ->
                 refreshTokenDao
@@ -219,21 +287,7 @@ public class AuthorizationService {
     if (StringUtils.isBlank(dto.getRefreshToken())) {
       return Single.error(UNAUTHORIZED.getCustomException("Invalid refresh token"));
     }
-    return refreshTokenDao
-        .getRefreshToken(tenantId, dto.getRefreshToken())
-        .switchIfEmpty(Single.error(UNAUTHORIZED.getCustomException("Invalid refresh token")))
-        .filter(
-            refreshTokenModel -> {
-              if (StringUtils.isNotBlank(dto.getClientId())) {
-                return refreshTokenModel.getClientId().equals(dto.getClientId());
-              }
-              return true;
-            })
-        .switchIfEmpty(Single.error(UNAUTHORIZED.getCustomException("Invalid refresh token")))
-        .filter(
-            refreshTokenModel ->
-                refreshTokenModel.getRefreshTokenExp() > (getCurrentTimeInSeconds()))
-        .switchIfEmpty(Single.error(UNAUTHORIZED.getCustomException("Invalid refresh token")))
+    return validateRefreshToken(tenantId, dto.getClientId(), dto.getRefreshToken())
         .flatMap(
             refreshTokenModel -> {
               if (shouldSetAccessTokenAdditionalClaims(config)) {
@@ -351,6 +405,37 @@ public class AuthorizationService {
                         () -> updateRevocations(List.of(dto.getRefreshToken()), tenantId));
               }
             });
+  }
+
+  public Single<RefreshTokenModel> validateRefreshToken(
+      String tenantId, String clientId, String refreshToken) {
+    return refreshTokenDao
+        .getRefreshToken(tenantId, refreshToken)
+        .switchIfEmpty(Single.error(UNAUTHORIZED.getCustomException("Invalid refresh token")))
+        .filter(
+            refreshTokenModel -> {
+              if (StringUtils.isNotBlank(clientId)) {
+                return refreshTokenModel.getClientId().equals(clientId);
+              }
+              return true;
+            })
+        .switchIfEmpty(Single.error(UNAUTHORIZED.getCustomException("Invalid refresh token")))
+        .filter(
+            refreshTokenModel ->
+                refreshTokenModel.getRefreshTokenExp() > (getCurrentTimeInSeconds()))
+        .switchIfEmpty(Single.error(UNAUTHORIZED.getCustomException("Invalid refresh token")))
+        .filter(RefreshTokenModel::getIsActive)
+        .switchIfEmpty(Single.error(UNAUTHORIZED.getCustomException("Invalid refresh token")));
+  }
+
+  public Completable updateRefreshToken(
+      String refreshToken,
+      List<AuthMethod> authMethods,
+      List<String> scopes,
+      String clientId,
+      String tenantId) {
+    return refreshTokenDao.updateRefreshToken(
+        refreshToken, authMethods, scopes, clientId, tenantId);
   }
 
   private Completable invalidateRefreshToken(V2LogoutRequestDto dto, String tenantId) {
