@@ -816,4 +816,18 @@ public class DbUtils {
     }
     return false;
   }
+
+  public static void updateTokenConfigAccessTokenClaims(
+      String tenantId, String accessTokenClaimsJson) {
+    String updateQuery = "UPDATE token_config SET access_token_claims = ? WHERE tenant_id = ?";
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
+      stmt.setString(1, accessTokenClaimsJson);
+      stmt.setString(2, tenantId);
+      stmt.executeUpdate();
+    } catch (Exception e) {
+      log.error("Error updating access_token_claims for tenant {}", tenantId, e);
+      throw new RuntimeException("Failed to update access_token_claims", e);
+    }
+  }
 }

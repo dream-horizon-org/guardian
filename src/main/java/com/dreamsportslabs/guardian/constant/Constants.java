@@ -148,6 +148,7 @@ public final class Constants {
   public static final String CACHE_KEY_CODE = "CODE";
   public static final String CACHE_KEY_STATE = "STATE";
   public static final String CACHE_KEY_AUTH_SESSION = "AUTH_SESSION";
+  public static final String CACHE_KEY_BIOMETRIC_CHALLENGE = "BIOMETRIC_CHALLENGE";
 
   public static final String TOKEN_TYPE = "Bearer";
 
@@ -226,4 +227,9 @@ public final class Constants {
   public static final String MFA_FACTORS = "mfaFactors";
   public static final String MFA_FACTOR = "factor";
   public static final String MFA_IS_ENABLED = "isEnabled";
+
+  // Biometric Constants
+  public static final String BIOMETRIC_BINDING_TYPE_APPKEY = "appkey";
+  public static final Integer BIOMETRIC_ALG_ES256 =
+      -7; // COSE algorithm identifier for ES256 (ECDSA with SHA-256)
 }

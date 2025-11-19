@@ -22,6 +22,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import com.dreamsportslabs.guardian.utils.ApplicationIoUtils;
 import com.dreamsportslabs.guardian.utils.DbUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -449,5 +450,235 @@ public class V2RefreshTokenIT {
                     .withStatus(HttpStatus.SC_OK)
                     .withHeader("Content-Type", "application/json")
                     .withJsonBody(jsonNode)));
+  }
+
+  @Test()
+  @DisplayName("Should extract claim name from nested JsonPath and add to Access Token")
+  public void testAdditionalClaimsWithNestedJsonPath() {
+    // Arrange
+    String userId = "1234";
+    // Update token_config to use nested path
+    updateAccessTokenClaims(
+        tenant3, "[\"user[0].name.firstName\", \"user[0].name.lastName\",  \"item1\", \"item2\"]");
+    StubMapping stub = getStubForUserInfoWithNestedStructure(userId);
+    String refreshToken =
+        DbUtils.insertOidcRefreshToken(
+            tenant3,
+            clientId,
+            userId,
+            1800L,
+            "[\"openid\", \"profile\"]",
+            "device1",
+            "1.2.3.4",
+            "app",
+            "location",
+            "[\"PASSWORD\"]");
+
+    // Act
+    Response response = v2RefreshToken(tenant3, refreshToken, clientId);
+
+    // Validate
+    response.then().statusCode(HttpStatus.SC_OK).body("access_token", isA(String.class));
+
+    String accessToken = response.getBody().jsonPath().getString("access_token");
+    Path path = Paths.get("src/test/resources/test-data/tenant3-public-key.pem");
+
+    JWT jwt = JWT.getDecoder().decode(accessToken, RSAVerifier.newVerifier(path));
+    Map<String, Object> claims = jwt.getAllClaims();
+
+    // Verify that claim names are extracted (firstName, lastName) not full paths
+    assertThat(claims.get("firstName"), equalTo("John"));
+    assertThat(claims.get("lastName"), equalTo("Doe"));
+    // Verify full paths are NOT present
+    assertThat(claims.containsKey("user[0].name.firstName"), equalTo(false));
+    assertThat(claims.containsKey("user[0].name.lastName"), equalTo(false));
+
+    wireMockServer.removeStub(stub);
+  }
+
+  @Test()
+  @DisplayName("Should handle array notation in JsonPath correctly")
+  public void testAdditionalClaimsWithArrayNotation() {
+    // Arrange
+    String userId = "1234";
+    // Update token_config to use array path
+    updateAccessTokenClaims(
+        tenant3, "[\"items[0].value\", \"items[1].value\", \"item1\", \"item2\"]");
+    StubMapping stub = getStubForUserInfoWithArrayStructure(userId);
+    String refreshToken =
+        DbUtils.insertOidcRefreshToken(
+            tenant3,
+            clientId,
+            userId,
+            1800L,
+            "[\"openid\", \"profile\"]",
+            "device1",
+            "1.2.3.4",
+            "app",
+            "location",
+            "[\"PASSWORD\"]");
+
+    // Act
+    Response response = v2RefreshToken(tenant3, refreshToken, clientId);
+
+    // Validate
+    response.then().statusCode(HttpStatus.SC_OK).body("access_token", isA(String.class));
+
+    String accessToken = response.getBody().jsonPath().getString("access_token");
+    Path path = Paths.get("src/test/resources/test-data/tenant3-public-key.pem");
+
+    JWT jwt = JWT.getDecoder().decode(accessToken, RSAVerifier.newVerifier(path));
+    Map<String, Object> claims = jwt.getAllClaims();
+
+    // Verify claim names are extracted correctly
+    // Note: Both paths extract "value" as claim name, so last one processed wins
+    assertThat(claims.get("value"), equalTo("test2")); // Last value wins if same claim name
+    // Verify full paths are NOT present
+    assertThat(claims.containsKey("items[0].value"), equalTo(false));
+
+    wireMockServer.removeStub(stub);
+  }
+
+  @Test()
+  @DisplayName("Should handle missing nested path gracefully")
+  public void testAdditionalClaimsWithMissingNestedPath() {
+    // Arrange
+    String userId = "1234";
+    // Update token_config to use non-existent nested path
+    updateAccessTokenClaims(
+        tenant3, "[\"user[0].name.middleName\", \"user[0].address.city\",  \"item1\", \"item2\"]");
+    StubMapping stub = getStubForUserInfoWithNestedStructure(userId);
+    String refreshToken =
+        DbUtils.insertOidcRefreshToken(
+            tenant3,
+            clientId,
+            userId,
+            1800L,
+            "[\"openid\", \"profile\"]",
+            "device1",
+            "1.2.3.4",
+            "app",
+            "location",
+            "[\"PASSWORD\"]");
+
+    // Act
+    Response response = v2RefreshToken(tenant3, refreshToken, clientId);
+
+    // Validate - should succeed without the missing claims
+    response.then().statusCode(HttpStatus.SC_OK).body("access_token", isA(String.class));
+
+    String accessToken = response.getBody().jsonPath().getString("access_token");
+    Path path = Paths.get("src/test/resources/test-data/tenant3-public-key.pem");
+
+    JWT jwt = JWT.getDecoder().decode(accessToken, RSAVerifier.newVerifier(path));
+    Map<String, Object> claims = jwt.getAllClaims();
+
+    // Verify missing claims are not present
+    assertThat(claims.containsKey("middleName"), equalTo(false));
+    assertThat(claims.containsKey("city"), equalTo(false));
+    // Verify standard claims are still present
+    assertThat(claims.get(JWT_CLAIM_SUB), equalTo(userId));
+
+    wireMockServer.removeStub(stub);
+  }
+
+  @Test()
+  @DisplayName("Should maintain backward compatibility with simple flat keys")
+  public void testAdditionalClaimsWithSimplePathBackwardCompatibility() {
+    // Arrange
+    String userId = "1234";
+    // Use simple flat keys (existing behavior)
+    updateAccessTokenClaims(tenant3, "[\"item1\", \"item2\"]");
+    StubMapping stub = getStubForUserInfoWithAdditionalClaims(userId);
+    String refreshToken =
+        DbUtils.insertOidcRefreshToken(
+            tenant3,
+            clientId,
+            userId,
+            1800L,
+            "[\"openid\", \"profile\"]",
+            "device1",
+            "1.2.3.4",
+            "app",
+            "location",
+            "[\"PASSWORD\"]");
+
+    // Act
+    Response response = v2RefreshToken(tenant3, refreshToken, clientId);
+
+    // Validate
+    response.then().statusCode(HttpStatus.SC_OK).body("access_token", isA(String.class));
+
+    String accessToken = response.getBody().jsonPath().getString("access_token");
+    Path path = Paths.get("src/test/resources/test-data/tenant3-public-key.pem");
+
+    JWT jwt = JWT.getDecoder().decode(accessToken, RSAVerifier.newVerifier(path));
+    Map<String, Object> claims = jwt.getAllClaims();
+
+    // Verify backward compatibility - simple keys work as before
+    assertThat(claims.get("item1"), equalTo("a"));
+    assertThat(claims.get("item2"), equalTo("b"));
+
+    wireMockServer.removeStub(stub);
+  }
+
+  private void updateAccessTokenClaims(String tenantId, String accessTokenClaimsJson) {
+    DbUtils.updateTokenConfigAccessTokenClaims(tenantId, accessTokenClaimsJson);
+    // Invalidate cache via API to ensure the updated configuration is loaded on next access
+    ApplicationIoUtils.clearCache(tenantId);
+  }
+
+  private StubMapping getStubForUserInfoWithNestedStructure(String userId) {
+    JsonNode nameNode =
+        objectMapper.createObjectNode().put("firstName", "John").put("lastName", "Doe");
+
+    JsonNode userNode = objectMapper.createObjectNode().set("name", nameNode);
+
+    JsonNode rootNode =
+        objectMapper
+            .createObjectNode()
+            .put(BODY_PARAM_USERID, userId)
+            .put(CLAIM_EMAIL, randomAlphanumeric(8) + "@example.com")
+            .put(CLAIM_ADDRESS, "sampleAddress")
+            .put("email-verified", true)
+            .put("phoneNumber", randomNumeric(10))
+            .put(CLAIM_PHONE_NUMBER_VERIFIED, true)
+            .put("item1", "a")
+            .put("item2", "b")
+            .set("user", objectMapper.createArrayNode().add(userNode));
+
+    return wireMockServer.stubFor(
+        get(urlPathMatching("/user"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.SC_OK)
+                    .withHeader("Content-Type", "application/json")
+                    .withJsonBody(rootNode)));
+  }
+
+  private StubMapping getStubForUserInfoWithArrayStructure(String userId) {
+    JsonNode item1 = objectMapper.createObjectNode().put("value", "test1");
+    JsonNode item2 = objectMapper.createObjectNode().put("value", "test2");
+
+    JsonNode rootNode =
+        objectMapper
+            .createObjectNode()
+            .put(BODY_PARAM_USERID, userId)
+            .put(CLAIM_EMAIL, randomAlphanumeric(8) + "@example.com")
+            .put(CLAIM_ADDRESS, "sampleAddress")
+            .put("email-verified", true)
+            .put("phoneNumber", randomNumeric(10))
+            .put(CLAIM_PHONE_NUMBER_VERIFIED, true)
+            .put("item1", "a")
+            .put("item2", "b")
+            .set("items", objectMapper.createArrayNode().add(item1).add(item2));
+
+    return wireMockServer.stubFor(
+        get(urlPathMatching("/user"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.SC_OK)
+                    .withHeader("Content-Type", "application/json")
+                    .withJsonBody(rootNode)));
   }
 }
