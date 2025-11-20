@@ -206,4 +206,7 @@ public final class Constants {
   public static final String OIDC_PARAM_CONSENT_CHALLENGE = "consent_challenge";
   public static final String OIDC_PARAM_LOGIN_HINT = "login_hint";
   public static final String OIDC_PARAM_PROMPT = "prompt";
+
+  // Changelog Column Names
+  public static final String CHANGELOG_COLUMN_TOTAL = "total";
 }

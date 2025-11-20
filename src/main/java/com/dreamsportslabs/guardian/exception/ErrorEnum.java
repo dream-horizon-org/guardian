@@ -78,7 +78,8 @@ public enum ErrorEnum {
       "Authorization code feature is not configured for this tenant",
       400),
   ADMIN_NOT_CONFIGURED(
-      "admin_not_configured", "Admin feature is not configured for this tenant", 400);
+      "admin_not_configured", "Admin feature is not configured for this tenant", 400),
+  CHANGELOG_NOT_FOUND("changelog_not_found", "Changelog not found", 404);
 
   private final String code;
   private final String message;
