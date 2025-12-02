@@ -64,13 +64,13 @@ Instances of abusive, harassing, or otherwise unacceptable behavior may be repor
 
 ### Reporting Bugs
 
-Before creating bug reports, please check the [issue list](https://github.com/ds-horizon/guardian/issues "https://github.com/ds-horizon/guardian/issues") as you might find out that you don't need to create one.
+Before creating bug reports, please check the [issue list](https://github.com/dream-horizon-org/guardian/issues "https://github.com/dream-horizon-org/guardian/issues") as you might find out that you don't need to create one.
 
 When creating a bug report, please include as many details as possible:
 
 #### Before Submitting a Bug Report
 
-*   **Check the documentation** - The issue might be covered in the [docs](https://guardian-docs.horizonos.in/docs/)
+*   **Check the documentation** - The issue might be covered in the [docs](https://guardian.dreamhorizon.org/docs/)
 
 *   **Check existing issues** - The bug might already be reported
 
@@ -138,7 +138,7 @@ Add any other context about the problem here.
 
 ### Suggesting Enhancements
 
-Enhancement suggestions are tracked as [GitHub issues](https://github.com/ds-horizon/guardian/issues). When creating an enhancement suggestion, make sure to:
+Enhancement suggestions are tracked as [GitHub issues](https://github.com/dream-horizon-org/guardian/issues). When creating an enhancement suggestion, make sure to:
 
 1.  **Use a clear and descriptive title**
 
@@ -218,7 +218,7 @@ Pull requests are welcome! Please follow these guidelines:
 ```bash
     git clone https://github.com/YOUR_USERNAME/guardian.git
     cd guardian
-    git remote add upstream https://github.com/ds-horizon/guardian.git
+    git remote add upstream https://github.com/dream-horizon-org/guardian.git
 ```
 
 #### 2.  **Build the Project**
@@ -627,11 +627,11 @@ guardian/
 
 ### Getting Help
 
-*   **Documentation**: Check [docs](https://guardian-docs.horizonos.in/docs/) first
+*   **Documentation**: Check [docs](https://guardian.dreamhorizon.org/docs/) first
 
-*   **Discussions**: Ask on [GitHub Discussions](https://github.com/ds-horizon/guardian/discussions)
+*   **Discussions**: Ask on [GitHub Discussions](https://github.com/dream-horizon-org/guardian/discussions)
 
-*   **Issues**: Search [existing issues](https://github.com/ds-horizon/guardian/issues)
+*   **Issues**: Search [existing issues](https://github.com/dream-horizon-org/guardian/issues)
 
 
 ### Communication Channels
@@ -658,11 +658,11 @@ Contributors will be:
 
 If you have questions about contributing:
 
-1.  Check the [documentation](https://guardian-docs.horizonos.in/docs/configuration/configuration/)
+1.  Check the [documentation](https://guardian.dreamhorizon.org/docs/configuration/configuration/)
 
-2.  Search [existing issues](https://github.com/ds-horizon/guardian/issues)
+2.  Search [existing issues](https://github.com/dream-horizon-org/guardian/issues)
 
-3.  Ask on [GitHub Discussions](https://github.com/ds-horizon/guardian/discussions)
+3.  Ask on [GitHub Discussions](https://github.com/dream-horizon-org/guardian/discussions)
 
 4.  Contact maintainers (if needed)
 

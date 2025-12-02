@@ -117,7 +117,7 @@ If any of these ports are in use, you'll need to stop the conflicting services o
 
 1.  **Clone the repository**:
 ```bash
-git clone https://github.com/ds-horizon/guardian.git
+git clone https://github.com/dream-horizon-org/guardian.git
 cd guardian
 ```
 
@@ -166,11 +166,11 @@ curl --location 'localhost:8080/v2/passwordless/complete' \
 }'
 ```
 
-Follow our comprehensive guide on [website](https://guardian-docs.horizonos.in/docs/guides/passwordless-authentication/) to set up Guardian in minutes.
+Follow our comprehensive guide on [website](https://guardian.dreamhorizon.org/docs/guides/passwordless-authentication/) to set up Guardian in minutes.
 
 ## ⚙️ Configuration <a name="-configuration"></a>
 
-For the complete configuration reference and detailed setup instructions, see the [Configuration Guide](https://guardian-docs.horizonos.in/docs/configuration/configuration/).
+For the complete configuration reference and detailed setup instructions, see the [Configuration Guide](https://guardian.dreamhorizon.org/docs/configuration/configuration/).
 
 ## 📚 API Reference
 
@@ -184,7 +184,7 @@ For information about the endpoints that your services need to implement to inte
 
 Guardian can be deployed using Docker Compose for development or containerized / virtual machine for production environments.
 
-For detailed deployment instructions, production best practices, and infrastructure setup, see the [Deployment Guide](https://guardian-docs.horizonos.in/docs/deployment/deployment/).
+For detailed deployment instructions, production best practices, and infrastructure setup, see the [Deployment Guide](https://guardian.dreamhorizon.org/docs/deployment/deployment/).
 
 
 ## 🤝 Contributing
@@ -204,16 +204,16 @@ We welcome contributions! Please see our [Contributing Guide](/CONTRIBUTING.md) 
 
 ## 👥 Community
 
-*   💬 [GitHub Discussions](https://github.com/ds-horizon/guardian/discussions "https://github.com/ds-horizon/guardian/discussions") - Ask questions and share ideas
+*   💬 [GitHub Discussions](https://github.com/dream-horizon-org/guardian/discussions "https://github.com/dream-horizon-org/guardian/discussions") - Ask questions and share ideas
 
-*   🐛 [Issue Tracker](https://github.com/ds-horizon/guardian/issues "https://github.com/ds-horizon/guardian/issues") - Report bugs and request features
+*   🐛 [Issue Tracker](https://github.com/dream-horizon-org/guardian/issues "https://github.com/dream-horizon-org/guardian/issues") - Report bugs and request features
 
-*   📖 [Documentation](https://guardian-docs.horizonos.in/docs/ "https://guardian-docs.horizonos.in/docs/") - Comprehensive guides
+*   📖 [Documentation](https://guardian.dreamhorizon.org/docs/ "https://guardian.dreamhorizon.org/docs/") - Comprehensive guides
 
 
 ## 📄 License
 
-Guardian is licensed under the [MIT License](https://github.com/ds-horizon/guardian/blob/main/LICENSE "https://github.com/ds-horizon/guardian/blob/main/LICENSE").
+Guardian is licensed under the [MIT License](https://github.com/dream-horizon-org/guardian/blob/main/LICENSE "https://github.com/dream-horizon-org/guardian/blob/main/LICENSE").
 
 * * *
 
