@@ -20,3 +20,4 @@ insert into client (tenant_id, client_id, client_name, client_secret, client_uri
 insert into client_scope (tenant_id, client_id, scope) values ('tenant1', 'client-id', 'profile');
 insert into client_scope (tenant_id, client_id, scope, is_default) values ('tenant1', 'client1', 'default', TRUE);
 insert into guest_config(tenant_id, is_encrypted, secret_key, allowed_scopes) values ('tenant1', true, '2CmxIQJd8UJWAdm8',JSON_ARRAY('profile', 'email', 'phone'));
+insert into credentials (tenant_id, client_id, user_id, credential_id, public_key, binding_type, alg, sign_count, aaguid, revoked_at, first_use_complete) values ('tenant1', 'client1', '1', 'test-credential-1', '-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE4f5wI+6/VD5N8U9e8nyTzJYMUK2B\nQgvB7xBlQx6XZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3\n-----END PUBLIC KEY-----', 'appkey', -7, 0, NULL, NULL, FALSE);
