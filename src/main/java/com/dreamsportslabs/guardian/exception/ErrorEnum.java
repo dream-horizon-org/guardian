@@ -52,7 +52,9 @@ public enum ErrorEnum {
 
   OIDC_CONFIG_NOT_EXISTS(
       "oidc_config_not_exists", "OIDC config does not exist for this tenant", 400),
-  SCOPE_NOT_FOUND("scope_not_found", "Scope not found", 400);
+  SCOPE_NOT_FOUND("scope_not_found", "Scope not found", 400),
+  TENANT_NOT_FOUND("tenant_not_found", "Tenant not found", 404),
+  TENANT_ALREADY_EXISTS("tenant_already_exists", "Tenant already exists", 400);
 
   private final String code;
   private final String message;
