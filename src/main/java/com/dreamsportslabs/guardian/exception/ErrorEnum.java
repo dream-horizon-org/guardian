@@ -78,7 +78,9 @@ public enum ErrorEnum {
       "Authorization code feature is not configured for this tenant",
       400),
   TENANT_NOT_FOUND("tenant_not_found", "Tenant not found", 404),
-  TENANT_ALREADY_EXISTS("tenant_already_exists", "Tenant already exists", 400);
+  TENANT_ALREADY_EXISTS("tenant_already_exists", "Tenant already exists", 400),
+  USER_CONFIG_NOT_FOUND("user_config_not_found", "User config not found", 404),
+  USER_CONFIG_ALREADY_EXISTS("user_config_already_exists", "User config already exists", 400);
 
   private final String code;
   private final String message;

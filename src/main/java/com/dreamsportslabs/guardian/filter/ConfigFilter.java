@@ -34,7 +34,7 @@ public class ConfigFilter implements ContainerRequestFilter {
     String path = requestContext.getUriInfo().getPath();
     if (path.equalsIgnoreCase("/healthcheck")
         || path.equalsIgnoreCase("/v1/keys/generate")
-        || path.startsWith("/v1/admin/config/tenant")) {
+        || path.startsWith("/v1/admin/config")) {
       return;
     }
 
