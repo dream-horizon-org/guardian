@@ -22,7 +22,8 @@ public class UserConfigService {
     UserConfigModel userConfigModel =
         UserConfigModel.builder()
             .tenantId(requestDto.getTenantId())
-            .isSslEnabled(requestDto.getIsSslEnabled() != null ? requestDto.getIsSslEnabled() : false)
+            .isSslEnabled(
+                requestDto.getIsSslEnabled() != null ? requestDto.getIsSslEnabled() : false)
             .host(requestDto.getHost())
             .port(requestDto.getPort())
             .getUserPath(requestDto.getGetUserPath())
@@ -72,4 +73,3 @@ public class UserConfigService {
                     .ignoreElement());
   }
 }
-

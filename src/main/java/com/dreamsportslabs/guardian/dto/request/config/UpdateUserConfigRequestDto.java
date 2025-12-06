@@ -71,7 +71,8 @@ public class UpdateUserConfigRequestDto {
     if (StringUtils.isNotBlank(authenticateUserPath)) {
       hasFields = true;
       if (authenticateUserPath.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("authenticate_user_path cannot exceed 256 characters");
+        throw INVALID_REQUEST.getCustomException(
+            "authenticate_user_path cannot exceed 256 characters");
       }
     }
 
@@ -91,4 +92,3 @@ public class UpdateUserConfigRequestDto {
     }
   }
 }
-

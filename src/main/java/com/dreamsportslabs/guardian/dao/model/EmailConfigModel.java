@@ -2,6 +2,7 @@ package com.dreamsportslabs.guardian.dao.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +13,7 @@ import lombok.extern.jackson.Jacksonized;
 @Setter
 @Jacksonized
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserConfigModel {
+public class EmailConfigModel {
   @JsonProperty("tenant_id")
   private String tenantId;
 
@@ -25,18 +26,12 @@ public class UserConfigModel {
   @JsonProperty("port")
   private Integer port;
 
-  @JsonProperty("get_user_path")
-  private String getUserPath;
+  @JsonProperty("send_email_path")
+  private String sendEmailPath;
 
-  @JsonProperty("create_user_path")
-  private String createUserPath;
+  @JsonProperty("template_name")
+  private String templateName;
 
-  @JsonProperty("authenticate_user_path")
-  private String authenticateUserPath;
-
-  @JsonProperty("add_provider_path")
-  private String addProviderPath;
-
-  @JsonProperty("send_provider_details")
-  private Boolean sendProviderDetails;
+  @JsonProperty("template_params")
+  private Map<String, String> templateParams;
 }

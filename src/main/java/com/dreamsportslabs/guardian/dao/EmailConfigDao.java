@@ -1,18 +1,20 @@
 package com.dreamsportslabs.guardian.dao;
 
-import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.CREATE_USER_CONFIG;
-import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.DELETE_USER_CONFIG;
-import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.GET_USER_CONFIG;
-import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.UPDATE_USER_CONFIG;
+import static com.dreamsportslabs.guardian.dao.query.EmailConfigQuery.CREATE_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.dao.query.EmailConfigQuery.DELETE_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.dao.query.EmailConfigQuery.GET_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.dao.query.EmailConfigQuery.UPDATE_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.EMAIL_CONFIG_ALREADY_EXISTS;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.TENANT_NOT_FOUND;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_CONFIG_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.utils.JsonUtils.serializeToJsonString;
 import static com.dreamsportslabs.guardian.utils.SqlUtils.prepareUpdateQuery;
 
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.model.UserConfigModel;
-import com.dreamsportslabs.guardian.dto.request.config.UpdateUserConfigRequestDto;
+import com.dreamsportslabs.guardian.dao.model.EmailConfigModel;
+import com.dreamsportslabs.guardian.dto.request.config.UpdateEmailConfigRequestDto;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -25,42 +27,39 @@ import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class UserConfigDao {
+public class EmailConfigDao {
   private final MysqlClient mysqlClient;
+  private final ObjectMapper objectMapper;
 
-  public Single<UserConfigModel> createUserConfig(UserConfigModel userConfig) {
+  public Single<EmailConfigModel> createEmailConfig(EmailConfigModel emailConfig) {
     Tuple params =
         Tuple.tuple()
-            .addString(userConfig.getTenantId())
-            .addBoolean(userConfig.getIsSslEnabled() != null ? userConfig.getIsSslEnabled() : false)
-            .addString(userConfig.getHost())
-            .addInteger(userConfig.getPort() != null ? userConfig.getPort() : 80)
-            .addString(userConfig.getGetUserPath())
-            .addString(userConfig.getCreateUserPath())
-            .addString(userConfig.getAuthenticateUserPath())
-            .addString(userConfig.getAddProviderPath())
+            .addString(emailConfig.getTenantId())
             .addBoolean(
-                userConfig.getSendProviderDetails() != null
-                    ? userConfig.getSendProviderDetails()
-                    : false);
+                emailConfig.getIsSslEnabled() != null ? emailConfig.getIsSslEnabled() : false)
+            .addString(emailConfig.getHost())
+            .addInteger(emailConfig.getPort() != null ? emailConfig.getPort() : 80)
+            .addString(emailConfig.getSendEmailPath())
+            .addString(emailConfig.getTemplateName())
+            .addString(serializeToJsonString(emailConfig.getTemplateParams(), objectMapper));
     return mysqlClient
         .getWriterPool()
-        .preparedQuery(CREATE_USER_CONFIG)
+        .preparedQuery(CREATE_EMAIL_CONFIG)
         .rxExecute(params)
-        .map(result -> userConfig)
+        .map(result -> emailConfig)
         .onErrorResumeNext(
             err -> {
               if (err instanceof MySQLException mySQLException) {
                 int errorCode = mySQLException.getErrorCode();
                 if (errorCode == 1062) {
                   return Single.error(
-                      USER_CONFIG_ALREADY_EXISTS.getCustomException(
-                          "User config already exists for tenant: " + userConfig.getTenantId()));
+                      EMAIL_CONFIG_ALREADY_EXISTS.getCustomException(
+                          "Email config already exists for tenant: " + emailConfig.getTenantId()));
                 }
                 if (errorCode == 1452) {
                   return Single.error(
                       TENANT_NOT_FOUND.getCustomException(
-                          "Tenant not found: " + userConfig.getTenantId()));
+                          "Tenant not found: " + emailConfig.getTenantId()));
                 }
               }
 
@@ -68,25 +67,25 @@ public class UserConfigDao {
             });
   }
 
-  public Maybe<UserConfigModel> getUserConfig(String tenantId) {
+  public Maybe<EmailConfigModel> getEmailConfig(String tenantId) {
     return mysqlClient
         .getReaderPool()
-        .preparedQuery(GET_USER_CONFIG)
+        .preparedQuery(GET_EMAIL_CONFIG)
         .rxExecute(Tuple.of(tenantId))
         .flatMapMaybe(
             result -> {
               if (result.size() == 0) {
                 return Maybe.empty();
               }
-              return Maybe.just(JsonUtils.rowSetToList(result, UserConfigModel.class).get(0));
+              return Maybe.just(JsonUtils.rowSetToList(result, EmailConfigModel.class).get(0));
             })
         .onErrorResumeNext(err -> Maybe.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 
-  public Completable updateUserConfig(String tenantId, UpdateUserConfigRequestDto updateRequest) {
+  public Completable updateEmailConfig(String tenantId, UpdateEmailConfigRequestDto updateRequest) {
     Pair<String, Tuple> queryAndTuple = prepareUpdateQuery(updateRequest);
     Tuple tuple = queryAndTuple.getRight().addString(tenantId);
-    String query = UPDATE_USER_CONFIG.replace("<<insert_attributes>>", queryAndTuple.getLeft());
+    String query = UPDATE_EMAIL_CONFIG.replace("<<insert_attributes>>", queryAndTuple.getLeft());
 
     return mysqlClient
         .getWriterPool()
@@ -98,18 +97,18 @@ public class UserConfigDao {
               if (err instanceof MySQLException mySQLException
                   && mySQLException.getErrorCode() == 1062) {
                 return Completable.error(
-                    USER_CONFIG_ALREADY_EXISTS.getCustomException(
-                        "User config already exists for tenant"));
+                    EMAIL_CONFIG_ALREADY_EXISTS.getCustomException(
+                        "Email config already exists for tenant"));
               }
 
               return Completable.error(INTERNAL_SERVER_ERROR.getException(err));
             });
   }
 
-  public Single<Boolean> deleteUserConfig(String tenantId) {
+  public Single<Boolean> deleteEmailConfig(String tenantId) {
     return mysqlClient
         .getWriterPool()
-        .preparedQuery(DELETE_USER_CONFIG)
+        .preparedQuery(DELETE_EMAIL_CONFIG)
         .rxExecute(Tuple.of(tenantId))
         .map(result -> result.rowCount() > 0)
         .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)));

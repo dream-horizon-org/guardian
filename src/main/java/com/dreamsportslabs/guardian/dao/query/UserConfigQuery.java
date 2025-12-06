@@ -30,4 +30,3 @@ public final class UserConfigQuery {
             WHERE tenant_id = ?
             """;
 }
-
