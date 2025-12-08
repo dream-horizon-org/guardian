@@ -102,7 +102,7 @@ public class Passwordless {
         .validateFirstPartyClientAndClientScopes(
             tenantId, requestDto.getClientId(), requestDto.getScopes())
         .andThen(passwordlessModel)
-        .flatMap(model -> checkUserNotBlocked(model, tenantId))
+        .flatMap(model -> validateUserBlockStatus(model, tenantId))
         .flatMap(model -> createPasswordlessContext(model, tenantId))
         .flatMap(context -> validateResendLimits(context, state, tenantId))
         .flatMap(model -> sendOtp(model, headers, tenantId))
@@ -110,7 +110,8 @@ public class Passwordless {
         .flatMap(model -> passwordlessDao.setPasswordlessModel(model, tenantId));
   }
 
-  private Single<PasswordlessModel> checkUserNotBlocked(PasswordlessModel model, String tenantId) {
+  private Single<PasswordlessModel> validateUserBlockStatus(
+      PasswordlessModel model, String tenantId) {
     return userFlowBlockService.isUserBlocked(model, tenantId).andThen(Single.just(model));
   }
 
@@ -219,7 +220,9 @@ public class Passwordless {
         .flatMap(
             model -> {
               if (model.getUser().get(USERID) != null) {
-                return Single.just(model);
+                return passwordlessDao
+                    .deleteGlobalResendCount(tenantId, model.getUser().get(USERID).toString())
+                    .andThen(Single.just(model));
               }
 
               UserDto.UserDtoBuilder builder = UserDto.builder();
@@ -241,7 +244,12 @@ public class Passwordless {
                       user -> {
                         model.setUser(user.getMap());
                         return model;
-                      });
+                      })
+                  .flatMapCompletable(
+                      __ ->
+                          passwordlessDao.deleteGlobalResendCount(
+                              tenantId, contact.getIdentifier()))
+                  .andThen(Single.just(model));
             })
         .flatMap(
             model ->

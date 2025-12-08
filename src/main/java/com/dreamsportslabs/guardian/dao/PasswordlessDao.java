@@ -57,7 +57,6 @@ public class PasswordlessDao {
         .map(response -> response.toInteger())
         .flatMap(
             count -> {
-              // Set TTL on first increment to auto-expire after configured window
               if (count == 1) {
                 return redisClient
                     .rxSend(

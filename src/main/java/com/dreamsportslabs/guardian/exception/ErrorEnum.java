@@ -25,13 +25,13 @@ public enum ErrorEnum {
 
   INVALID_STATE("invalid_state", "Invalid state", 400),
   INVALID_CONTACT_FOR_SIGNUP(
-      "invalid_contact_for_signup",
-      "No user is registered with the provided credentials, as a result multichannel OTP cannot be sent. Please try again with only one channel.",
-      400),
+      "invalid_contact_for_signup", "Multichannel OTP is unavailable for new users.", 400),
   RESENDS_EXHAUSTED("resends_exhausted", "Resends exhausted", 400),
   RESEND_NOT_ALLOWED("resends_not_allowed", "Resend triggered too quick, Try again later", 400),
   MAX_RESEND_LIMIT_EXCEEDED(
-      "max_resend_limit_exceeded", "Maximum OTP resend limit exceeded across sessions", 400),
+      "max_resend_limit_exceeded",
+      "Maximum OTP limit exceeded. Try again after the cooldown period.",
+      400),
   INCORRECT_OTP("incorrect_otp", "Incorrect otp", 400),
   RETRIES_EXHAUSTED("retries_exhausted", "Retries exhausted", 400),
 
