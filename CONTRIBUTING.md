@@ -70,7 +70,7 @@ When creating a bug report, please include as many details as possible:
 
 #### Before Submitting a Bug Report
 
-*   **Check the documentation** - The issue might be covered in the [docs](https://guardian.dreamhorizon.org/docs/)
+*   **Check the documentation** - The issue might be covered in the [docs](https://guardianhq.io/docs/)
 
 *   **Check existing issues** - The bug might already be reported
 
@@ -627,7 +627,7 @@ guardian/
 
 ### Getting Help
 
-*   **Documentation**: Check [docs](https://guardian.dreamhorizon.org/docs/) first
+*   **Documentation**: Check [docs](https://guardianhq.io/docs/) first
 
 *   **Discussions**: Ask on [GitHub Discussions](https://github.com/dream-horizon-org/guardian/discussions)
 
@@ -658,7 +658,7 @@ Contributors will be:
 
 If you have questions about contributing:
 
-1.  Check the [documentation](https://guardian.dreamhorizon.org/docs/configuration/configuration/)
+1.  Check the [documentation](https://guardianhq.io/docs)
 
 2.  Search [existing issues](https://github.com/dream-horizon-org/guardian/issues)
 
