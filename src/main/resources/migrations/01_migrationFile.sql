@@ -475,3 +475,25 @@ CREATE TABLE sso_token
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE TABLE config_changelog
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id     CHAR(10)     NOT NULL,
+    config_type   VARCHAR(50)   NOT NULL,
+    operation_type ENUM('INSERT', 'UPDATE', 'DELETE') NOT NULL,
+    changed_by    VARCHAR(100),
+    changed_at    TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    old_values    JSON,
+    new_values    JSON,
+
+    INDEX         `idx_tenant_id` (`tenant_id`),
+    INDEX         `idx_config_type` (`config_type`),
+    INDEX         `idx_changed_at` (`changed_at`),
+    INDEX         `idx_tenant_config_time` (`tenant_id`, `config_type`, `changed_at`),
+
+    CONSTRAINT `fk_config_changelog_tenant` FOREIGN KEY (`tenant_id`)
+        REFERENCES `tenant` (`id`) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;

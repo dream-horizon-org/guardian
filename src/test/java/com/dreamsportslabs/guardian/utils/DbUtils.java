@@ -778,4 +778,48 @@ public class DbUtils {
     }
     return false;
   }
+
+  public static Long insertChangelog(
+      String tenantId,
+      String configType,
+      String operationType,
+      String oldValues,
+      String newValues,
+      String changedBy) {
+    String insertQuery =
+        "INSERT INTO config_changelog (tenant_id, config_type, operation_type, old_values, new_values, changed_by) VALUES (?, ?, ?, ?, ?, ?)";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt =
+            conn.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
+      stmt.setString(1, tenantId);
+      stmt.setString(2, configType);
+      stmt.setString(3, operationType);
+      stmt.setString(4, oldValues);
+      stmt.setString(5, newValues);
+      stmt.setString(6, changedBy);
+      stmt.executeUpdate();
+
+      try (ResultSet rs = stmt.getGeneratedKeys()) {
+        if (rs.next()) {
+          return rs.getLong(1);
+        }
+      }
+    } catch (Exception e) {
+      log.error("Error while inserting changelog", e);
+    }
+    return null;
+  }
+
+  public static void cleanupChangelog(String tenantId) {
+    String deleteQuery = "DELETE FROM config_changelog WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(deleteQuery)) {
+      stmt.setString(1, tenantId);
+      stmt.executeUpdate();
+    } catch (Exception e) {
+      log.error("Error while cleaning up changelog", e);
+    }
+  }
 }

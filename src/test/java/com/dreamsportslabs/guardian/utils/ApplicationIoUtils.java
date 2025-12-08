@@ -577,4 +577,19 @@ public class ApplicationIoUtils {
           return spec.post("/v2/logout");
         });
   }
+
+  public static Response getChangelog(String tenantId, Map<String, String> queryParams) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+
+    return execute(null, headers, queryParams, spec -> spec.get("/v1/admin/config/changelog"));
+  }
+
+  public static Response getChangelogById(String tenantId, Long id) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/changelog/" + id));
+  }
 }
