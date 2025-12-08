@@ -822,4 +822,66 @@ public class DbUtils {
       log.error("Error while cleaning up changelog", e);
     }
   }
+
+  public static void insertTenant(String id, String name) {
+    String insertQuery =
+        "INSERT INTO tenant (id, name) VALUES (?, ?) ON DUPLICATE KEY UPDATE name = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(insertQuery)) {
+      stmt.setString(1, id);
+      stmt.setString(2, name);
+      stmt.setString(3, name);
+      stmt.executeUpdate();
+    } catch (Exception e) {
+      log.error("Error while inserting tenant", e);
+    }
+  }
+
+  public static void deleteTenant(String tenantId) {
+    String deleteQuery = "DELETE FROM tenant WHERE id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(deleteQuery)) {
+      stmt.setString(1, tenantId);
+      stmt.executeUpdate();
+    } catch (Exception e) {
+      log.error("Error while deleting tenant", e);
+    }
+  }
+
+  public static boolean tenantExists(String tenantId) {
+    String selectQuery = "SELECT COUNT(*) as count FROM tenant WHERE id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        return rs.getInt("count") > 0;
+      }
+    } catch (Exception e) {
+      log.error("Error while checking tenant existence", e);
+    }
+    return false;
+  }
+
+  public static JsonObject getTenant(String tenantId) {
+    String selectQuery = "SELECT id, name FROM tenant WHERE id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject tenant = new JsonObject();
+        tenant.put("id", rs.getString("id"));
+        tenant.put("name", rs.getString("name"));
+        return tenant;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting tenant", e);
+    }
+    return null;
+  }
 }
