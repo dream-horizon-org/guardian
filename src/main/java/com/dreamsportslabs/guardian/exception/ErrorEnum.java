@@ -76,7 +76,8 @@ public enum ErrorEnum {
   AUTH_CODE_NOT_CONFIGURED(
       "auth_code_not_configured",
       "Authorization code feature is not configured for this tenant",
-      400);
+      400),
+  CHANGELOG_NOT_FOUND("changelog_not_found", "Changelog not found", 404);
 
   private final String code;
   private final String message;
