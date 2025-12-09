@@ -627,4 +627,18 @@ public class ApplicationIoUtils {
         new HashMap<>(),
         spec -> spec.delete("/v1/admin/config/tenant/" + tenantId));
   }
+
+  public static Response getUserConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/user-config"));
+  }
+
+  public static Response updateUserConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/user-config"));
+  }
 }
