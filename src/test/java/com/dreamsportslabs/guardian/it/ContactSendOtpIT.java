@@ -23,7 +23,9 @@ import static com.dreamsportslabs.guardian.Constants.ERROR_INVALID_STATE;
 import static com.dreamsportslabs.guardian.Constants.ERROR_RESENDS_EXHAUSTED;
 import static com.dreamsportslabs.guardian.Constants.ERROR_RESENDS_NOT_ALLOWED;
 import static com.dreamsportslabs.guardian.Constants.ERROR_SMS_SERVICE;
+import static com.dreamsportslabs.guardian.Constants.HTTP_STATUS_CODE;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.METADATA;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_BODY_PARAM_RESENDS;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_BODY_PARAM_RESENDS_LEFT;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_BODY_PARAM_RESEND_AFTER;
@@ -32,6 +34,7 @@ import static com.dreamsportslabs.guardian.Constants.RESPONSE_BODY_PARAM_STATE;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_BODY_PARAM_TRIES;
 import static com.dreamsportslabs.guardian.constant.Channel.EMAIL;
 import static com.dreamsportslabs.guardian.constant.Channel.SMS;
+import static com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpStatus.SC_UNAUTHORIZED;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
@@ -529,7 +532,7 @@ public class ContactSendOtpIT {
     StubMapping sendSmsStub =
         wireMockServer.stubFor(
             post(urlPathMatching("/sendSms"))
-                .willReturn(aResponse().withStatus(400).withBody("{\"error\":\"bad request\"}")));
+                .willReturn(aResponse().withStatus(401).withBody("{\"error\":\"bad request\"}")));
 
     // Act
     Response response = ApplicationIoUtils.sendOtp(TENANT_ID_NON_MOCKED, body);
@@ -537,9 +540,10 @@ public class ContactSendOtpIT {
     // Validate
     response
         .then()
-        .statusCode(SC_INTERNAL_SERVER_ERROR)
+        .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo(ERROR_SMS_SERVICE));
+        .body(CODE, equalTo(ERROR_SMS_SERVICE))
+        .body(METADATA + "." + HTTP_STATUS_CODE, equalTo(SC_UNAUTHORIZED));
 
     wireMockServer.removeStub(sendSmsStub);
   }
@@ -554,7 +558,7 @@ public class ContactSendOtpIT {
     // Stub the SMS service to return 500
     StubMapping sendSmsStub =
         wireMockServer.stubFor(
-            post(urlPathMatching("/external/sms/send"))
+            post(urlPathMatching("/sendSms"))
                 .willReturn(
                     aResponse().withStatus(500).withBody("{\"error\":\"internal error\"}")));
 
@@ -563,7 +567,12 @@ public class ContactSendOtpIT {
 
     // Validate
     // Todo: Validate if wiremock function is actually called
-    response.then().statusCode(SC_INTERNAL_SERVER_ERROR);
+    response
+        .then()
+        .statusCode(SC_INTERNAL_SERVER_ERROR)
+        .rootPath(ERROR)
+        .body(CODE, equalTo(ERROR_SMS_SERVICE))
+        .body(METADATA + "." + HTTP_STATUS_CODE, equalTo(SC_INTERNAL_SERVER_ERROR));
 
     wireMockServer.removeStub(sendSmsStub);
   }

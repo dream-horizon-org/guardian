@@ -11,9 +11,12 @@ public final class Constants {
   public static final String PROVIDER = "provider";
   public static final String IS_NEW_USER = "isNewUser";
   public static final String SCOPE = "scope";
+  public static final String SCOPE_DELIMITER = " ";
   public static final String AES_ALGORITHM = "AES";
   public static final String AES_CBC_NO_PADDING = "AES/CBC/NoPadding";
   public static final String SHUTDOWN_STATUS = "__shutdown__";
+  public static final String MFA_POLICY_NOT_REQUIRED = "not_required";
+  public static final String MFA_POLICY_MANDATORY = "mandatory";
 
   // HTTP Request Headers
   public static final String AUTHORIZATION = "Authorization";
@@ -126,6 +129,8 @@ public final class Constants {
   public static final String USER_FILTERS_PHONE = "phoneNumber";
   public static final String USER_FILTERS_PROVIDER_NAME = "providerName";
   public static final String USER_FILTERS_PROVIDER_USER_ID = "providerUserId";
+
+  public static final String RESPONSE_BODY_STATUS_CODE = "http_status_code";
 
   public static final String USER_RESPONSE_ADDITIONAL_CLAIMS = "additionalClaims";
   public static final String USER_RESPONSE_OIDC_ADDITIONAL_CLAIMS = "additional_claims";
