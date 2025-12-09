@@ -33,6 +33,7 @@ import com.dreamsportslabs.guardian.config.tenant.UserConfig;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import java.util.List;
@@ -74,27 +75,39 @@ public class ConfigDao {
   private Completable appendAuthCodeConfig(
       String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, AuthCodeConfig.class, AUTH_CODE_CONFIG)
-        .map(builder::authCodeConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.authCodeConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendEmailConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, EmailConfig.class, EMAIL_CONFIG)
-        .map(builder::emailConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.emailConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendOtpConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, OtpConfig.class, OTP_CONFIG)
-        .map(builder::otpConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.otpConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendContactVerifyConfig(
       String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, ContactVerifyConfig.class, CONTACT_VERIFY_CONFIG)
-        .map(builder::contactVerifyConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.contactVerifyConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendUserConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
@@ -111,39 +124,57 @@ public class ConfigDao {
 
   private Completable appendFbConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, FbConfig.class, FB_AUTH_CONFIG)
-        .map(builder::fbConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.fbConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendGoogleConfig(
       String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, GoogleConfig.class, GOOGLE_AUTH_CONFIG)
-        .map(builder::googleConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.googleConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendGuestConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, GuestConfig.class, GUEST_CONFIG)
-        .map(builder::guestConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.guestConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendSmsConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, SmsConfig.class, SMS_CONFIG)
-        .map(builder::smsConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.smsConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendOidcConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, OidcConfig.class, OIDC_CONFIG)
-        .map(builder::oidcConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.oidcConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendAdminConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, AdminConfig.class, ADMIN_CONFIG)
-        .map(builder::adminConfig)
-        .ignoreElement();
+        .flatMapCompletable(
+            config -> {
+              builder.adminConfig(config);
+              return Completable.complete();
+            });
   }
 
   private Completable appendOidcProviderConfig(
@@ -168,19 +199,19 @@ public class ConfigDao {
         .map(rows -> JsonUtils.rowSetToList(rows, configType).get(0));
   }
 
-  private <T> Single<T> getOptionalConfigFromDb(
-      String tenantId, Class<T> configType, String query) {
+  private <T> Maybe<T> getOptionalConfigFromDb(String tenantId, Class<T> configType, String query) {
     return mysqlClient
         .getReaderPool()
         .preparedQuery(query)
         .execute(Tuple.of(tenantId))
-        .flatMap(
+        .flatMapMaybe(
             rows -> {
               if (rows.size() > 0) {
-                return Single.just(JsonUtils.rowSetToList(rows, configType).get(0));
+                return Maybe.just(JsonUtils.rowSetToList(rows, configType).get(0));
               }
-              return Single.never();
-            });
+              return Maybe.empty();
+            })
+        .onErrorResumeNext(throwable -> Maybe.empty());
   }
 
   private <T> Single<List<T>> getOptionalMultipleConfigFromDb(

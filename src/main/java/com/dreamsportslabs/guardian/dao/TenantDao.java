@@ -1,6 +1,8 @@
 package com.dreamsportslabs.guardian.dao;
 
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.CREATE_TENANT;
+import static com.dreamsportslabs.guardian.dao.query.TenantQuery.CREATE_TOKEN_CONFIG;
+import static com.dreamsportslabs.guardian.dao.query.TenantQuery.CREATE_USER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.DELETE_TENANT;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.GET_TENANT;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.GET_TENANT_BY_NAME;
@@ -16,6 +18,8 @@ import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.mysqlclient.MySQLException;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
@@ -115,5 +119,59 @@ public class TenantDao {
         .rxExecute(Tuple.of(tenantId))
         .map(result -> result.rowCount() > 0)
         .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)));
+  }
+
+  public Completable createDefaultUserConfig(JsonObject userConfig) {
+    String tenantId = userConfig.getString("tenant_id");
+
+    Tuple params =
+        Tuple.tuple()
+            .addString(tenantId)
+            .addBoolean(userConfig.getBoolean("is_ssl_enabled"))
+            .addString(userConfig.getString("host"))
+            .addInteger(userConfig.getInteger("port"))
+            .addString(userConfig.getString("get_user_path"))
+            .addString(userConfig.getString("create_user_path"))
+            .addString(userConfig.getString("authenticate_user_path"))
+            .addString(userConfig.getString("add_provider_path"))
+            .addBoolean(userConfig.getBoolean("send_provider_details"));
+
+    return mysqlClient
+        .getWriterPool()
+        .preparedQuery(CREATE_USER_CONFIG)
+        .rxExecute(params)
+        .ignoreElement()
+        .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
+  }
+
+  public Completable createDefaultTokenConfig(JsonObject tokenConfig) {
+    String tenantId = tokenConfig.getString("tenant_id");
+    JsonArray rsaKeys = tokenConfig.getJsonArray("rsa_keys");
+    JsonArray idTokenClaims = tokenConfig.getJsonArray("id_token_claims");
+    JsonArray accessTokenClaims = tokenConfig.getJsonArray("access_token_claims");
+
+    Tuple params =
+        Tuple.tuple()
+            .addString(tenantId)
+            .addString(tokenConfig.getString("algorithm"))
+            .addString(tokenConfig.getString("issuer"))
+            .addString(rsaKeys.encode())
+            .addInteger(tokenConfig.getInteger("access_token_expiry"))
+            .addInteger(tokenConfig.getInteger("refresh_token_expiry"))
+            .addInteger(tokenConfig.getInteger("id_token_expiry"))
+            .addString(idTokenClaims.encode())
+            .addString(tokenConfig.getString("cookie_same_site"))
+            .addString(tokenConfig.getString("cookie_domain"))
+            .addString(tokenConfig.getString("cookie_path"))
+            .addBoolean(tokenConfig.getBoolean("cookie_secure"))
+            .addBoolean(tokenConfig.getBoolean("cookie_http_only"))
+            .addString(accessTokenClaims.encode());
+
+    return mysqlClient
+        .getWriterPool()
+        .preparedQuery(CREATE_TOKEN_CONFIG)
+        .rxExecute(params)
+        .ignoreElement()
+        .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 }
