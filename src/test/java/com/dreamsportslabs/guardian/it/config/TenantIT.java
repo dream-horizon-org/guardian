@@ -10,7 +10,11 @@ import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.getTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.getTenantByName;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.updateTenant;
 import static com.dreamsportslabs.guardian.utils.DbUtils.cleanupChangelog;
+import static com.dreamsportslabs.guardian.utils.DbUtils.getTokenConfig;
+import static com.dreamsportslabs.guardian.utils.DbUtils.getUserConfig;
 import static com.dreamsportslabs.guardian.utils.DbUtils.tenantExists;
+import static com.dreamsportslabs.guardian.utils.DbUtils.tokenConfigExists;
+import static com.dreamsportslabs.guardian.utils.DbUtils.userConfigExists;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
@@ -21,6 +25,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.dreamsportslabs.guardian.utils.DbUtils;
 import io.restassured.response.Response;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -61,6 +67,74 @@ public class TenantIT {
     assertThat(response.jsonPath().getString("id"), equalTo(testTenantId));
     assertThat(response.jsonPath().getString("name"), equalTo(testTenantName));
     assertThat(tenantExists(testTenantId), equalTo(true));
+  }
+
+  @Test
+  @DisplayName("Should create default user_config when tenant is created")
+  public void testCreateTenantWithDefaultUserConfig() {
+    Map<String, Object> requestBody = new HashMap<>();
+    requestBody.put("id", testTenantId);
+    requestBody.put("name", testTenantName);
+
+    Response response = createTenant(requestBody);
+
+    response.then().statusCode(SC_CREATED);
+    assertThat(userConfigExists(testTenantId), equalTo(true));
+
+    JsonObject userConfig = getUserConfig(testTenantId);
+    assertThat(userConfig, org.hamcrest.Matchers.notNullValue());
+    assertThat(userConfig.getString("tenant_id"), equalTo(testTenantId));
+    assertThat(userConfig.getBoolean("is_ssl_enabled"), equalTo(false));
+    assertThat(userConfig.getString("host"), equalTo("control-tower.dream11.local"));
+    assertThat(userConfig.getInteger("port"), equalTo(80));
+    assertThat(userConfig.getString("get_user_path"), equalTo("/users/validate"));
+    assertThat(userConfig.getString("create_user_path"), equalTo("/users"));
+    assertThat(userConfig.getString("authenticate_user_path"), equalTo("/api/user/validate"));
+    assertThat(userConfig.getString("add_provider_path"), equalTo(""));
+    assertThat(userConfig.getBoolean("send_provider_details"), equalTo(false));
+  }
+
+  @Test
+  @DisplayName("Should create default token_config when tenant is created")
+  public void testCreateTenantWithDefaultTokenConfig() {
+    Map<String, Object> requestBody = new HashMap<>();
+    requestBody.put("id", testTenantId);
+    requestBody.put("name", testTenantName);
+
+    Response response = createTenant(requestBody);
+
+    response.then().statusCode(SC_CREATED);
+    assertThat(tokenConfigExists(testTenantId), equalTo(true));
+
+    JsonObject tokenConfig = getTokenConfig(testTenantId);
+    assertThat(tokenConfig, org.hamcrest.Matchers.notNullValue());
+    assertThat(tokenConfig.getString("tenant_id"), equalTo(testTenantId));
+    assertThat(tokenConfig.getString("algorithm"), equalTo("RS512"));
+    assertThat(tokenConfig.getString("issuer"), equalTo("https://dream11.local"));
+    assertThat(tokenConfig.getInteger("access_token_expiry"), equalTo(900));
+    assertThat(tokenConfig.getInteger("refresh_token_expiry"), equalTo(2592000));
+    assertThat(tokenConfig.getInteger("id_token_expiry"), equalTo(36000));
+    assertThat(tokenConfig.getString("cookie_same_site"), equalTo("NONE"));
+    assertThat(tokenConfig.getString("cookie_domain"), equalTo(""));
+    assertThat(tokenConfig.getString("cookie_path"), equalTo("/"));
+    assertThat(tokenConfig.getBoolean("cookie_secure"), equalTo(false));
+    assertThat(tokenConfig.getBoolean("cookie_http_only"), equalTo(true));
+
+    JsonArray rsaKeys = new JsonArray(tokenConfig.getString("rsa_keys"));
+    assertThat(rsaKeys.size(), equalTo(1));
+    JsonObject rsaKey = rsaKeys.getJsonObject(0);
+    assertThat(rsaKey.getString("kid"), org.hamcrest.Matchers.notNullValue());
+    assertThat(rsaKey.getString("public_key"), org.hamcrest.Matchers.notNullValue());
+    assertThat(rsaKey.getString("private_key"), org.hamcrest.Matchers.notNullValue());
+    assertThat(rsaKey.getBoolean("current"), equalTo(true));
+
+    JsonArray idTokenClaims = new JsonArray(tokenConfig.getString("id_token_claims"));
+    assertThat(idTokenClaims.size(), equalTo(2));
+    assertThat(idTokenClaims.contains("userId"), equalTo(true));
+    assertThat(idTokenClaims.contains("emailId"), equalTo(true));
+
+    JsonArray accessTokenClaims = new JsonArray(tokenConfig.getString("access_token_claims"));
+    assertThat(accessTokenClaims.size(), equalTo(0));
   }
 
   @Test
