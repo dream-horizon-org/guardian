@@ -35,7 +35,6 @@ import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.TENANT_NOT_FOUND;
 
-import com.dreamsportslabs.guardian.dao.ChangelogDao;
 import com.dreamsportslabs.guardian.dao.TenantDao;
 import com.dreamsportslabs.guardian.dao.model.TenantModel;
 import com.dreamsportslabs.guardian.dao.model.TokenConfigModel;
@@ -60,7 +59,7 @@ public class TenantService {
       new JsonArray().add(DEFAULT_ID_TOKEN_CLAIM_USER_ID).add(DEFAULT_ID_TOKEN_CLAIM_EMAIL_ID);
 
   private final TenantDao tenantDao;
-  private final ChangelogDao changelogDao;
+  private final ChangelogService changelogService;
   private final RsaKeyPairGeneratorService rsaKeyPairGeneratorService;
 
   public Single<TenantModel> createTenant(CreateTenantRequestDto requestDto) {
@@ -71,7 +70,14 @@ public class TenantService {
         .createTenant(tenantModel)
         .flatMap(
             createdTenant ->
-                logTenantChange(createdTenant.getId(), OPERATION_INSERT, null, createdTenant)
+                changelogService
+                    .logConfigChange(
+                        createdTenant.getId(),
+                        CONFIG_TYPE_TENANT,
+                        OPERATION_INSERT,
+                        null,
+                        createdTenant,
+                        createdTenant.getId())
                     .andThen(createMandatoryConfigs(createdTenant.getId()))
                     .andThen(Single.just(createdTenant)));
   }
@@ -84,7 +90,9 @@ public class TenantService {
     UserConfigModel userConfig = buildDefaultUserConfig(tenantId);
     return tenantDao
         .createDefaultUserConfig(userConfig)
-        .andThen(logConfigCreation(tenantId, CONFIG_TYPE_USER_CONFIG, userConfig));
+        .andThen(
+            changelogService.logConfigChange(
+                tenantId, CONFIG_TYPE_USER_CONFIG, OPERATION_INSERT, null, userConfig, tenantId));
   }
 
   private UserConfigModel buildDefaultUserConfig(String tenantId) {
@@ -105,7 +113,9 @@ public class TenantService {
     TokenConfigModel tokenConfig = buildDefaultTokenConfig(tenantId);
     return tenantDao
         .createDefaultTokenConfig(tokenConfig)
-        .andThen(logConfigCreation(tenantId, CONFIG_TYPE_TOKEN_CONFIG, tokenConfig));
+        .andThen(
+            changelogService.logConfigChange(
+                tenantId, CONFIG_TYPE_TOKEN_CONFIG, OPERATION_INSERT, null, tokenConfig, tenantId));
   }
 
   private TokenConfigModel buildDefaultTokenConfig(String tenantId) {
@@ -162,12 +172,6 @@ public class TenantService {
     return DEFAULT_ID_TOKEN_CLAIMS_ARRAY.copy();
   }
 
-  private Completable logConfigCreation(String tenantId, String configType, Object config) {
-    JsonObject configJson = JsonObject.mapFrom(config);
-    return changelogDao.logConfigChange(
-        tenantId, configType, OPERATION_INSERT, null, configJson, tenantId);
-  }
-
   public Single<TenantModel> getTenant(String tenantId) {
     return tenantDao
         .getTenant(tenantId)
@@ -185,27 +189,21 @@ public class TenantService {
         .getTenant(tenantId)
         .switchIfEmpty(Single.error(TENANT_NOT_FOUND.getException()))
         .flatMap(
-            oldTenant -> {
-              JsonObject oldValues = JsonObject.mapFrom(oldTenant);
-              return tenantDao
-                  .updateTenant(tenantId, requestDto.getName())
-                  .andThen(getTenant(tenantId))
-                  .flatMap(
-                      newTenant ->
-                          logTenantChange(tenantId, OPERATION_UPDATE, oldValues, newTenant)
-                              .andThen(Single.just(newTenant)));
-            });
-  }
-
-  private Completable logTenantChange(
-      String tenantId, String operation, JsonObject oldValues, TenantModel newTenant) {
-    return changelogDao.logConfigChange(
-        tenantId,
-        CONFIG_TYPE_TENANT,
-        operation,
-        oldValues,
-        JsonObject.mapFrom(newTenant),
-        tenantId);
+            oldTenant ->
+                tenantDao
+                    .updateTenant(tenantId, requestDto.getName())
+                    .andThen(getTenant(tenantId))
+                    .flatMap(
+                        newTenant ->
+                            changelogService
+                                .logConfigChange(
+                                    tenantId,
+                                    CONFIG_TYPE_TENANT,
+                                    OPERATION_UPDATE,
+                                    oldTenant,
+                                    newTenant,
+                                    tenantId)
+                                .andThen(Single.just(newTenant))));
   }
 
   public Completable deleteTenant(String tenantId) {

@@ -3,15 +3,13 @@ package com.dreamsportslabs.guardian.service;
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_USER_CONFIG;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
-import com.dreamsportslabs.guardian.dao.ChangelogDao;
 import com.dreamsportslabs.guardian.dao.UserConfigDao;
 import com.dreamsportslabs.guardian.dao.model.UserConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateUserConfigRequestDto;
 import com.google.inject.Inject;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
 public class UserConfigService {
   private final UserConfigDao userConfigDao;
-  private final ChangelogDao changelogDao;
+  private final ChangelogService changelogService;
 
   public Single<UserConfigModel> getUserConfig(String tenantId) {
     return userConfigDao
@@ -40,7 +38,14 @@ public class UserConfigService {
                   .andThen(getUserConfig(tenantId))
                   .flatMap(
                       newConfig ->
-                          logConfigUpdate(tenantId, oldConfig, newConfig)
+                          changelogService
+                              .logConfigChange(
+                                  tenantId,
+                                  CONFIG_TYPE_USER_CONFIG,
+                                  OPERATION_UPDATE,
+                                  oldConfig,
+                                  newConfig,
+                                  tenantId)
                               .andThen(Single.just(newConfig)));
             });
   }
@@ -60,20 +65,5 @@ public class UserConfigService {
         .sendProviderDetails(
             coalesce(requestDto.getSendProviderDetails(), oldConfig.getSendProviderDetails()))
         .build();
-  }
-
-  private <T> T coalesce(T newValue, T oldValue) {
-    return newValue != null ? newValue : oldValue;
-  }
-
-  private Completable logConfigUpdate(
-      String tenantId, UserConfigModel oldConfig, UserConfigModel newConfig) {
-    return changelogDao.logConfigChange(
-        tenantId,
-        CONFIG_TYPE_USER_CONFIG,
-        OPERATION_UPDATE,
-        JsonObject.mapFrom(oldConfig),
-        JsonObject.mapFrom(newConfig),
-        tenantId);
   }
 }

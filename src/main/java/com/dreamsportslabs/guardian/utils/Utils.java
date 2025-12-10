@@ -184,4 +184,8 @@ public final class Utils {
       throw ErrorEnum.DECRYPTION_FAILED.getException();
     }
   }
+
+  public static <T> T coalesce(T newValue, T oldValue) {
+    return newValue != null ? newValue : oldValue;
+  }
 }

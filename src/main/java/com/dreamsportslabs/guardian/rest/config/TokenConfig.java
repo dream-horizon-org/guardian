@@ -1,11 +1,9 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import com.dreamsportslabs.guardian.dao.model.TokenConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTokenConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.TokenConfigResponseDto;
 import com.dreamsportslabs.guardian.service.TokenConfigService;
 import com.google.inject.Inject;
-import io.vertx.core.json.JsonArray;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -29,7 +27,7 @@ public class TokenConfig {
   public CompletionStage<Response> getTokenConfig(@HeaderParam("tenant-id") String tenantId) {
     return tokenConfigService
         .getTokenConfig(tenantId)
-        .map(this::mapToResponseDto)
+        .map(TokenConfigResponseDto::from)
         .map(config -> Response.ok(config).build())
         .toCompletionStage();
   }
@@ -42,37 +40,8 @@ public class TokenConfig {
     requestDto.validate();
     return tokenConfigService
         .updateTokenConfig(tenantId, requestDto)
-        .map(this::mapToResponseDto)
+        .map(TokenConfigResponseDto::from)
         .map(config -> Response.ok(config).build())
         .toCompletionStage();
-  }
-
-  private TokenConfigResponseDto mapToResponseDto(TokenConfigModel model) {
-    JsonArray rsaKeysArray = new JsonArray(model.getRsaKeys());
-    JsonArray idTokenClaimsArray = new JsonArray(model.getIdTokenClaims());
-    JsonArray accessTokenClaimsArray = new JsonArray(model.getAccessTokenClaims());
-
-    return TokenConfigResponseDto.builder()
-        .tenantId(model.getTenantId())
-        .algorithm(model.getAlgorithm())
-        .issuer(model.getIssuer())
-        .rsaKeys(rsaKeysArray.getList())
-        .accessTokenExpiry(model.getAccessTokenExpiry())
-        .refreshTokenExpiry(model.getRefreshTokenExpiry())
-        .idTokenExpiry(model.getIdTokenExpiry())
-        .idTokenClaims(
-            idTokenClaimsArray.stream()
-                .map(item -> item instanceof String ? (String) item : item.toString())
-                .toList())
-        .cookieSameSite(model.getCookieSameSite())
-        .cookieDomain(model.getCookieDomain())
-        .cookiePath(model.getCookiePath())
-        .cookieSecure(model.getCookieSecure())
-        .cookieHttpOnly(model.getCookieHttpOnly())
-        .accessTokenClaims(
-            accessTokenClaimsArray.stream()
-                .map(item -> item instanceof String ? (String) item : item.toString())
-                .toList())
-        .build();
   }
 }
