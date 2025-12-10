@@ -121,12 +121,21 @@ public class TenantIT {
     assertThat(tokenConfig.getBoolean("cookie_http_only"), equalTo(true));
 
     JsonArray rsaKeys = new JsonArray(tokenConfig.getString("rsa_keys"));
-    assertThat(rsaKeys.size(), equalTo(1));
-    JsonObject rsaKey = rsaKeys.getJsonObject(0);
-    assertThat(rsaKey.getString("kid"), org.hamcrest.Matchers.notNullValue());
-    assertThat(rsaKey.getString("public_key"), org.hamcrest.Matchers.notNullValue());
-    assertThat(rsaKey.getString("private_key"), org.hamcrest.Matchers.notNullValue());
-    assertThat(rsaKey.getBoolean("current"), equalTo(true));
+    assertThat(rsaKeys.size(), equalTo(3));
+
+    JsonObject firstRsaKey = rsaKeys.getJsonObject(0);
+    assertThat(firstRsaKey.getString("kid"), org.hamcrest.Matchers.notNullValue());
+    assertThat(firstRsaKey.getString("public_key"), org.hamcrest.Matchers.notNullValue());
+    assertThat(firstRsaKey.getString("private_key"), org.hamcrest.Matchers.notNullValue());
+    assertThat(firstRsaKey.getBoolean("current"), equalTo(true));
+
+    for (int i = 1; i < 3; i++) {
+      JsonObject rsaKey = rsaKeys.getJsonObject(i);
+      assertThat(rsaKey.getString("kid"), org.hamcrest.Matchers.notNullValue());
+      assertThat(rsaKey.getString("public_key"), org.hamcrest.Matchers.notNullValue());
+      assertThat(rsaKey.getString("private_key"), org.hamcrest.Matchers.notNullValue());
+      assertThat(rsaKey.containsKey("current"), equalTo(false));
+    }
 
     JsonArray idTokenClaims = new JsonArray(tokenConfig.getString("id_token_claims"));
     assertThat(idTokenClaims.size(), equalTo(2));
