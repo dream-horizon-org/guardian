@@ -3,16 +3,14 @@ package com.dreamsportslabs.guardian.service;
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.TOKEN_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
-import com.dreamsportslabs.guardian.dao.ChangelogDao;
 import com.dreamsportslabs.guardian.dao.TokenConfigDao;
 import com.dreamsportslabs.guardian.dao.model.TokenConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTokenConfigRequestDto;
 import com.google.inject.Inject;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
 public class TokenConfigService {
   private final TokenConfigDao tokenConfigDao;
-  private final ChangelogDao changelogDao;
+  private final ChangelogService changelogService;
 
   public Single<TokenConfigModel> getTokenConfig(String tenantId) {
     return tokenConfigDao
@@ -41,7 +39,14 @@ public class TokenConfigService {
                   .andThen(getTokenConfig(tenantId))
                   .flatMap(
                       newConfig ->
-                          logConfigUpdate(tenantId, oldConfig, newConfig)
+                          changelogService
+                              .logConfigChange(
+                                  tenantId,
+                                  CONFIG_TYPE_TOKEN_CONFIG,
+                                  OPERATION_UPDATE,
+                                  oldConfig,
+                                  newConfig,
+                                  tenantId)
                               .andThen(Single.just(newConfig)));
             });
   }
@@ -77,22 +82,7 @@ public class TokenConfigService {
         .build();
   }
 
-  private <T> T coalesce(T newValue, T oldValue) {
-    return newValue != null ? newValue : oldValue;
-  }
-
   private String encodeJsonArray(java.util.List<?> list) {
     return new JsonArray(list).encode();
-  }
-
-  private Completable logConfigUpdate(
-      String tenantId, TokenConfigModel oldConfig, TokenConfigModel newConfig) {
-    return changelogDao.logConfigChange(
-        tenantId,
-        CONFIG_TYPE_TOKEN_CONFIG,
-        OPERATION_UPDATE,
-        JsonObject.mapFrom(oldConfig),
-        JsonObject.mapFrom(newConfig),
-        tenantId);
   }
 }

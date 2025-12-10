@@ -213,6 +213,7 @@ public final class Constants {
   // Config Changelog Operation Types
   public static final String OPERATION_INSERT = "INSERT";
   public static final String OPERATION_UPDATE = "UPDATE";
+  public static final String OPERATION_DELETE = "DELETE";
 
   // Config Types
   public static final String CONFIG_TYPE_TENANT = "tenant";

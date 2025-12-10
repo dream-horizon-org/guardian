@@ -1,6 +1,5 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import com.dreamsportslabs.guardian.dao.model.TenantModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateTenantRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTenantRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.TenantResponseDto;
@@ -35,7 +34,7 @@ public class Tenant {
     requestDto.validate();
     return tenantService
         .createTenant(requestDto)
-        .map(this::mapToResponseDto)
+        .map(TenantResponseDto::from)
         .map(tenant -> Response.status(Response.Status.CREATED).entity(tenant).build())
         .toCompletionStage();
   }
@@ -46,7 +45,7 @@ public class Tenant {
   public CompletionStage<Response> getTenant(@PathParam("tenantId") String tenantId) {
     return tenantService
         .getTenant(tenantId)
-        .map(this::mapToResponseDto)
+        .map(TenantResponseDto::from)
         .map(tenant -> Response.ok(tenant).build())
         .toCompletionStage();
   }
@@ -56,7 +55,7 @@ public class Tenant {
   public CompletionStage<Response> getTenantByName(@QueryParam("name") String name) {
     return tenantService
         .getTenantByName(name)
-        .map(this::mapToResponseDto)
+        .map(TenantResponseDto::from)
         .map(tenant -> Response.ok(tenant).build())
         .toCompletionStage();
   }
@@ -70,7 +69,7 @@ public class Tenant {
     requestDto.validate();
     return tenantService
         .updateTenant(tenantId, requestDto)
-        .map(this::mapToResponseDto)
+        .map(TenantResponseDto::from)
         .map(tenant -> Response.ok(tenant).build())
         .toCompletionStage();
   }
@@ -82,9 +81,5 @@ public class Tenant {
         .deleteTenant(tenantId)
         .andThen(Single.just(Response.noContent().build()))
         .toCompletionStage();
-  }
-
-  private TenantResponseDto mapToResponseDto(TenantModel model) {
-    return TenantResponseDto.builder().id(model.getId()).name(model.getName()).build();
   }
 }

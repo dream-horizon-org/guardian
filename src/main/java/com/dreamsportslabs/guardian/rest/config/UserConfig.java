@@ -1,6 +1,5 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import com.dreamsportslabs.guardian.dao.model.UserConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateUserConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.UserConfigResponseDto;
 import com.dreamsportslabs.guardian.service.UserConfigService;
@@ -28,7 +27,7 @@ public class UserConfig {
   public CompletionStage<Response> getUserConfig(@HeaderParam("tenant-id") String tenantId) {
     return userConfigService
         .getUserConfig(tenantId)
-        .map(this::mapToResponseDto)
+        .map(UserConfigResponseDto::from)
         .map(config -> Response.ok(config).build())
         .toCompletionStage();
   }
@@ -41,22 +40,8 @@ public class UserConfig {
     requestDto.validate();
     return userConfigService
         .updateUserConfig(tenantId, requestDto)
-        .map(this::mapToResponseDto)
+        .map(UserConfigResponseDto::from)
         .map(config -> Response.ok(config).build())
         .toCompletionStage();
-  }
-
-  private UserConfigResponseDto mapToResponseDto(UserConfigModel model) {
-    return UserConfigResponseDto.builder()
-        .tenantId(model.getTenantId())
-        .isSslEnabled(model.getIsSslEnabled())
-        .host(model.getHost())
-        .port(model.getPort())
-        .getUserPath(model.getGetUserPath())
-        .createUserPath(model.getCreateUserPath())
-        .authenticateUserPath(model.getAuthenticateUserPath())
-        .addProviderPath(model.getAddProviderPath())
-        .sendProviderDetails(model.getSendProviderDetails())
-        .build();
   }
 }

@@ -191,4 +191,8 @@ public final class Utils {
           "tenant-id header must match tenant_id in request body");
     }
   }
+
+  public static <T> T coalesce(T newValue, T oldValue) {
+    return newValue != null ? newValue : oldValue;
+  }
 }

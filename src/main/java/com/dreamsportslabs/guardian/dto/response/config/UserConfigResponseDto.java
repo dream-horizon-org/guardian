@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dto.response.config;
 
+import com.dreamsportslabs.guardian.dao.model.UserConfigModel;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,4 +34,18 @@ public class UserConfigResponseDto {
 
   @JsonProperty("send_provider_details")
   private Boolean sendProviderDetails;
+
+  public static UserConfigResponseDto from(UserConfigModel model) {
+    return UserConfigResponseDto.builder()
+        .tenantId(model.getTenantId())
+        .isSslEnabled(model.getIsSslEnabled())
+        .host(model.getHost())
+        .port(model.getPort())
+        .getUserPath(model.getGetUserPath())
+        .createUserPath(model.getCreateUserPath())
+        .authenticateUserPath(model.getAuthenticateUserPath())
+        .addProviderPath(model.getAddProviderPath())
+        .sendProviderDetails(model.getSendProviderDetails())
+        .build();
+  }
 }
