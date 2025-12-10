@@ -75,39 +75,27 @@ public class ConfigDao {
   private Completable appendAuthCodeConfig(
       String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, AuthCodeConfig.class, AUTH_CODE_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.authCodeConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::authCodeConfig)
+        .ignoreElement();
   }
 
   private Completable appendEmailConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, EmailConfig.class, EMAIL_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.emailConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::emailConfig)
+        .ignoreElement();
   }
 
   private Completable appendOtpConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, OtpConfig.class, OTP_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.otpConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::otpConfig)
+        .ignoreElement();
   }
 
   private Completable appendContactVerifyConfig(
       String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, ContactVerifyConfig.class, CONTACT_VERIFY_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.contactVerifyConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::contactVerifyConfig)
+        .ignoreElement();
   }
 
   private Completable appendUserConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
@@ -124,57 +112,39 @@ public class ConfigDao {
 
   private Completable appendFbConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, FbConfig.class, FB_AUTH_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.fbConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::fbConfig)
+        .ignoreElement();
   }
 
   private Completable appendGoogleConfig(
       String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, GoogleConfig.class, GOOGLE_AUTH_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.googleConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::googleConfig)
+        .ignoreElement();
   }
 
   private Completable appendGuestConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, GuestConfig.class, GUEST_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.guestConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::guestConfig)
+        .ignoreElement();
   }
 
   private Completable appendSmsConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, SmsConfig.class, SMS_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.smsConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::smsConfig)
+        .ignoreElement();
   }
 
   private Completable appendOidcConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, OidcConfig.class, OIDC_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.oidcConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::oidcConfig)
+        .ignoreElement();
   }
 
   private Completable appendAdminConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, AdminConfig.class, ADMIN_CONFIG)
-        .flatMapCompletable(
-            config -> {
-              builder.adminConfig(config);
-              return Completable.complete();
-            });
+        .map(builder::adminConfig)
+        .ignoreElement();
   }
 
   private Completable appendOidcProviderConfig(
