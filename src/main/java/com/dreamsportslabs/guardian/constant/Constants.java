@@ -219,6 +219,7 @@ public final class Constants {
   public static final String CONFIG_TYPE_TENANT = "tenant";
   public static final String CONFIG_TYPE_USER_CONFIG = "user_config";
   public static final String CONFIG_TYPE_TOKEN_CONFIG = "token_config";
+  public static final String CONFIG_TYPE_EMAIL_CONFIG = "email_config";
 
   // MySQL Error Codes
   public static final int MYSQL_ERROR_CODE_DUPLICATE_ENTRY = 1062;

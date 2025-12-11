@@ -1075,4 +1075,30 @@ public class DbUtils {
     }
     return null;
   }
+
+  public static JsonObject getEmailConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_ssl_enabled, host, port, send_email_path, template_name, template_params "
+            + "FROM email_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject emailConfig = new JsonObject();
+        emailConfig.put("tenant_id", rs.getString("tenant_id"));
+        emailConfig.put("is_ssl_enabled", rs.getBoolean("is_ssl_enabled"));
+        emailConfig.put("host", rs.getString("host"));
+        emailConfig.put("port", rs.getInt("port"));
+        emailConfig.put("send_email_path", rs.getString("send_email_path"));
+        emailConfig.put("template_name", rs.getString("template_name"));
+        emailConfig.put("template_params", rs.getString("template_params"));
+        return emailConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting email_config", e);
+    }
+    return null;
+  }
 }
