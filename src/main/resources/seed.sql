@@ -27,7 +27,3 @@ insert into credentials (tenant_id, client_id, user_id, device_id, platform, cre
 UPDATE client SET mfa_policy = 'not_required', allowed_mfa_methods = JSON_ARRAY() WHERE tenant_id = 'tenant1' AND client_id = 'client-id';
 UPDATE client SET mfa_policy = 'mandatory', allowed_mfa_methods = JSON_ARRAY('password', 'pin', 'sms-otp', 'email-otp') WHERE tenant_id = 'tenant1' AND client_id = 'client1';
 UPDATE client SET mfa_policy = 'not_required', allowed_mfa_methods = JSON_ARRAY('password', 'pin', 'sms-otp', 'email-otp') WHERE tenant_id = 'tenant1' AND client_id = 'client2';
-
-UPDATE client SET mfa_policy = 'not_required', allowed_mfa_methods = JSON_ARRAY() WHERE tenant_id = 'tenant1' AND client_id = 'client-id';
-UPDATE client SET mfa_policy = 'mandatory', allowed_mfa_methods = JSON_ARRAY('password', 'pin', 'sms-otp', 'email-otp') WHERE tenant_id = 'tenant1' AND client_id = 'client1';
-UPDATE client SET mfa_policy = 'not_required', allowed_mfa_methods = JSON_ARRAY('password', 'pin', 'sms-otp', 'email-otp') WHERE tenant_id = 'tenant1' AND client_id = 'client2';

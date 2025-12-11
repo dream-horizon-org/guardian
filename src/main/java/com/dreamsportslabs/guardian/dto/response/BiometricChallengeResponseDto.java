@@ -1,22 +1,17 @@
 package com.dreamsportslabs.guardian.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class BiometricChallengeResponseDto {
-  @JsonProperty("state")
   private String state;
 
-  @JsonProperty("challenge")
   private String challenge;
 
-  @JsonProperty("expires_in")
   private Integer expiresIn;
 }

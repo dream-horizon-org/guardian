@@ -13,6 +13,16 @@ public class BiometricCryptoUtils {
   private static final String EC_ALGORITHM = "EC";
   private static final String SIGNATURE_ALGORITHM = "SHA256withECDSA";
 
+  private static final KeyFactory EC_KEY_FACTORY;
+
+  static {
+    try {
+      EC_KEY_FACTORY = KeyFactory.getInstance(EC_ALGORITHM);
+    } catch (java.security.NoSuchAlgorithmException e) {
+      throw new RuntimeException("EC algorithm not available", e);
+    }
+  }
+
   public static PublicKey convertPemPublicKeyToPublicKey(String pemPublicKey) {
     try {
       String publicKeyContent =
@@ -25,8 +35,7 @@ public class BiometricCryptoUtils {
 
       java.security.spec.X509EncodedKeySpec keySpec =
           new java.security.spec.X509EncodedKeySpec(keyBytes);
-      KeyFactory keyFactory = KeyFactory.getInstance(EC_ALGORITHM);
-      return keyFactory.generatePublic(keySpec);
+      return EC_KEY_FACTORY.generatePublic(keySpec);
     } catch (Exception e) {
       log.error("Failed to convert PEM public key", e);
       throw INVALID_PUBLIC_KEY.getCustomException(

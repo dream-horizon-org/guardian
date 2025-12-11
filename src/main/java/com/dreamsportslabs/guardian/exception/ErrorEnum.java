@@ -66,6 +66,10 @@ public enum ErrorEnum {
   CHALLENGE_NOT_FOUND("challenge_not_found", "No active challenge found or challenge expired", 400),
   CREDENTIAL_NOT_FOUND(
       "credential_not_found", "No biometric credentials found for the provided credential_id", 404),
+  CREDENTIAL_REVOKED(
+      "credential_revoked",
+      "The biometric credential has been revoked and is no longer active",
+      403),
   INVALID_ENCODING("invalid_encoding", "Invalid signature encoding", 400);
   private final String code;
   private final String message;

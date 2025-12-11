@@ -2,7 +2,6 @@ package com.dreamsportslabs.guardian.service;
 
 import static com.dreamsportslabs.guardian.constant.Constants.BIOMETRIC_ALG_ES256;
 import static com.dreamsportslabs.guardian.constant.Constants.BIOMETRIC_BINDING_TYPE_APPKEY;
-import static com.dreamsportslabs.guardian.constant.Constants.TOKEN;
 import static com.dreamsportslabs.guardian.constant.Constants.USERID;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.CHALLENGE_NOT_FOUND;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.CREDENTIAL_NOT_FOUND;
@@ -11,7 +10,6 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_PUBLIC_KE
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_SIGNATURE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_STATE;
 import static com.dreamsportslabs.guardian.utils.Utils.getCurrentTimeInSeconds;
-import static com.dreamsportslabs.guardian.utils.Utils.getIpFromHeaders;
 import static com.dreamsportslabs.guardian.utils.Utils.isValidBase64;
 
 import com.dreamsportslabs.guardian.constant.AuthMethod;
@@ -23,14 +21,14 @@ import com.dreamsportslabs.guardian.dao.model.RefreshTokenModel;
 import com.dreamsportslabs.guardian.dto.request.BiometricChallengeRequestDto;
 import com.dreamsportslabs.guardian.dto.request.BiometricCompleteRequestDto;
 import com.dreamsportslabs.guardian.dto.request.DeviceMetadataDto;
-import com.dreamsportslabs.guardian.dto.request.MetaInfo;
 import com.dreamsportslabs.guardian.dto.response.BiometricChallengeResponseDto;
+import com.dreamsportslabs.guardian.dto.response.BiometricTokenResponseDto;
 import com.dreamsportslabs.guardian.utils.BiometricCryptoUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -38,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
@@ -59,23 +56,20 @@ public class BiometricService {
         .validateRefreshToken(tenantId, requestDto.getClientId(), requestDto.getRefreshToken())
         .flatMap(
             refreshTokenModel -> {
-              byte[] challengeBytes = new byte[CHALLENGE_SIZE_BYTES];
-              new java.security.SecureRandom().nextBytes(challengeBytes);
-              String challenge = Base64.getEncoder().encodeToString(challengeBytes);
+              byte[] challengeBytes =
+                  java.security.SecureRandom.getInstanceStrong().generateSeed(CHALLENGE_SIZE_BYTES);
 
-              String state = RandomStringUtils.randomAlphanumeric(10);
-
-              long expiry = getCurrentTimeInSeconds() + CHALLENGE_EXPIRY_SECONDS;
+              byte[] stateBytes = java.security.SecureRandom.getInstanceStrong().generateSeed(16);
 
               BiometricChallengeModel challengeModel =
                   BiometricChallengeModel.builder()
-                      .state(state)
-                      .challenge(challenge)
+                      .state(Base64.getUrlEncoder().withoutPadding().encodeToString(stateBytes))
+                      .challenge(Base64.getEncoder().encodeToString(challengeBytes))
                       .clientId(requestDto.getClientId())
                       .userId(refreshTokenModel.getUserId())
                       .deviceMetadata(requestDto.getDeviceMetadata())
                       .refreshToken(requestDto.getRefreshToken())
-                      .expiry(expiry)
+                      .expiry(getCurrentTimeInSeconds() + CHALLENGE_EXPIRY_SECONDS)
                       .build();
 
               return biometricChallengeDao
@@ -90,7 +84,7 @@ public class BiometricService {
             });
   }
 
-  public Single<Object> completeBiometric(
+  public Single<BiometricTokenResponseDto> completeBiometric(
       BiometricCompleteRequestDto requestDto,
       MultivaluedMap<String, String> headers,
       String tenantId) {
@@ -100,6 +94,13 @@ public class BiometricService {
         .switchIfEmpty(Single.error(CHALLENGE_NOT_FOUND.getException()))
         .flatMap(
             challengeModel -> {
+              // Validate challenge has not expired (defense in depth - Redis TTL is primary)
+              if (challengeModel.getExpiry() != null
+                  && challengeModel.getExpiry() <= getCurrentTimeInSeconds()) {
+                return Single.error(
+                    CHALLENGE_NOT_FOUND.getCustomException("Challenge has expired"));
+              }
+
               if (!challengeModel.getClientId().equals(requestDto.getClientId())) {
                 return Single.error(
                     INVALID_STATE.getCustomException(
@@ -130,7 +131,7 @@ public class BiometricService {
             });
   }
 
-  private Single<Object> handleRegistrationFlow(
+  private Single<BiometricTokenResponseDto> handleRegistrationFlow(
       BiometricCompleteRequestDto requestDto,
       BiometricChallengeModel challengeModel,
       RefreshTokenModel refreshTokenModel,
@@ -143,46 +144,39 @@ public class BiometricService {
               "Invalid signature encoding. Expected Base64 DER-encoded signature."));
     }
 
-    return verifySignature(
-            requestDto.getPublicKey(), challengeModel.getChallenge(), requestDto.getSignature())
-        .flatMap(
-            publicKey -> {
-              DeviceMetadataDto deviceMetadata = requestDto.getDeviceMetadata();
-              CredentialsModel credentialModel =
-                  CredentialsModel.builder()
-                      .tenantId(tenantId)
-                      .clientId(challengeModel.getClientId())
-                      .userId(challengeModel.getUserId())
-                      .deviceId(deviceMetadata != null ? deviceMetadata.getDeviceId() : null)
-                      .platform(deviceMetadata != null ? deviceMetadata.getPlatform() : null)
-                      .credentialId(requestDto.getCredentialId())
-                      .publicKey(requestDto.getPublicKey())
-                      .bindingType(BIOMETRIC_BINDING_TYPE_APPKEY)
-                      .alg(BIOMETRIC_ALG_ES256)
-                      .signCount(0L)
-                      .aaguid(null)
-                      .build();
+    try {
+      verifySignature(
+          requestDto.getPublicKey(), challengeModel.getChallenge(), requestDto.getSignature());
+    } catch (WebApplicationException e) {
+      return Single.error(e);
+    }
 
-              List<AuthMethod> combinedAuthMethods =
-                  combineAuthMethods(
-                      refreshTokenModel.getAuthMethod(), AuthMethod.HARDWARE_KEY_PROOF);
+    DeviceMetadataDto deviceMetadata = requestDto.getDeviceMetadata();
+    CredentialsModel credentialModel =
+        CredentialsModel.builder()
+            .tenantId(tenantId)
+            .clientId(challengeModel.getClientId())
+            .userId(challengeModel.getUserId())
+            .deviceId(deviceMetadata.getDeviceId())
+            .platform(deviceMetadata.getPlatform())
+            .credentialId(requestDto.getCredentialId())
+            .publicKey(requestDto.getPublicKey())
+            .bindingType(BIOMETRIC_BINDING_TYPE_APPKEY)
+            .alg(BIOMETRIC_ALG_ES256)
+            .signCount(0L)
+            .aaguid(null)
+            .build();
 
-              MetaInfo metaInfo = createMetaInfo(requestDto.getDeviceMetadata(), headers);
+    List<AuthMethod> combinedAuthMethods =
+        combineAuthMethods(refreshTokenModel.getAuthMethod(), AuthMethod.HARDWARE_KEY_PROOF);
 
-              return credentialsDao
-                  .upsertCredential(credentialModel)
-                  .andThen(
-                      generateTokensForUser(
-                          refreshTokenModel, headers, tenantId, combinedAuthMethods, metaInfo))
-                  .doFinally(
-                      () ->
-                          biometricChallengeDao
-                              .deleteChallenge(requestDto.getState(), tenantId)
-                              .subscribe());
-            });
+    return credentialsDao
+        .insertCredential(credentialModel)
+        .andThen(generateTokensForUser(refreshTokenModel, headers, tenantId, combinedAuthMethods))
+        .doFinally(() -> biometricChallengeDao.deleteChallenge(requestDto.getState(), tenantId));
   }
 
-  private Single<Object> handleLoginFlow(
+  private Single<BiometricTokenResponseDto> handleLoginFlow(
       BiometricCompleteRequestDto requestDto,
       BiometricChallengeModel challengeModel,
       RefreshTokenModel refreshTokenModel,
@@ -200,39 +194,31 @@ public class BiometricService {
             tenantId,
             challengeModel.getClientId(),
             challengeModel.getUserId(),
-            requestDto.getCredentialId())
+            requestDto.getDeviceMetadata().getDeviceId())
         .switchIfEmpty(Single.error(CREDENTIAL_NOT_FOUND.getException()))
         .flatMap(
-            credentialModel ->
+            credentialModel -> {
+              try {
                 verifySignature(
-                        credentialModel.getPublicKey(),
-                        challengeModel.getChallenge(),
-                        requestDto.getSignature())
-                    .flatMap(
-                        publicKey -> {
-                          // sign_count is always 0 for native biometric login - no DB update needed
-                          List<AuthMethod> combinedAuthMethods =
-                              combineAuthMethods(
-                                  refreshTokenModel.getAuthMethod(), AuthMethod.HARDWARE_KEY_PROOF);
+                    credentialModel.getPublicKey(),
+                    challengeModel.getChallenge(),
+                    requestDto.getSignature());
+              } catch (WebApplicationException e) {
+                return Single.error(e);
+              }
 
-                          MetaInfo metaInfo =
-                              createMetaInfo(requestDto.getDeviceMetadata(), headers);
+              List<AuthMethod> combinedAuthMethods =
+                  combineAuthMethods(
+                      refreshTokenModel.getAuthMethod(), AuthMethod.HARDWARE_KEY_PROOF);
 
-                          return generateTokensForUser(
-                                  refreshTokenModel,
-                                  headers,
-                                  tenantId,
-                                  combinedAuthMethods,
-                                  metaInfo)
-                              .doFinally(
-                                  () ->
-                                      biometricChallengeDao
-                                          .deleteChallenge(requestDto.getState(), tenantId)
-                                          .subscribe());
-                        }));
+              return generateTokensForUser(
+                      refreshTokenModel, headers, tenantId, combinedAuthMethods)
+                  .doFinally(
+                      () -> biometricChallengeDao.deleteChallenge(requestDto.getState(), tenantId));
+            });
   }
 
-  private Single<PublicKey> verifySignature(
+  private void verifySignature(
       String publicKeyPem, String challengeBase64, String signatureBase64) {
     try {
       byte[] challengeBytes = Base64.getDecoder().decode(challengeBase64);
@@ -243,17 +229,16 @@ public class BiometricService {
           BiometricCryptoUtils.verifySignature(publicKey, challengeBytes, signatureBase64);
 
       if (!isValid) {
-        return Single.error(INVALID_SIGNATURE.getCustomException("Signature verification failed"));
+        throw INVALID_SIGNATURE.getCustomException("Signature verification failed");
       }
-
-      return Single.just(publicKey);
     } catch (IllegalArgumentException e) {
       log.error("Failed to decode challenge", e);
-      return Single.error(INVALID_ENCODING.getCustomException("Invalid challenge encoding"));
+      throw INVALID_ENCODING.getCustomException("Invalid challenge encoding");
+    } catch (WebApplicationException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Failed to verify signature", e);
-      return Single.error(
-          INVALID_PUBLIC_KEY.getCustomException("Invalid public key format: " + e.getMessage()));
+      throw INVALID_PUBLIC_KEY.getCustomException("Invalid public key format: " + e.getMessage());
     }
   }
 
@@ -267,42 +252,35 @@ public class BiometricService {
 
     authMethodSet.add(newAuthMethod);
 
-    return new ArrayList<>(authMethodSet);
+    return List.copyOf(authMethodSet);
   }
 
-  private Single<Object> generateTokensForUser(
+  private Single<BiometricTokenResponseDto> generateTokensForUser(
       RefreshTokenModel refreshTokenModel,
       MultivaluedMap<String, String> headers,
       String tenantId,
-      List<AuthMethod> authMethods,
-      MetaInfo metaInfo) {
+      List<AuthMethod> authMethods) {
 
     return userService
         .getUser(Map.of(USERID, refreshTokenModel.getUserId()), headers, tenantId)
         .flatMap(
-            userResponse -> {
-              String scopes = String.join(" ", refreshTokenModel.getScope());
-              return authorizationService.generate(
-                  userResponse,
-                  TOKEN,
-                  scopes,
-                  authMethods,
-                  metaInfo,
-                  refreshTokenModel.getClientId(),
-                  tenantId);
-            });
-  }
-
-  private MetaInfo createMetaInfo(
-      DeviceMetadataDto deviceMetadata, MultivaluedMap<String, String> headers) {
-    MetaInfo metaInfo = new MetaInfo();
-
-    if (deviceMetadata != null && StringUtils.isNotBlank(deviceMetadata.getDeviceName())) {
-      metaInfo.setDeviceName(deviceMetadata.getDeviceName());
-    }
-
-    metaInfo.setIp(getIpFromHeaders(headers));
-
-    return metaInfo;
+            userResponse ->
+                authorizationService.generateMfaSignInTokens(
+                    userResponse,
+                    refreshTokenModel.getRefreshToken(),
+                    refreshTokenModel.getScope(),
+                    authMethods,
+                    refreshTokenModel.getClientId(),
+                    tenantId))
+        .map(
+            tokenResponse ->
+                new BiometricTokenResponseDto(
+                    tokenResponse.getAccessToken(),
+                    tokenResponse.getRefreshToken(),
+                    tokenResponse.getIdToken(),
+                    tokenResponse.getTokenType(),
+                    tokenResponse.getExpiresIn(),
+                    tokenResponse.getIsNewUser(),
+                    tokenResponse.getMfaFactors()));
   }
 }

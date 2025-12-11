@@ -3,7 +3,6 @@ package com.dreamsportslabs.guardian.rest;
 import static com.dreamsportslabs.guardian.constant.Constants.TENANT_ID;
 
 import com.dreamsportslabs.guardian.dto.request.BiometricCompleteRequestDto;
-import com.dreamsportslabs.guardian.dto.response.TokenResponseDto;
 import com.dreamsportslabs.guardian.service.AuthorizationService;
 import com.dreamsportslabs.guardian.service.BiometricService;
 import com.dreamsportslabs.guardian.utils.Utils;
@@ -18,6 +17,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import java.util.concurrent.CompletionStage;
 import lombok.RequiredArgsConstructor;
@@ -40,15 +40,16 @@ public class BiometricComplete {
     return biometricService
         .completeBiometric(requestDto, headers.getRequestHeaders(), tenantId)
         .map(
-            response -> {
-              if (response instanceof TokenResponseDto tokenResponse) {
-                return Response.ok(Utils.convertKeysToSnakeCase(JsonObject.mapFrom(tokenResponse)))
-                    .cookie(authorizationService.getCookies(tokenResponse, tenantId))
-                    .build();
-              } else {
-                return Response.ok(Utils.convertKeysToSnakeCase(JsonObject.mapFrom(response)))
-                    .build();
-              }
+            tokenResponse -> {
+              NewCookie accessTokenCookie =
+                  authorizationService.getAccessTokenCookie(
+                      tokenResponse.getAccessToken(), tenantId);
+              NewCookie refreshTokenCookie =
+                  authorizationService.getRefreshTokenCookie(
+                      tokenResponse.getRefreshToken(), tenantId);
+              return Response.ok(Utils.convertKeysToSnakeCase(JsonObject.mapFrom(tokenResponse)))
+                  .cookie(accessTokenCookie, refreshTokenCookie)
+                  .build();
             })
         .toCompletionStage();
   }

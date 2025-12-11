@@ -7,7 +7,6 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_E
 import com.dreamsportslabs.guardian.dao.model.BiometricChallengeModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.redis.client.Command;
@@ -50,10 +49,8 @@ public class BiometricChallengeDao {
             });
   }
 
-  public Completable deleteChallenge(String state, String tenantId) {
-    return redisClient
-        .rxSend(Request.cmd(Command.DEL).arg(getCacheKey(tenantId, state)))
-        .ignoreElement();
+  public void deleteChallenge(String state, String tenantId) {
+    redisClient.rxSend(Request.cmd(Command.DEL).arg(getCacheKey(tenantId, state))).subscribe();
   }
 
   private String getCacheKey(String tenantId, String state) {
