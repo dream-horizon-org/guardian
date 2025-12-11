@@ -14,4 +14,6 @@ public class BiometricChallengeResponseDto {
   private String challenge;
 
   private Integer expiresIn;
+
+  private String credentialId;
 }

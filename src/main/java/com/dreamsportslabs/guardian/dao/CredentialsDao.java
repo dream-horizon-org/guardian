@@ -54,38 +54,38 @@ public class CredentialsDao {
     Tuple revokeParams =
         Tuple.of(model.getTenantId(), model.getClientId(), model.getUserId(), model.getDeviceId());
 
+    Tuple insertParams =
+        Tuple.tuple()
+            .addString(model.getTenantId())
+            .addString(model.getClientId())
+            .addString(model.getUserId())
+            .addString(model.getDeviceId())
+            .addString(model.getPlatform())
+            .addString(model.getCredentialId())
+            .addString(model.getPublicKey())
+            .addString(model.getBindingType())
+            .addInteger(model.getAlg())
+            .addLong(model.getSignCount())
+            .addString(model.getAaguid());
+
     return mysqlClient
         .getWriterPool()
-        .preparedQuery(REVOKE_ACTIVE_CREDENTIALS_FOR_USER_DEVICE)
-        .rxExecute(revokeParams)
+        .rxWithTransaction(
+            client ->
+                client
+                    .preparedQuery(REVOKE_ACTIVE_CREDENTIALS_FOR_USER_DEVICE)
+                    .rxExecute(revokeParams)
+                    .flatMapMaybe(
+                        resp ->
+                            client
+                                .preparedQuery(INSERT_CREDENTIAL)
+                                .rxExecute(insertParams)
+                                .toMaybe()))
         .onErrorResumeNext(
             err -> {
-              log.error("Failed to revoke existing credentials for user device", err);
-              return Single.error(INTERNAL_SERVER_ERROR.getException(err));
+              log.error("Failed to revoke or insert credential in transaction", err);
+              return Maybe.error(INTERNAL_SERVER_ERROR.getException(err));
             })
-        .ignoreElement()
-        .andThen(
-            mysqlClient
-                .getWriterPool()
-                .preparedQuery(INSERT_CREDENTIAL)
-                .rxExecute(
-                    Tuple.tuple()
-                        .addString(model.getTenantId())
-                        .addString(model.getClientId())
-                        .addString(model.getUserId())
-                        .addString(model.getDeviceId())
-                        .addString(model.getPlatform())
-                        .addString(model.getCredentialId())
-                        .addString(model.getPublicKey())
-                        .addString(model.getBindingType())
-                        .addInteger(model.getAlg())
-                        .addLong(model.getSignCount())
-                        .addString(model.getAaguid()))
-                .onErrorResumeNext(
-                    err -> {
-                      log.error("Failed to insert credential", err);
-                      return Single.error(INTERNAL_SERVER_ERROR.getException(err));
-                    })
-                .ignoreElement());
+        .ignoreElement();
   }
 }

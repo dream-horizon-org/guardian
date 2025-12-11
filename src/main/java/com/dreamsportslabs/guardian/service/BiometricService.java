@@ -72,15 +72,25 @@ public class BiometricService {
                       .expiry(getCurrentTimeInSeconds() + CHALLENGE_EXPIRY_SECONDS)
                       .build();
 
-              return biometricChallengeDao
-                  .saveChallenge(challengeModel, tenantId)
-                  .map(
-                      model ->
-                          BiometricChallengeResponseDto.builder()
-                              .state(model.getState())
-                              .challenge(model.getChallenge())
-                              .expiresIn(CHALLENGE_EXPIRY_SECONDS)
-                              .build());
+              String deviceId = requestDto.getDeviceMetadata().getDeviceId();
+
+              return Single.zip(
+                  biometricChallengeDao.saveChallenge(challengeModel, tenantId),
+                  credentialsDao
+                      .getCredential(
+                          tenantId,
+                          requestDto.getClientId(),
+                          refreshTokenModel.getUserId(),
+                          deviceId)
+                      .map(CredentialsModel::getCredentialId)
+                      .defaultIfEmpty((String) null),
+                  (model, credentialId) ->
+                      BiometricChallengeResponseDto.builder()
+                          .state(model.getState())
+                          .challenge(model.getChallenge())
+                          .expiresIn(CHALLENGE_EXPIRY_SECONDS)
+                          .credentialId(credentialId)
+                          .build());
             });
   }
 
