@@ -30,11 +30,10 @@ import io.reactivex.rxjava3.core.Single;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.Base64;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -269,15 +268,19 @@ public class BiometricService {
 
   private List<AuthMethod> combineAuthMethods(
       List<AuthMethod> existingAuthMethods, AuthMethod newAuthMethod) {
-    Set<AuthMethod> authMethodSet = new LinkedHashSet<>();
 
-    if (existingAuthMethods != null && !existingAuthMethods.isEmpty()) {
-      authMethodSet.addAll(existingAuthMethods);
+    if (existingAuthMethods == null || existingAuthMethods.isEmpty()) {
+      return List.of(newAuthMethod);
     }
 
-    authMethodSet.add(newAuthMethod);
+    if (existingAuthMethods.contains(newAuthMethod)) {
+      return List.copyOf(existingAuthMethods);
+    }
 
-    return List.copyOf(authMethodSet);
+    var result = new ArrayList<AuthMethod>(existingAuthMethods.size() + 1);
+    result.addAll(existingAuthMethods);
+    result.add(newAuthMethod);
+    return List.copyOf(result);
   }
 
   private Single<BiometricTokenResponseDto> generateTokensForUser(
