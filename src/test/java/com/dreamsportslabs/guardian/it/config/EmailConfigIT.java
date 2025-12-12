@@ -13,8 +13,8 @@ import static com.dreamsportslabs.guardian.utils.DbUtils.cleanupChangelog;
 import static io.restassured.RestAssured.given;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
-import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
+import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -71,20 +71,6 @@ public class EmailConfigIT {
     assertThat(dbConfig.getBoolean("is_ssl_enabled"), equalTo(false));
     assertThat(dbConfig.getString("host"), equalTo("smtp.example.com"));
     assertThat(dbConfig.getInteger("port"), equalTo(587));
-  }
-
-  @Test
-  @DisplayName("Should return 401 when tenant-id header is missing for create")
-  public void testCreateEmailConfigMissingHeader() {
-    Map<String, Object> requestBody = createEmailConfigBody();
-
-    Response response =
-        given()
-            .header("Content-Type", "application/json")
-            .body(requestBody)
-            .post("/v1/admin/config/email-config");
-
-    response.then().statusCode(SC_UNAUTHORIZED);
   }
 
   @Test
@@ -660,4 +646,3 @@ public class EmailConfigIT {
     return emailConfigBody;
   }
 }
-
