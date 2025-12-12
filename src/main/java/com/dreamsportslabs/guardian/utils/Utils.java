@@ -207,8 +207,8 @@ public final class Utils {
 
   public static void validateTenantIdHeader(String headerTenantId, String bodyTenantId) {
     if (!headerTenantId.equals(bodyTenantId)) {
-      throw ErrorEnum.INVALID_REQUEST
-          .getCustomException("tenant-id header must match tenant_id in request body");
+      throw ErrorEnum.INVALID_REQUEST.getCustomException(
+          "tenant-id header must match tenant_id in request body");
     }
   }
 

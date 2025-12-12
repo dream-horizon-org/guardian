@@ -1,6 +1,8 @@
 package com.dreamsportslabs.guardian.service;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_EMAIL_CONFIG_PORT;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_SSL_ENABLED;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
@@ -80,27 +82,24 @@ public class EmailConfigService {
             oldConfig ->
                 emailConfigDao
                     .deleteEmailConfig(tenantId)
-                    .filter(deleted -> deleted)
-                    .switchIfEmpty(Single.error(EMAIL_CONFIG_NOT_FOUND.getException()))
-                    .flatMapCompletable(
-                        deleted ->
-                            changelogService
-                                .logConfigChange(
-                                    tenantId,
-                                    CONFIG_TYPE_EMAIL_CONFIG,
-                                    OPERATION_DELETE,
-                                    oldConfig,
-                                    null,
-                                    tenantId)
-                                .andThen(Completable.complete())));
+                    .ignoreElement()
+                    .andThen(
+                        changelogService.logConfigChange(
+                            tenantId,
+                            CONFIG_TYPE_EMAIL_CONFIG,
+                            OPERATION_DELETE,
+                            oldConfig,
+                            null,
+                            tenantId)));
   }
 
-  private EmailConfigModel buildEmailConfigFromCreateRequest(CreateEmailConfigRequestDto requestDto) {
+  private EmailConfigModel buildEmailConfigFromCreateRequest(
+      CreateEmailConfigRequestDto requestDto) {
     return EmailConfigModel.builder()
         .tenantId(requestDto.getTenantId())
-        .isSslEnabled(requestDto.getIsSslEnabled())
+        .isSslEnabled(coalesce(requestDto.getIsSslEnabled(), DEFAULT_IS_SSL_ENABLED))
         .host(requestDto.getHost())
-        .port(requestDto.getPort())
+        .port(coalesce(requestDto.getPort(), DEFAULT_EMAIL_CONFIG_PORT))
         .sendEmailPath(requestDto.getSendEmailPath())
         .templateName(requestDto.getTemplateName())
         .templateParams(encodeTemplateParams(requestDto.getTemplateParams()))

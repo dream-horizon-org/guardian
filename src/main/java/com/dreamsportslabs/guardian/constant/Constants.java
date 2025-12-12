@@ -267,4 +267,7 @@ public final class Constants {
   public static final boolean DEFAULT_SEND_PROVIDER_DETAILS = false;
   public static final boolean DEFAULT_COOKIE_SECURE = false;
   public static final boolean DEFAULT_COOKIE_HTTP_ONLY = true;
+
+  // Default Email Config Values
+  public static final int DEFAULT_EMAIL_CONFIG_PORT = 80;
 }

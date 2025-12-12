@@ -1,6 +1,6 @@
 package com.dreamsportslabs.guardian.dao;
 
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_SSL_ENABLED;
+import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
 import static com.dreamsportslabs.guardian.dao.query.EmailConfigQuery.CREATE_EMAIL_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.EmailConfigQuery.DELETE_EMAIL_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.EmailConfigQuery.GET_EMAIL_CONFIG;
@@ -17,6 +17,8 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.mysqlclient.MySQLException;
 import io.vertx.rxjava3.sqlclient.Tuple;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,9 +36,10 @@ public class EmailConfigDao {
         .onErrorResumeNext(
             err -> {
               if (err instanceof MySQLException mySQLException
-                  && mySQLException.getErrorCode() == 1062) {
+                  && mySQLException.getErrorCode() == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
                 return Single.error(
-                    EMAIL_CONFIG_ALREADY_EXISTS.getCustomException("Email config already exists: " + emailConfig.getTenantId()));
+                    EMAIL_CONFIG_ALREADY_EXISTS.getCustomException(
+                        "Email config already exists: " + emailConfig.getTenantId()));
               }
               return Single.error(INTERNAL_SERVER_ERROR.getException(err));
             });
@@ -76,30 +79,30 @@ public class EmailConfigDao {
   }
 
   private Tuple buildCreateParams(EmailConfigModel emailConfig) {
-    return Tuple.tuple()
-        .addString(emailConfig.getTenantId())
-        .addBoolean(
-            emailConfig.getIsSslEnabled() != null
-                ? emailConfig.getIsSslEnabled()
-                : DEFAULT_IS_SSL_ENABLED)
-        .addString(emailConfig.getHost())
-        .addInteger(emailConfig.getPort())
-        .addString(emailConfig.getSendEmailPath())
-        .addString(emailConfig.getTemplateName())
-        .addString(emailConfig.getTemplateParams());
+    Tuple params = Tuple.tuple().addString(emailConfig.getTenantId());
+    for (Object v : buildCommonValues(emailConfig)) {
+      params.addValue(v);
+    }
+    return params;
   }
 
   private Tuple buildUpdateParams(EmailConfigModel emailConfig) {
-    return Tuple.tuple()
-        .addBoolean(
-            emailConfig.getIsSslEnabled() != null
-                ? emailConfig.getIsSslEnabled()
-                : DEFAULT_IS_SSL_ENABLED)
-        .addString(emailConfig.getHost())
-        .addInteger(emailConfig.getPort())
-        .addString(emailConfig.getSendEmailPath())
-        .addString(emailConfig.getTemplateName())
-        .addString(emailConfig.getTemplateParams())
-        .addString(emailConfig.getTenantId());
+    Tuple params = Tuple.tuple();
+    for (Object v : buildCommonValues(emailConfig)) {
+      params.addValue(v);
+    }
+    params.addString(emailConfig.getTenantId());
+    return params;
+  }
+
+  private List<Object> buildCommonValues(EmailConfigModel emailConfig) {
+    List<Object> values = new ArrayList<>();
+    values.add(emailConfig.getIsSslEnabled());
+    values.add(emailConfig.getHost());
+    values.add(emailConfig.getPort());
+    values.add(emailConfig.getSendEmailPath());
+    values.add(emailConfig.getTemplateName());
+    values.add(emailConfig.getTemplateParams());
+    return values;
   }
 }
