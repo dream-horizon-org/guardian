@@ -1,14 +1,37 @@
 package com.dreamsportslabs.guardian.service;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_TOKEN_CONFIG;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_ID_TOKEN_CLAIM_EMAIL_ID;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_ID_TOKEN_CLAIM_USER_ID;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_RSA_KEY_COUNT;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_RSA_KEY_SIZE;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_ACCESS_TOKEN_EXPIRY;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_ALGORITHM;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_COOKIE_DOMAIN;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_COOKIE_HTTP_ONLY;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_COOKIE_PATH;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_COOKIE_SAME_SITE;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_COOKIE_SECURE;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_ID_TOKEN_EXPIRY;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_ISSUER;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_REFRESH_TOKEN_EXPIRY;
+import static com.dreamsportslabs.guardian.constant.Constants.FIRST_RSA_KEY_INDEX;
+import static com.dreamsportslabs.guardian.constant.Constants.FORMAT_PEM;
+import static com.dreamsportslabs.guardian.constant.Constants.JSON_FIELD_CURRENT;
+import static com.dreamsportslabs.guardian.constant.Constants.JSON_FIELD_KID;
+import static com.dreamsportslabs.guardian.constant.Constants.JSON_FIELD_PRIVATE_KEY;
+import static com.dreamsportslabs.guardian.constant.Constants.JSON_FIELD_PUBLIC_KEY;
+import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.TOKEN_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
+import static com.dreamsportslabs.guardian.utils.Utils.generateRsaKeysArray;
 
 import com.dreamsportslabs.guardian.dao.TokenConfigDao;
 import com.dreamsportslabs.guardian.dao.model.TokenConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTokenConfigRequestDto;
 import com.google.inject.Inject;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +40,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
 public class TokenConfigService {
+  private static final String EMPTY_JSON_ARRAY = new JsonArray().encode();
+  private static final JsonArray DEFAULT_ID_TOKEN_CLAIMS_ARRAY =
+      new JsonArray().add(DEFAULT_ID_TOKEN_CLAIM_USER_ID).add(DEFAULT_ID_TOKEN_CLAIM_EMAIL_ID);
+
   private final TokenConfigDao tokenConfigDao;
   private final ChangelogService changelogService;
+  private final RsaKeyPairGeneratorService rsaKeyPairGeneratorService;
+
+  public Completable createDefaultTokenConfig(String tenantId) {
+    TokenConfigModel tokenConfig = buildDefaultTokenConfig(tenantId);
+    return tokenConfigDao
+        .createDefaultTokenConfig(tokenConfig)
+        .andThen(
+            changelogService.logConfigChange(
+                tenantId, CONFIG_TYPE_TOKEN_CONFIG, OPERATION_INSERT, null, tokenConfig, tenantId));
+  }
 
   public Single<TokenConfigModel> getTokenConfig(String tenantId) {
     return tokenConfigDao
@@ -80,6 +117,40 @@ public class TokenConfigService {
                 ? encodeJsonArray(requestDto.getAccessTokenClaims())
                 : oldConfig.getAccessTokenClaims())
         .build();
+  }
+
+  private TokenConfigModel buildDefaultTokenConfig(String tenantId) {
+    return TokenConfigModel.builder()
+        .tenantId(tenantId)
+        .algorithm(DEFAULT_TOKEN_CONFIG_ALGORITHM)
+        .issuer(DEFAULT_TOKEN_CONFIG_ISSUER)
+        .rsaKeys(
+            generateRsaKeysArray(
+                    rsaKeyPairGeneratorService,
+                    DEFAULT_RSA_KEY_COUNT,
+                    FIRST_RSA_KEY_INDEX,
+                    DEFAULT_RSA_KEY_SIZE,
+                    FORMAT_PEM,
+                    JSON_FIELD_KID,
+                    JSON_FIELD_PUBLIC_KEY,
+                    JSON_FIELD_PRIVATE_KEY,
+                    JSON_FIELD_CURRENT)
+                .encode())
+        .accessTokenExpiry(DEFAULT_TOKEN_CONFIG_ACCESS_TOKEN_EXPIRY)
+        .refreshTokenExpiry(DEFAULT_TOKEN_CONFIG_REFRESH_TOKEN_EXPIRY)
+        .idTokenExpiry(DEFAULT_TOKEN_CONFIG_ID_TOKEN_EXPIRY)
+        .idTokenClaims(buildDefaultIdTokenClaims().encode())
+        .cookieSameSite(DEFAULT_TOKEN_CONFIG_COOKIE_SAME_SITE)
+        .cookieDomain(DEFAULT_TOKEN_CONFIG_COOKIE_DOMAIN)
+        .cookiePath(DEFAULT_TOKEN_CONFIG_COOKIE_PATH)
+        .cookieSecure(DEFAULT_TOKEN_CONFIG_COOKIE_SECURE)
+        .cookieHttpOnly(DEFAULT_TOKEN_CONFIG_COOKIE_HTTP_ONLY)
+        .accessTokenClaims(EMPTY_JSON_ARRAY)
+        .build();
+  }
+
+  private JsonArray buildDefaultIdTokenClaims() {
+    return DEFAULT_ID_TOKEN_CLAIMS_ARRAY.copy();
   }
 
   private String encodeJsonArray(java.util.List<?> list) {

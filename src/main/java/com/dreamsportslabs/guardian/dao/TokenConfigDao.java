@@ -2,6 +2,7 @@ package com.dreamsportslabs.guardian.dao;
 
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_COOKIE_HTTP_ONLY;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_COOKIE_SECURE;
+import static com.dreamsportslabs.guardian.dao.query.TokenConfigQuery.CREATE_TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.TokenConfigQuery.GET_TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.TokenConfigQuery.UPDATE_TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
@@ -20,6 +21,32 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
 public class TokenConfigDao {
   private final MysqlClient mysqlClient;
+
+  public Completable createDefaultTokenConfig(TokenConfigModel tokenConfig) {
+    Tuple params =
+        Tuple.tuple()
+            .addString(tokenConfig.getTenantId())
+            .addString(tokenConfig.getAlgorithm())
+            .addString(tokenConfig.getIssuer())
+            .addString(tokenConfig.getRsaKeys())
+            .addInteger(tokenConfig.getAccessTokenExpiry())
+            .addInteger(tokenConfig.getRefreshTokenExpiry())
+            .addInteger(tokenConfig.getIdTokenExpiry())
+            .addString(tokenConfig.getIdTokenClaims())
+            .addString(tokenConfig.getCookieSameSite())
+            .addString(tokenConfig.getCookieDomain())
+            .addString(tokenConfig.getCookiePath())
+            .addBoolean(tokenConfig.getCookieSecure())
+            .addBoolean(tokenConfig.getCookieHttpOnly())
+            .addString(tokenConfig.getAccessTokenClaims());
+
+    return mysqlClient
+        .getWriterPool()
+        .preparedQuery(CREATE_TOKEN_CONFIG)
+        .rxExecute(params)
+        .ignoreElement()
+        .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
+  }
 
   public Maybe<TokenConfigModel> getTokenConfig(String tenantId) {
     return mysqlClient
