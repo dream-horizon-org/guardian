@@ -1,7 +1,5 @@
 package com.dreamsportslabs.guardian.dao;
 
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_SSL_ENABLED;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_SEND_PROVIDER_DETAILS;
 import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.CREATE_USER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.GET_USER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.UPDATE_USER_CONFIG;
@@ -14,6 +12,8 @@ import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.rxjava3.sqlclient.Tuple;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,22 +23,10 @@ public class UserConfigDao {
   private final MysqlClient mysqlClient;
 
   public Completable createDefaultUserConfig(UserConfigModel userConfig) {
-    Tuple params =
-        Tuple.tuple()
-            .addString(userConfig.getTenantId())
-            .addBoolean(userConfig.getIsSslEnabled())
-            .addString(userConfig.getHost())
-            .addInteger(userConfig.getPort())
-            .addString(userConfig.getGetUserPath())
-            .addString(userConfig.getCreateUserPath())
-            .addString(userConfig.getAuthenticateUserPath())
-            .addString(userConfig.getAddProviderPath())
-            .addBoolean(userConfig.getSendProviderDetails());
-
     return mysqlClient
         .getWriterPool()
         .preparedQuery(CREATE_USER_CONFIG)
-        .rxExecute(params)
+        .rxExecute(buildCreateParams(userConfig))
         .ignoreElement()
         .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
@@ -67,22 +55,33 @@ public class UserConfigDao {
         .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 
+  private Tuple buildCreateParams(UserConfigModel userConfig) {
+    Tuple params = Tuple.tuple().addString(userConfig.getTenantId());
+    for (Object v : buildCommonValues(userConfig)) {
+      params.addValue(v);
+    }
+    return params;
+  }
+
   private Tuple buildUpdateParams(UserConfigModel userConfig) {
-    return Tuple.tuple()
-        .addBoolean(
-            userConfig.getIsSslEnabled() != null
-                ? userConfig.getIsSslEnabled()
-                : DEFAULT_IS_SSL_ENABLED)
-        .addString(userConfig.getHost())
-        .addInteger(userConfig.getPort())
-        .addString(userConfig.getGetUserPath())
-        .addString(userConfig.getCreateUserPath())
-        .addString(userConfig.getAuthenticateUserPath())
-        .addString(userConfig.getAddProviderPath())
-        .addBoolean(
-            userConfig.getSendProviderDetails() != null
-                ? userConfig.getSendProviderDetails()
-                : DEFAULT_SEND_PROVIDER_DETAILS)
-        .addString(userConfig.getTenantId());
+    Tuple params = Tuple.tuple();
+    for (Object v : buildCommonValues(userConfig)) {
+      params.addValue(v);
+    }
+    params.addString(userConfig.getTenantId());
+    return params;
+  }
+
+  private List<Object> buildCommonValues(UserConfigModel userConfig) {
+    List<Object> values = new ArrayList<>();
+    values.add(userConfig.getIsSslEnabled());
+    values.add(userConfig.getHost());
+    values.add(userConfig.getPort());
+    values.add(userConfig.getGetUserPath());
+    values.add(userConfig.getCreateUserPath());
+    values.add(userConfig.getAuthenticateUserPath());
+    values.add(userConfig.getAddProviderPath());
+    values.add(userConfig.getSendProviderDetails());
+    return values;
   }
 }

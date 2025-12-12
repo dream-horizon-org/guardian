@@ -14,11 +14,16 @@ import com.dreamsportslabs.guardian.dto.request.GenerateRsaKeyRequestDto;
 import com.dreamsportslabs.guardian.dto.response.RsaKeyResponseDto;
 import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.service.RsaKeyPairGeneratorService;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
 import jakarta.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -251,5 +256,19 @@ public final class Utils {
     }
 
     return rsaKeysArray;
+  }
+
+  public static class JsonToStringDeserializer extends JsonDeserializer<String> {
+    @Override
+    public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+      JsonNode node = p.getCodec().readTree(p);
+      if (node.isNull()) {
+        return null;
+      }
+      if (node.isTextual()) {
+        return node.asText();
+      }
+      return node.toString();
+    }
   }
 }
