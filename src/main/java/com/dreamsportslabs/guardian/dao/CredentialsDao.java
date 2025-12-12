@@ -44,19 +44,7 @@ public class CredentialsDao {
     Tuple revokeParams =
         Tuple.of(model.getTenantId(), model.getClientId(), model.getUserId(), model.getDeviceId());
 
-    Tuple insertParams =
-        Tuple.tuple()
-            .addString(model.getTenantId())
-            .addString(model.getClientId())
-            .addString(model.getUserId())
-            .addString(model.getDeviceId())
-            .addString(model.getPlatform())
-            .addString(model.getCredentialId())
-            .addString(model.getPublicKey())
-            .addString(model.getBindingType())
-            .addInteger(model.getAlg())
-            .addLong(model.getSignCount())
-            .addString(model.getAaguid());
+    Tuple insertParams = buildInsertParams(model);
 
     return mysqlClient
         .getWriterPool()
@@ -77,5 +65,20 @@ public class CredentialsDao {
               return Maybe.error(INTERNAL_SERVER_ERROR.getException(err));
             })
         .ignoreElement();
+  }
+
+  private Tuple buildInsertParams(CredentialsModel model) {
+    return Tuple.tuple()
+        .addString(model.getTenantId())
+        .addString(model.getClientId())
+        .addString(model.getUserId())
+        .addString(model.getDeviceId())
+        .addString(model.getPlatform())
+        .addString(model.getCredentialId())
+        .addString(model.getPublicKey())
+        .addString(model.getBindingType())
+        .addInteger(model.getAlg())
+        .addLong(model.getSignCount())
+        .addString(model.getAaguid());
   }
 }

@@ -494,8 +494,8 @@ CREATE TABLE credentials
     sign_count        BIGINT UNSIGNED NOT NULL DEFAULT 0,
     aaguid            VARCHAR(128)    NULL,
     revoked_at        TIMESTAMP       NULL DEFAULT NULL,
-    is_active         BOOLEAN         GENERATED ALWAYS AS (revoked_at IS NULL) STORED,
-    first_use_complete BOOLEAN        NOT NULL DEFAULT FALSE,
+    is_active         TINYINT(1)         GENERATED ALWAYS AS (revoked_at IS NULL) STORED,
+    first_use_complete TINYINT(1)        NOT NULL DEFAULT 0,
     created_at        TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

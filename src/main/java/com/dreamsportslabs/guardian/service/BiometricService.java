@@ -5,6 +5,7 @@ import static com.dreamsportslabs.guardian.constant.Constants.BIOMETRIC_BINDING_
 import static com.dreamsportslabs.guardian.constant.Constants.USERID;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.CHALLENGE_NOT_FOUND;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.CREDENTIAL_NOT_FOUND;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_ENCODING;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_PUBLIC_KEY;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_SIGNATURE;
@@ -36,7 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
@@ -76,14 +76,8 @@ public class BiometricService {
 
               return Single.zip(
                   biometricChallengeDao.saveChallenge(challengeModel, tenantId),
-                  credentialsDao
-                      .getCredential(
-                          tenantId,
-                          requestDto.getClientId(),
-                          refreshTokenModel.getUserId(),
-                          deviceId)
-                      .map(CredentialsModel::getCredentialId)
-                      .defaultIfEmpty((String) null),
+                  getCredentialId(
+                      tenantId, requestDto.getClientId(), refreshTokenModel.getUserId(), deviceId),
                   (model, credentialId) ->
                       BiometricChallengeResponseDto.builder()
                           .state(model.getState())
@@ -123,21 +117,23 @@ public class BiometricService {
                         "State is invalid as refresh token is not matching"));
               }
 
+              final boolean isRegistration =
+                  requestDto.getPublicKey() != null && !requestDto.getPublicKey().isBlank();
+
               return authorizationService
                   .validateRefreshToken(
                       tenantId, challengeModel.getClientId(), requestDto.getRefreshToken())
                   .flatMap(
-                      refreshTokenModel -> {
-                        boolean isRegistration = StringUtils.isNotBlank(requestDto.getPublicKey());
-
-                        if (isRegistration) {
-                          return handleRegistrationFlow(
-                              requestDto, challengeModel, refreshTokenModel, headers, tenantId);
-                        } else {
-                          return handleLoginFlow(
-                              requestDto, challengeModel, refreshTokenModel, headers, tenantId);
-                        }
-                      });
+                      refreshTokenModel ->
+                          isRegistration
+                              ? handleRegistrationFlow(
+                                  requestDto, challengeModel, refreshTokenModel, headers, tenantId)
+                              : handleLoginFlow(
+                                  requestDto,
+                                  challengeModel,
+                                  refreshTokenModel,
+                                  headers,
+                                  tenantId));
             });
   }
 
@@ -152,13 +148,6 @@ public class BiometricService {
       return Single.error(
           INVALID_ENCODING.getCustomException(
               "Invalid signature encoding. Expected Base64 DER-encoded signature."));
-    }
-
-    try {
-      verifySignature(
-          requestDto.getPublicKey(), challengeModel.getChallenge(), requestDto.getSignature());
-    } catch (WebApplicationException e) {
-      return Single.error(e);
     }
 
     DeviceMetadataDto deviceMetadata = requestDto.getDeviceMetadata();
@@ -177,12 +166,29 @@ public class BiometricService {
             .aaguid(null)
             .build();
 
-    List<AuthMethod> combinedAuthMethods =
-        combineAuthMethods(refreshTokenModel.getAuthMethod(), AuthMethod.HARDWARE_KEY_PROOF);
-
-    return credentialsDao
-        .insertCredential(credentialModel)
-        .andThen(generateTokensForUser(refreshTokenModel, headers, tenantId, combinedAuthMethods))
+    return Single.fromCallable(
+            () -> {
+              verifySignature(
+                  requestDto.getPublicKey(),
+                  challengeModel.getChallenge(),
+                  requestDto.getSignature());
+              return credentialModel;
+            })
+        .onErrorResumeNext(
+            err -> {
+              if (err instanceof WebApplicationException) {
+                return Single.error(err);
+              }
+              return Single.error(INTERNAL_SERVER_ERROR.getException(err));
+            })
+        .flatMapCompletable(credentialsDao::insertCredential)
+        .andThen(
+            generateTokensForUser(
+                refreshTokenModel,
+                headers,
+                tenantId,
+                combineAuthMethods(
+                    refreshTokenModel.getAuthMethod(), AuthMethod.HARDWARE_KEY_PROOF)))
         .doFinally(() -> biometricChallengeDao.deleteChallenge(requestDto.getState(), tenantId));
   }
 
@@ -228,6 +234,14 @@ public class BiometricService {
             });
   }
 
+  private Single<String> getCredentialId(
+      String tenantId, String clientId, String userId, String deviceId) {
+    return credentialsDao
+        .getCredential(tenantId, clientId, userId, deviceId)
+        .map(CredentialsModel::getCredentialId)
+        .switchIfEmpty(Single.just((String) null));
+  }
+
   private void verifySignature(
       String publicKeyPem, String challengeBase64, String signatureBase64) {
     try {
@@ -245,6 +259,7 @@ public class BiometricService {
       log.error("Failed to decode challenge", e);
       throw INVALID_ENCODING.getCustomException("Invalid challenge encoding");
     } catch (WebApplicationException e) {
+      log.error("Signature verification failed with WebApplicationException", e);
       throw e;
     } catch (Exception e) {
       log.error("Failed to verify signature", e);
