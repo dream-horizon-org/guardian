@@ -11,7 +11,6 @@ import com.dreamsportslabs.guardian.utils.JsonUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,24 +26,15 @@ public class CredentialsDao {
         .getReaderPool()
         .preparedQuery(GET_CREDENTIAL_BY_DEVICE_ID)
         .rxExecute(Tuple.of(tenantId, clientId, userId, deviceId))
+        .map(rs -> JsonUtils.rowSetToList(rs, CredentialsModel.class))
+        // take first row if present
+        .flatMapMaybe(list -> list.isEmpty() ? Maybe.empty() : Maybe.just(list.get(0)))
+        // keep only active
+        .filter(c -> Boolean.TRUE.equals(c.getIsActive()))
         .onErrorResumeNext(
             err -> {
               log.error("Failed to get credential", err);
-              return Single.error(INTERNAL_SERVER_ERROR.getException());
-            })
-        .map(result -> JsonUtils.rowSetToList(result, CredentialsModel.class))
-        .flatMapMaybe(
-            credentials -> {
-              // There will always be only one active entry per userId+deviceId pair
-              // Get the first (and only) active credential if it exists
-              if (credentials.isEmpty()) {
-                return Maybe.empty();
-              }
-              CredentialsModel credential = credentials.get(0);
-              if (credential.getIsActive() != null && credential.getIsActive()) {
-                return Maybe.just(credential);
-              }
-              return Maybe.empty();
+              return Maybe.error(INTERNAL_SERVER_ERROR.getException());
             });
   }
 
