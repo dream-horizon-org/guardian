@@ -5,6 +5,17 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public final class TokenConfigQuery {
 
+  public static final String CREATE_TOKEN_CONFIG =
+      """
+            INSERT INTO token_config (
+                tenant_id, algorithm, issuer, rsa_keys,
+                access_token_expiry, refresh_token_expiry, id_token_expiry, id_token_claims,
+                cookie_same_site, cookie_domain, cookie_path, cookie_secure, cookie_http_only,
+                access_token_claims
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+
   public static final String GET_TOKEN_CONFIG =
       """
             SELECT tenant_id, algorithm, issuer, rsa_keys,

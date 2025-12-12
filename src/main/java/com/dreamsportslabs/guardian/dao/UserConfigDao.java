@@ -2,6 +2,7 @@ package com.dreamsportslabs.guardian.dao;
 
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_SSL_ENABLED;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_SEND_PROVIDER_DETAILS;
+import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.CREATE_USER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.GET_USER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.UserConfigQuery.UPDATE_USER_CONFIG;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
@@ -20,6 +21,27 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
 public class UserConfigDao {
   private final MysqlClient mysqlClient;
+
+  public Completable createDefaultUserConfig(UserConfigModel userConfig) {
+    Tuple params =
+        Tuple.tuple()
+            .addString(userConfig.getTenantId())
+            .addBoolean(userConfig.getIsSslEnabled())
+            .addString(userConfig.getHost())
+            .addInteger(userConfig.getPort())
+            .addString(userConfig.getGetUserPath())
+            .addString(userConfig.getCreateUserPath())
+            .addString(userConfig.getAuthenticateUserPath())
+            .addString(userConfig.getAddProviderPath())
+            .addBoolean(userConfig.getSendProviderDetails());
+
+    return mysqlClient
+        .getWriterPool()
+        .preparedQuery(CREATE_USER_CONFIG)
+        .rxExecute(params)
+        .ignoreElement()
+        .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
+  }
 
   public Maybe<UserConfigModel> getUserConfig(String tenantId) {
     return mysqlClient

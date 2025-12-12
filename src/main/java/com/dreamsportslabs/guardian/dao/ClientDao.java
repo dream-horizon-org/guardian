@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dao;
 
+import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
 import static com.dreamsportslabs.guardian.dao.query.ClientQuery.CREATE_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.ClientQuery.DELETE_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.ClientQuery.GET_CLIENT;
@@ -58,7 +59,7 @@ public class ClientDao {
         .onErrorResumeNext(
             err -> {
               if (err instanceof MySQLException mySQLException
-                  && mySQLException.getErrorCode() == 1062) {
+                  && mySQLException.getErrorCode() == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
                 return Single.error(
                     CLIENT_ALREADY_EXISTS.getCustomException(
                         client.getClientName() + " already exists"));

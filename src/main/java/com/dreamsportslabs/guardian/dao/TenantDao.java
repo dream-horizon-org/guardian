@@ -1,8 +1,7 @@
 package com.dreamsportslabs.guardian.dao;
 
+import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.CREATE_TENANT;
-import static com.dreamsportslabs.guardian.dao.query.TenantQuery.CREATE_TOKEN_CONFIG;
-import static com.dreamsportslabs.guardian.dao.query.TenantQuery.CREATE_USER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.DELETE_TENANT;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.GET_TENANT;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.GET_TENANT_BY_NAME;
@@ -13,8 +12,6 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.TENANT_NAME_ALREA
 
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.model.TenantModel;
-import com.dreamsportslabs.guardian.dao.model.TokenConfigModel;
-import com.dreamsportslabs.guardian.dao.model.UserConfigModel;
 import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
 import com.google.inject.Inject;
@@ -40,9 +37,7 @@ public class TenantDao {
         .rxExecute(params)
         .map(result -> tenant)
         .onErrorResumeNext(
-            err ->
-                handleDuplicateTenantError(
-                    err, tenant.getName(), tenant.getId(), TENANT_ALREADY_EXISTS));
+            err -> handleTenantError(err, tenant.getName(), tenant.getId(), TENANT_ALREADY_EXISTS));
   }
 
   public Maybe<TenantModel> getTenant(String tenantId) {
@@ -76,8 +71,7 @@ public class TenantDao {
         .ignoreElement()
         .onErrorResumeNext(
             err ->
-                handleDuplicateTenantError(err, name, tenantId, TENANT_NAME_ALREADY_EXISTS)
-                    .ignoreElement());
+                handleTenantError(err, name, tenantId, TENANT_NAME_ALREADY_EXISTS).ignoreElement());
   }
 
   public Single<Boolean> deleteTenant(String tenantId) {
@@ -89,58 +83,11 @@ public class TenantDao {
         .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 
-  public Completable createDefaultUserConfig(UserConfigModel userConfig) {
-    Tuple params =
-        Tuple.tuple()
-            .addString(userConfig.getTenantId())
-            .addBoolean(userConfig.getIsSslEnabled())
-            .addString(userConfig.getHost())
-            .addInteger(userConfig.getPort())
-            .addString(userConfig.getGetUserPath())
-            .addString(userConfig.getCreateUserPath())
-            .addString(userConfig.getAuthenticateUserPath())
-            .addString(userConfig.getAddProviderPath())
-            .addBoolean(userConfig.getSendProviderDetails());
-
-    return mysqlClient
-        .getWriterPool()
-        .preparedQuery(CREATE_USER_CONFIG)
-        .rxExecute(params)
-        .ignoreElement()
-        .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
-  }
-
-  public Completable createDefaultTokenConfig(TokenConfigModel tokenConfig) {
-    Tuple params =
-        Tuple.tuple()
-            .addString(tokenConfig.getTenantId())
-            .addString(tokenConfig.getAlgorithm())
-            .addString(tokenConfig.getIssuer())
-            .addString(tokenConfig.getRsaKeys())
-            .addInteger(tokenConfig.getAccessTokenExpiry())
-            .addInteger(tokenConfig.getRefreshTokenExpiry())
-            .addInteger(tokenConfig.getIdTokenExpiry())
-            .addString(tokenConfig.getIdTokenClaims())
-            .addString(tokenConfig.getCookieSameSite())
-            .addString(tokenConfig.getCookieDomain())
-            .addString(tokenConfig.getCookiePath())
-            .addBoolean(tokenConfig.getCookieSecure())
-            .addBoolean(tokenConfig.getCookieHttpOnly())
-            .addString(tokenConfig.getAccessTokenClaims());
-
-    return mysqlClient
-        .getWriterPool()
-        .preparedQuery(CREATE_TOKEN_CONFIG)
-        .rxExecute(params)
-        .ignoreElement()
-        .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
-  }
-
-  private <T> Single<T> handleDuplicateTenantError(
+  private <T> Single<T> handleTenantError(
       Throwable err, String name, String tenantId, ErrorEnum defaultError) {
     if (err instanceof MySQLException mySQLException) {
       int errorCode = mySQLException.getErrorCode();
-      if (errorCode == 1062) {
+      if (errorCode == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
         String errorMessage = mySQLException.getMessage();
         if (errorMessage != null && errorMessage.contains("tenant_name")) {
           return Single.error(
