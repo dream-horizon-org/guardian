@@ -59,8 +59,18 @@ public enum ErrorEnum {
   MFA_FACTOR_ALREADY_ENROLLED(
       "mfa_factor_already_enrolled",
       "MFA factor cannot be enrolled as it is already set for the user",
-      400);
+      400),
 
+  INVALID_PUBLIC_KEY("invalid_public_key", "Invalid public key format", 400),
+  INVALID_SIGNATURE("invalid_signature", "Signature verification failed", 401),
+  CHALLENGE_NOT_FOUND("challenge_not_found", "No active challenge found or challenge expired", 400),
+  CREDENTIAL_NOT_FOUND(
+      "credential_not_found", "No biometric credentials found for the provided credential_id", 404),
+  CREDENTIAL_REVOKED(
+      "credential_revoked",
+      "The biometric credential has been revoked and is no longer active",
+      403),
+  INVALID_ENCODING("invalid_encoding", "Invalid signature encoding", 400);
   private final String code;
   private final String message;
   private final int httpStatusCode;
