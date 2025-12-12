@@ -8,7 +8,9 @@ import com.dreamsportslabs.guardian.dto.response.config.ChangelogDetailResponseD
 import com.dreamsportslabs.guardian.dto.response.config.ChangelogResponseDto;
 import com.dreamsportslabs.guardian.dto.response.config.ChangelogSummaryResponseDto;
 import com.google.inject.Inject;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,5 +58,18 @@ public class ChangelogService {
         .changedBy(model.getChangedBy())
         .changedAt(model.getChangedAt())
         .build();
+  }
+
+  public Completable logConfigChange(
+      String tenantId,
+      String configType,
+      String operation,
+      Object oldConfig,
+      Object newConfig,
+      String changedBy) {
+    JsonObject oldValues = oldConfig != null ? JsonObject.mapFrom(oldConfig) : null;
+    JsonObject newValues = newConfig != null ? JsonObject.mapFrom(newConfig) : null;
+    return changelogDao.logConfigChange(
+        tenantId, configType, operation, oldValues, newValues, changedBy);
   }
 }
