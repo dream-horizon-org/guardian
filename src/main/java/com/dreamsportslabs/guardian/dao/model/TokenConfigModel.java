@@ -1,12 +1,11 @@
 package com.dreamsportslabs.guardian.dao.model;
 
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_COOKIE_HTTP_ONLY;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_COOKIE_SECURE;
+import static com.dreamsportslabs.guardian.utils.Utils.JsonToStringDeserializer;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.io.IOException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,24 +35,10 @@ public class TokenConfigModel {
   private String cookieDomain;
   private String cookiePath;
 
-  private Boolean cookieSecure;
+  @Builder.Default private Boolean cookieSecure = DEFAULT_COOKIE_SECURE;
 
-  private Boolean cookieHttpOnly;
+  @Builder.Default private Boolean cookieHttpOnly = DEFAULT_COOKIE_HTTP_ONLY;
 
   @JsonDeserialize(using = JsonToStringDeserializer.class)
   private String accessTokenClaims;
-
-  private static class JsonToStringDeserializer extends JsonDeserializer<String> {
-    @Override
-    public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-      JsonNode node = p.getCodec().readTree(p);
-      if (node.isNull()) {
-        return null;
-      }
-      if (node.isTextual()) {
-        return node.asText();
-      }
-      return node.toString();
-    }
-  }
 }

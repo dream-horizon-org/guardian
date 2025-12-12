@@ -1,7 +1,5 @@
 package com.dreamsportslabs.guardian.dao;
 
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_COOKIE_HTTP_ONLY;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_COOKIE_SECURE;
 import static com.dreamsportslabs.guardian.dao.query.TokenConfigQuery.CREATE_TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.TokenConfigQuery.GET_TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.TokenConfigQuery.UPDATE_TOKEN_CONFIG;
@@ -14,6 +12,8 @@ import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.rxjava3.sqlclient.Tuple;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,27 +23,10 @@ public class TokenConfigDao {
   private final MysqlClient mysqlClient;
 
   public Completable createDefaultTokenConfig(TokenConfigModel tokenConfig) {
-    Tuple params =
-        Tuple.tuple()
-            .addString(tokenConfig.getTenantId())
-            .addString(tokenConfig.getAlgorithm())
-            .addString(tokenConfig.getIssuer())
-            .addString(tokenConfig.getRsaKeys())
-            .addInteger(tokenConfig.getAccessTokenExpiry())
-            .addInteger(tokenConfig.getRefreshTokenExpiry())
-            .addInteger(tokenConfig.getIdTokenExpiry())
-            .addString(tokenConfig.getIdTokenClaims())
-            .addString(tokenConfig.getCookieSameSite())
-            .addString(tokenConfig.getCookieDomain())
-            .addString(tokenConfig.getCookiePath())
-            .addBoolean(tokenConfig.getCookieSecure())
-            .addBoolean(tokenConfig.getCookieHttpOnly())
-            .addString(tokenConfig.getAccessTokenClaims());
-
     return mysqlClient
         .getWriterPool()
         .preparedQuery(CREATE_TOKEN_CONFIG)
-        .rxExecute(params)
+        .rxExecute(buildCreateParams(tokenConfig))
         .ignoreElement()
         .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
@@ -72,27 +55,38 @@ public class TokenConfigDao {
         .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 
+  private Tuple buildCreateParams(TokenConfigModel tokenConfig) {
+    Tuple params = Tuple.tuple().addString(tokenConfig.getTenantId());
+    for (Object v : buildCommonValues(tokenConfig)) {
+      params.addValue(v);
+    }
+    return params;
+  }
+
   private Tuple buildUpdateParams(TokenConfigModel tokenConfig) {
-    return Tuple.tuple()
-        .addString(tokenConfig.getAlgorithm())
-        .addString(tokenConfig.getIssuer())
-        .addString(tokenConfig.getRsaKeys())
-        .addInteger(tokenConfig.getAccessTokenExpiry())
-        .addInteger(tokenConfig.getRefreshTokenExpiry())
-        .addInteger(tokenConfig.getIdTokenExpiry())
-        .addString(tokenConfig.getIdTokenClaims())
-        .addString(tokenConfig.getCookieSameSite())
-        .addString(tokenConfig.getCookieDomain())
-        .addString(tokenConfig.getCookiePath())
-        .addBoolean(
-            tokenConfig.getCookieSecure() != null
-                ? tokenConfig.getCookieSecure()
-                : DEFAULT_COOKIE_SECURE)
-        .addBoolean(
-            tokenConfig.getCookieHttpOnly() != null
-                ? tokenConfig.getCookieHttpOnly()
-                : DEFAULT_COOKIE_HTTP_ONLY)
-        .addString(tokenConfig.getAccessTokenClaims())
-        .addString(tokenConfig.getTenantId());
+    Tuple params = Tuple.tuple();
+    for (Object v : buildCommonValues(tokenConfig)) {
+      params.addValue(v);
+    }
+    params.addString(tokenConfig.getTenantId());
+    return params;
+  }
+
+  private List<Object> buildCommonValues(TokenConfigModel tokenConfig) {
+    List<Object> values = new ArrayList<>();
+    values.add(tokenConfig.getAlgorithm());
+    values.add(tokenConfig.getIssuer());
+    values.add(tokenConfig.getRsaKeys());
+    values.add(tokenConfig.getAccessTokenExpiry());
+    values.add(tokenConfig.getRefreshTokenExpiry());
+    values.add(tokenConfig.getIdTokenExpiry());
+    values.add(tokenConfig.getIdTokenClaims());
+    values.add(tokenConfig.getCookieSameSite());
+    values.add(tokenConfig.getCookieDomain());
+    values.add(tokenConfig.getCookiePath());
+    values.add(tokenConfig.getCookieSecure());
+    values.add(tokenConfig.getCookieHttpOnly());
+    values.add(tokenConfig.getAccessTokenClaims());
+    return values;
   }
 }
