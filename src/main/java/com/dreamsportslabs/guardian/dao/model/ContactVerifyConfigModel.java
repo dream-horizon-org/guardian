@@ -21,7 +21,7 @@ import lombok.extern.jackson.Jacksonized;
 @Setter
 @Jacksonized
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OtpConfigModel {
+public class ContactVerifyConfigModel {
   private String tenantId;
 
   @Builder.Default private Boolean isOtpMocked = DEFAULT_IS_OTP_MOCKED;

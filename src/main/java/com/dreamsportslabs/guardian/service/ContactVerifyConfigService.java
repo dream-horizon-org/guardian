@@ -1,6 +1,6 @@
 package com.dreamsportslabs.guardian.service;
 
-import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_OTP_CONFIG;
+import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_CONTACT_VERIFY_CONFIG;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_OTP_MOCKED;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_LENGTH;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_RESEND_INTERVAL;
@@ -10,13 +10,13 @@ import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TRY_LIMIT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.OTP_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.CONTACT_VERIFY_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
-import com.dreamsportslabs.guardian.dao.OtpConfigDao;
-import com.dreamsportslabs.guardian.dao.model.OtpConfigModel;
-import com.dreamsportslabs.guardian.dto.request.config.CreateOtpConfigRequestDto;
-import com.dreamsportslabs.guardian.dto.request.config.UpdateOtpConfigRequestDto;
+import com.dreamsportslabs.guardian.dao.ContactVerifyConfigDao;
+import com.dreamsportslabs.guardian.dao.model.ContactVerifyConfigModel;
+import com.dreamsportslabs.guardian.dto.request.config.CreateContactVerifyConfigRequestDto;
+import com.dreamsportslabs.guardian.dto.request.config.UpdateContactVerifyConfigRequestDto;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -26,20 +26,22 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class OtpConfigService {
-  private final OtpConfigDao otpConfigDao;
+public class ContactVerifyConfigService {
+  private final ContactVerifyConfigDao contactVerifyConfigDao;
   private final ChangelogService changelogService;
 
-  public Single<OtpConfigModel> createOtpConfig(CreateOtpConfigRequestDto requestDto) {
-    OtpConfigModel otpConfig = buildOtpConfigFromCreateRequest(requestDto);
-    return otpConfigDao
-        .createOtpConfig(otpConfig)
+  public Single<ContactVerifyConfigModel> createContactVerifyConfig(
+      CreateContactVerifyConfigRequestDto requestDto) {
+    ContactVerifyConfigModel contactVerifyConfig =
+        buildContactVerifyConfigFromCreateRequest(requestDto);
+    return contactVerifyConfigDao
+        .createContactVerifyConfig(contactVerifyConfig)
         .flatMap(
             createdConfig ->
                 changelogService
                     .logConfigChange(
                         createdConfig.getTenantId(),
-                        CONFIG_TYPE_OTP_CONFIG,
+                        CONFIG_TYPE_CONTACT_VERIFY_CONFIG,
                         OPERATION_INSERT,
                         null,
                         createdConfig,
@@ -47,29 +49,30 @@ public class OtpConfigService {
                     .andThen(Single.just(createdConfig)));
   }
 
-  public Single<OtpConfigModel> getOtpConfig(String tenantId) {
-    return otpConfigDao
-        .getOtpConfig(tenantId)
-        .switchIfEmpty(Single.error(OTP_CONFIG_NOT_FOUND.getException()));
+  public Single<ContactVerifyConfigModel> getContactVerifyConfig(String tenantId) {
+    return contactVerifyConfigDao
+        .getContactVerifyConfig(tenantId)
+        .switchIfEmpty(Single.error(CONTACT_VERIFY_CONFIG_NOT_FOUND.getException()));
   }
 
-  public Single<OtpConfigModel> updateOtpConfig(
-      String tenantId, UpdateOtpConfigRequestDto requestDto) {
-    return otpConfigDao
-        .getOtpConfig(tenantId)
-        .switchIfEmpty(Single.error(OTP_CONFIG_NOT_FOUND.getException()))
+  public Single<ContactVerifyConfigModel> updateContactVerifyConfig(
+      String tenantId, UpdateContactVerifyConfigRequestDto requestDto) {
+    return contactVerifyConfigDao
+        .getContactVerifyConfig(tenantId)
+        .switchIfEmpty(Single.error(CONTACT_VERIFY_CONFIG_NOT_FOUND.getException()))
         .flatMap(
             oldConfig -> {
-              OtpConfigModel updatedConfig = mergeOtpConfig(tenantId, requestDto, oldConfig);
-              return otpConfigDao
-                  .updateOtpConfig(updatedConfig)
-                  .andThen(getOtpConfig(tenantId))
+              ContactVerifyConfigModel updatedConfig =
+                  mergeContactVerifyConfig(tenantId, requestDto, oldConfig);
+              return contactVerifyConfigDao
+                  .updateContactVerifyConfig(updatedConfig)
+                  .andThen(getContactVerifyConfig(tenantId))
                   .flatMap(
                       newConfig ->
                           changelogService
                               .logConfigChange(
                                   tenantId,
-                                  CONFIG_TYPE_OTP_CONFIG,
+                                  CONFIG_TYPE_CONTACT_VERIFY_CONFIG,
                                   OPERATION_UPDATE,
                                   oldConfig,
                                   newConfig,
@@ -78,27 +81,28 @@ public class OtpConfigService {
             });
   }
 
-  public Completable deleteOtpConfig(String tenantId) {
-    return otpConfigDao
-        .getOtpConfig(tenantId)
-        .switchIfEmpty(Single.error(OTP_CONFIG_NOT_FOUND.getException()))
+  public Completable deleteContactVerifyConfig(String tenantId) {
+    return contactVerifyConfigDao
+        .getContactVerifyConfig(tenantId)
+        .switchIfEmpty(Single.error(CONTACT_VERIFY_CONFIG_NOT_FOUND.getException()))
         .flatMapCompletable(
             oldConfig ->
-                otpConfigDao
-                    .deleteOtpConfig(tenantId)
+                contactVerifyConfigDao
+                    .deleteContactVerifyConfig(tenantId)
                     .ignoreElement()
                     .andThen(
                         changelogService.logConfigChange(
                             tenantId,
-                            CONFIG_TYPE_OTP_CONFIG,
+                            CONFIG_TYPE_CONTACT_VERIFY_CONFIG,
                             OPERATION_DELETE,
                             oldConfig,
                             null,
                             tenantId)));
   }
 
-  private OtpConfigModel buildOtpConfigFromCreateRequest(CreateOtpConfigRequestDto requestDto) {
-    return OtpConfigModel.builder()
+  private ContactVerifyConfigModel buildContactVerifyConfigFromCreateRequest(
+      CreateContactVerifyConfigRequestDto requestDto) {
+    return ContactVerifyConfigModel.builder()
         .tenantId(requestDto.getTenantId())
         .isOtpMocked(coalesce(requestDto.getIsOtpMocked(), DEFAULT_IS_OTP_MOCKED))
         .otpLength(coalesce(requestDto.getOtpLength(), DEFAULT_OTP_LENGTH))
@@ -110,9 +114,11 @@ public class OtpConfigService {
         .build();
   }
 
-  private OtpConfigModel mergeOtpConfig(
-      String tenantId, UpdateOtpConfigRequestDto requestDto, OtpConfigModel oldConfig) {
-    return OtpConfigModel.builder()
+  private ContactVerifyConfigModel mergeContactVerifyConfig(
+      String tenantId,
+      UpdateContactVerifyConfigRequestDto requestDto,
+      ContactVerifyConfigModel oldConfig) {
+    return ContactVerifyConfigModel.builder()
         .tenantId(tenantId)
         .isOtpMocked(coalesce(requestDto.getIsOtpMocked(), oldConfig.getIsOtpMocked()))
         .otpLength(coalesce(requestDto.getOtpLength(), oldConfig.getOtpLength()))

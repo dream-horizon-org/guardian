@@ -1101,4 +1101,32 @@ public class DbUtils {
     }
     return null;
   }
+
+  public static JsonObject getContactVerifyConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_otp_mocked, otp_length, try_limit, resend_limit, "
+            + "otp_resend_interval, otp_validity, whitelisted_inputs "
+            + "FROM contact_verify_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject contactVerifyConfig = new JsonObject();
+        contactVerifyConfig.put("tenant_id", rs.getString("tenant_id"));
+        contactVerifyConfig.put("is_otp_mocked", rs.getBoolean("is_otp_mocked"));
+        contactVerifyConfig.put("otp_length", rs.getInt("otp_length"));
+        contactVerifyConfig.put("try_limit", rs.getInt("try_limit"));
+        contactVerifyConfig.put("resend_limit", rs.getInt("resend_limit"));
+        contactVerifyConfig.put("otp_resend_interval", rs.getInt("otp_resend_interval"));
+        contactVerifyConfig.put("otp_validity", rs.getInt("otp_validity"));
+        contactVerifyConfig.put("whitelisted_inputs", rs.getString("whitelisted_inputs"));
+        return contactVerifyConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting contact_verify_config", e);
+    }
+    return null;
+  }
 }

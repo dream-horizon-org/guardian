@@ -2,7 +2,7 @@ package com.dreamsportslabs.guardian.dto.response.config;
 
 import static com.dreamsportslabs.guardian.utils.Utils.parseWhitelistedInputs;
 
-import com.dreamsportslabs.guardian.dao.model.OtpConfigModel;
+import com.dreamsportslabs.guardian.dao.model.ContactVerifyConfigModel;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder
 @Getter
-public class OtpConfigResponseDto {
+public class ContactVerifyConfigResponseDto {
   @JsonProperty("tenant_id")
   private String tenantId;
 
@@ -37,10 +37,10 @@ public class OtpConfigResponseDto {
   @JsonProperty("whitelisted_inputs")
   private Map<String, Object> whitelistedInputs;
 
-  public static OtpConfigResponseDto from(OtpConfigModel model) {
+  public static ContactVerifyConfigResponseDto from(ContactVerifyConfigModel model) {
     Map<String, Object> whitelistedInputsMap = parseWhitelistedInputs(model.getWhitelistedInputs());
 
-    return OtpConfigResponseDto.builder()
+    return ContactVerifyConfigResponseDto.builder()
         .tenantId(model.getTenantId())
         .isOtpMocked(model.getIsOtpMocked())
         .otpLength(model.getOtpLength())

@@ -10,7 +10,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class UpdateOtpConfigRequestDto {
+public class UpdateContactVerifyConfigRequestDto {
   @JsonProperty("is_otp_mocked")
   private Boolean isOtpMocked;
 

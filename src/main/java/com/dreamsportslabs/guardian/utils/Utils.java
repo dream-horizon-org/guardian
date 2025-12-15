@@ -25,8 +25,10 @@ import io.vertx.rxjava3.core.MultiMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -269,6 +271,34 @@ public final class Utils {
         return node.asText();
       }
       return node.toString();
+    }
+  }
+
+  public static class WhitelistedInputsDeserializer extends JsonDeserializer<List<String>> {
+    @Override
+    public List<String> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+      JsonNode node = p.getCodec().readTree(p);
+      if (node.isNull()) {
+        return null;
+      }
+      if (!node.isObject()) {
+        throw new IOException("whitelisted_inputs must be a JSON object");
+      }
+      List<String> result = new ArrayList<>();
+      node.fieldNames().forEachRemaining(result::add);
+      return result;
+    }
+  }
+
+  public static Map<String, Object> parseWhitelistedInputs(String whitelistedInputs) {
+    if (whitelistedInputs == null || whitelistedInputs.trim().isEmpty()) {
+      return new JsonObject().getMap();
+    }
+    try {
+      JsonObject jsonObject = new JsonObject(whitelistedInputs);
+      return jsonObject.getMap();
+    } catch (Exception e) {
+      return new JsonObject().getMap();
     }
   }
 }
