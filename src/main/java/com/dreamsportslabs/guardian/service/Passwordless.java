@@ -103,8 +103,8 @@ public class Passwordless {
             tenantId, requestDto.getClientId(), requestDto.getScopes())
         .andThen(passwordlessModel)
         .flatMap(model -> validateUserBlockStatus(model, tenantId))
-        .flatMap(model -> createPasswordlessContext(model, tenantId))
-        .flatMap(context -> validateResendLimits(context, state, tenantId))
+        .flatMap(model -> updateGlobalResendCountAndCreateContext(model, tenantId))
+        .flatMap(context -> checkResendLimitsAndBlockUserIfNeeded(context, state, tenantId))
         .flatMap(model -> sendOtp(model, headers, tenantId))
         .map(PasswordlessModel::updateResend)
         .flatMap(model -> passwordlessDao.setPasswordlessModel(model, tenantId));
@@ -286,21 +286,21 @@ public class Passwordless {
             });
   }
 
-  private Single<PasswordlessContext> createPasswordlessContext(
+  private Single<PasswordlessContext> updateGlobalResendCountAndCreateContext(
       PasswordlessModel model, String tenantId) {
     String userIdentifier = extractUserIdentifier(model);
     OtpConfig otpConfig = registry.get(tenantId, TenantConfig.class).getOtpConfig();
     return passwordlessDao
-        .incrementGlobalResendCount(tenantId, userIdentifier, otpConfig.getOtpResendWindow())
+        .incrementGlobalResendCount(tenantId, userIdentifier, otpConfig.getOtpSendWindowSeconds())
         .map(globalCount -> new PasswordlessContext(model, userIdentifier, globalCount));
   }
 
-  private Single<PasswordlessModel> validateResendLimits(
+  private Single<PasswordlessModel> checkResendLimitsAndBlockUserIfNeeded(
       PasswordlessContext context, String state, String tenantId) {
     OtpConfig otpConfig = registry.get(tenantId, TenantConfig.class).getOtpConfig();
 
     // Check global resend limit within the configured window (cross-session)
-    if (context.getGlobalResendCount() > otpConfig.getWindowResendCount()) {
+    if (context.getGlobalResendCount() > otpConfig.getOtpSendWindowMaxCount()) {
       return blockUserAndCleanup(state, context.getUserIdentifier(), tenantId, otpConfig);
     }
 
@@ -329,10 +329,10 @@ public class Passwordless {
     return model.getContacts().get(0).getIdentifier();
   }
 
-  private Single blockUserAndCleanup(
+  private Single<PasswordlessModel> blockUserAndCleanup(
       String passwordlessState, String userIdentifier, String tenantId, OtpConfig otpConfig) {
 
-    long unblockedAt = getCurrentTimeInSeconds() + otpConfig.getOtpBlockInterval();
+    long unblockedAt = getCurrentTimeInSeconds() + otpConfig.getOtpSendBlockSeconds();
     String blockReason = "Maximum OTP resend limit exceeded across sessions";
 
     UserFlowBlockModel blockModel =

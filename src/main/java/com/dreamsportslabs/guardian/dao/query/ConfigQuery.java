@@ -93,9 +93,9 @@ public class ConfigQuery {
            otp_resend_interval,
            otp_validity,
            whitelisted_inputs,
-           otp_block_interval,
-           otp_resend_window,
-           window_resend_count
+           otp_send_block_seconds,
+           otp_send_window_seconds,
+           otp_send_window_max_count
     FROM otp_config
     WHERE tenant_id = ?
     """;

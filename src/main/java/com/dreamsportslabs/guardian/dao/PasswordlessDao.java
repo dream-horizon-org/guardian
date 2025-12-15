@@ -78,6 +78,6 @@ public class PasswordlessDao {
   }
 
   private String getResendCountKey(String tenantId, String userIdentifier) {
-    return CACHE_KEY_OTP_RESEND_COUNT + ":" + tenantId + ":" + userIdentifier;
+    return CACHE_KEY_OTP_RESEND_COUNT + "_" + tenantId + "_" + userIdentifier;
   }
 }

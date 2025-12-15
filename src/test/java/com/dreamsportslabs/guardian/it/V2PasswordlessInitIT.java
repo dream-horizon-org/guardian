@@ -99,7 +99,7 @@ public class V2PasswordlessInitIT {
   private static final String EXISTING_USER_ID = "1";
   private static final String REDIS_HOST = "localhost";
   private static final int REDIS_PORT = 6379;
-  private static final String REDIS_KEY_PREFIX = "OTP_RESEND_COUNT:";
+  private static final String REDIS_KEY_PREFIX = "OTP_RESEND_COUNT";
   private static String client1;
   private WireMockServer wireMockServer;
 
@@ -119,7 +119,7 @@ public class V2PasswordlessInitIT {
 
   @AfterEach
   void cleanUserFlowBlockTable() {
-    clearUserBlockedTable();
+    clearUserBlockedTable("test");
   }
 
   @Test
@@ -1058,7 +1058,8 @@ public class V2PasswordlessInitIT {
     String phoneNumber = generateRandomPhoneNumber();
     StubMapping stub = getStubForNonExistingUser();
 
-    // Act & Assert: Send DEFAULT_RESEND_LIMIT requests (window_resend_count), all should succeed
+    // Act & Assert: Send DEFAULT_RESEND_LIMIT requests (otp_send_window_max_count), all should
+    // succeed
     sendMultipleOtpRequests(phoneNumber, BODY_CHANNEL_SMS, DEFAULT_RESEND_LIMIT, SC_OK);
     Response blockingResponse = sendOtpRequest(phoneNumber, BODY_CHANNEL_SMS);
 
@@ -1079,7 +1080,8 @@ public class V2PasswordlessInitIT {
     String phoneNumber = generateRandomPhoneNumber();
     StubMapping stub = getStubForExistingUser(phoneNumber, null);
 
-    // Act & Assert: Send DEFAULT_RESEND_LIMIT requests (window_resend_count), all should succeed
+    // Act & Assert: Send DEFAULT_RESEND_LIMIT requests (otp_send_window_max_count), all should
+    // succeed
     sendMultipleOtpRequests(phoneNumber, BODY_CHANNEL_SMS, DEFAULT_RESEND_LIMIT, SC_OK);
     Response blockingResponse = sendOtpRequest(phoneNumber, BODY_CHANNEL_SMS);
 
@@ -1275,7 +1277,7 @@ public class V2PasswordlessInitIT {
   }
 
   private String buildRedisKey(String userIdentifier) {
-    return REDIS_KEY_PREFIX + TENANT_1 + ":" + userIdentifier;
+    return REDIS_KEY_PREFIX + "_" + TENANT_1 + "_" + userIdentifier;
   }
 
   private void cleanupRedisCounter(String userIdentifier) {
