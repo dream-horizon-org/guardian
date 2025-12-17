@@ -3,13 +3,11 @@ package com.dreamsportslabs.guardian.dto.request.config;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class UpdateTenantRequestDto {
-  @JsonProperty("name")
   private String name;
 
   public void validate() {

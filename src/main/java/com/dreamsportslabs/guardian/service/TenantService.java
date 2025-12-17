@@ -40,6 +40,17 @@ public class TenantService {
                         createdTenant,
                         createdTenant.getId())
                     .andThen(createMandatoryConfigs(createdTenant.getId()))
+                    .onErrorResumeNext(
+                        error -> {
+                          log.error(
+                              "Failed to create mandatory configs for tenant: {}, rolling back tenant creation",
+                              createdTenant.getId(),
+                              error);
+                          return tenantDao
+                              .deleteTenant(createdTenant.getId())
+                              .ignoreElement()
+                              .andThen(Completable.error(error));
+                        })
                     .andThen(Single.just(createdTenant)));
   }
 

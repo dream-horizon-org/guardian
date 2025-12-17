@@ -1,5 +1,7 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
+
 import com.dreamsportslabs.guardian.dto.request.config.CreateTenantRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTenantRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.TenantResponseDto;
@@ -20,6 +22,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.concurrent.CompletionStage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
@@ -53,6 +56,9 @@ public class Tenant {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> getTenantByName(@QueryParam("name") String name) {
+    if (StringUtils.isBlank(name)) {
+      throw INVALID_REQUEST.getCustomException("name query parameter is required");
+    }
     return tenantService
         .getTenantByName(name)
         .map(TenantResponseDto::from)

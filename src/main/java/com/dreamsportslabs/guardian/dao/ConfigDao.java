@@ -180,8 +180,7 @@ public class ConfigDao {
                 return Maybe.just(JsonUtils.rowSetToList(rows, configType).get(0));
               }
               return Maybe.empty();
-            })
-        .onErrorResumeNext(throwable -> Maybe.empty());
+            });
   }
 
   private <T> Single<List<T>> getOptionalMultipleConfigFromDb(
