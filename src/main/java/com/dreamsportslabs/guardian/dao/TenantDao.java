@@ -19,6 +19,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.mysqlclient.MySQLException;
+import io.vertx.rxjava3.sqlclient.SqlConnection;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,11 +29,10 @@ import lombok.extern.slf4j.Slf4j;
 public class TenantDao {
   private final MysqlClient mysqlClient;
 
-  public Single<TenantModel> createTenant(TenantModel tenant) {
+  public Single<TenantModel> createTenantInTransaction(SqlConnection client, TenantModel tenant) {
     Tuple params = Tuple.tuple().addString(tenant.getId()).addString(tenant.getName());
 
-    return mysqlClient
-        .getWriterPool()
+    return client
         .preparedQuery(CREATE_TENANT)
         .rxExecute(params)
         .map(result -> tenant)

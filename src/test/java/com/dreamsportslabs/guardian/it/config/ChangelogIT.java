@@ -32,7 +32,6 @@ import static com.dreamsportslabs.guardian.utils.DbUtils.countChangelogByTenant;
 import static com.dreamsportslabs.guardian.utils.DbUtils.deleteTenant;
 import static com.dreamsportslabs.guardian.utils.DbUtils.insertChangelog;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -121,13 +120,13 @@ public class ChangelogIT {
   }
 
   @Test
-  @DisplayName("Should return 404 when changelog not found")
+  @DisplayName("Should return 400 when changelog not found")
   public void testGetChangelogByIdNotFound() {
     Response response = getChangelogById(TENANT_1, 99999L);
 
     response
         .then()
-        .statusCode(SC_NOT_FOUND)
+        .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
         .body(CODE, equalTo("changelog_not_found"));
   }

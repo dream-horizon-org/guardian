@@ -11,6 +11,7 @@ import com.dreamsportslabs.guardian.utils.JsonUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.vertx.rxjava3.sqlclient.SqlConnection;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 public class TokenConfigDao {
   private final MysqlClient mysqlClient;
 
-  public Completable createDefaultTokenConfig(TokenConfigModel tokenConfig) {
-    return mysqlClient
-        .getWriterPool()
+  public Completable createDefaultTokenConfigInTransaction(
+      SqlConnection client, TokenConfigModel tokenConfig) {
+    return client
         .preparedQuery(CREATE_TOKEN_CONFIG)
         .rxExecute(buildCreateParams(tokenConfig))
         .ignoreElement()

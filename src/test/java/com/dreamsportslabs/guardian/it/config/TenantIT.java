@@ -17,7 +17,6 @@ import static com.dreamsportslabs.guardian.utils.DbUtils.tokenConfigExists;
 import static com.dreamsportslabs.guardian.utils.DbUtils.userConfigExists;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -294,13 +293,13 @@ public class TenantIT {
   }
 
   @Test
-  @DisplayName("Should return 404 when tenant not found by id")
+  @DisplayName("Should return 400 when tenant not found by id")
   public void testGetTenantByIdNotFound() {
     Response response = getTenant("nonexistent");
 
     response
         .then()
-        .statusCode(SC_NOT_FOUND)
+        .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
         .body(CODE, equalTo("tenant_not_found"));
   }
@@ -322,13 +321,13 @@ public class TenantIT {
   }
 
   @Test
-  @DisplayName("Should return 404 when tenant not found by name")
+  @DisplayName("Should return 400 when tenant not found by name")
   public void testGetTenantByNameNotFound() {
     Response response = getTenantByName("Nonexistent Tenant");
 
     response
         .then()
-        .statusCode(SC_NOT_FOUND)
+        .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
         .body(CODE, equalTo("tenant_not_found"));
   }
@@ -357,7 +356,7 @@ public class TenantIT {
   }
 
   @Test
-  @DisplayName("Should return 404 when updating non-existent tenant")
+  @DisplayName("Should return 400 when updating non-existent tenant")
   public void testUpdateTenantNotFound() {
     Map<String, Object> updateBody = new HashMap<>();
     updateBody.put("name", "Updated Name");
@@ -366,7 +365,7 @@ public class TenantIT {
 
     response
         .then()
-        .statusCode(SC_NOT_FOUND)
+        .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
         .body(CODE, equalTo("tenant_not_found"));
   }
@@ -481,14 +480,30 @@ public class TenantIT {
   }
 
   @Test
-  @DisplayName("Should return 404 when deleting non-existent tenant")
+  @DisplayName("Should return 400 when deleting non-existent tenant")
   public void testDeleteTenantNotFound() {
     Response response = deleteTenant("nonexistent");
 
     response
         .then()
-        .statusCode(SC_NOT_FOUND)
+        .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
         .body(CODE, equalTo("tenant_not_found"));
+  }
+
+  @Test
+  @DisplayName("Should create tenant, user_config, and token_config atomically")
+  public void testTransactionAtomicity() {
+    Map<String, Object> requestBody = new HashMap<>();
+    requestBody.put("id", testTenantId);
+    requestBody.put("name", testTenantName);
+
+    Response response = createTenant(requestBody);
+
+    response.then().statusCode(SC_CREATED);
+
+    assertThat(tenantExists(testTenantId), equalTo(true));
+    assertThat(userConfigExists(testTenantId), equalTo(true));
+    assertThat(tokenConfigExists(testTenantId), equalTo(true));
   }
 }

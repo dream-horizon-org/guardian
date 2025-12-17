@@ -9,7 +9,6 @@ import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_CONFI
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_CONFIG_IS_SSL_ENABLED;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_CONFIG_PORT;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_CONFIG_SEND_PROVIDER_DETAILS;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
@@ -20,6 +19,7 @@ import com.dreamsportslabs.guardian.dto.request.config.UpdateUserConfigRequestDt
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.sqlclient.SqlConnection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,13 +29,9 @@ public class UserConfigService {
   private final UserConfigDao userConfigDao;
   private final ChangelogService changelogService;
 
-  public Completable createDefaultUserConfig(String tenantId) {
+  public Completable createDefaultUserConfigInTransaction(SqlConnection client, String tenantId) {
     UserConfigModel userConfig = buildDefaultUserConfig(tenantId);
-    return userConfigDao
-        .createDefaultUserConfig(userConfig)
-        .andThen(
-            changelogService.logConfigChange(
-                tenantId, CONFIG_TYPE_USER_CONFIG, OPERATION_INSERT, null, userConfig, tenantId));
+    return userConfigDao.createDefaultUserConfigInTransaction(client, userConfig);
   }
 
   public Single<UserConfigModel> getUserConfig(String tenantId) {
@@ -86,7 +82,7 @@ public class UserConfigService {
         .build();
   }
 
-  private UserConfigModel buildDefaultUserConfig(String tenantId) {
+  UserConfigModel buildDefaultUserConfig(String tenantId) {
     return UserConfigModel.builder()
         .tenantId(tenantId)
         .isSslEnabled(DEFAULT_USER_CONFIG_IS_SSL_ENABLED)

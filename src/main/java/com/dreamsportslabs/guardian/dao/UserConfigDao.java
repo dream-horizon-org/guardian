@@ -11,6 +11,7 @@ import com.dreamsportslabs.guardian.utils.JsonUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.vertx.rxjava3.sqlclient.SqlConnection;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 public class UserConfigDao {
   private final MysqlClient mysqlClient;
 
-  public Completable createDefaultUserConfig(UserConfigModel userConfig) {
-    return mysqlClient
-        .getWriterPool()
+  public Completable createDefaultUserConfigInTransaction(
+      SqlConnection client, UserConfigModel userConfig) {
+    return client
         .preparedQuery(CREATE_USER_CONFIG)
         .rxExecute(buildCreateParams(userConfig))
         .ignoreElement()

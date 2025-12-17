@@ -21,7 +21,6 @@ import static com.dreamsportslabs.guardian.constant.Constants.JSON_FIELD_CURRENT
 import static com.dreamsportslabs.guardian.constant.Constants.JSON_FIELD_KID;
 import static com.dreamsportslabs.guardian.constant.Constants.JSON_FIELD_PRIVATE_KEY;
 import static com.dreamsportslabs.guardian.constant.Constants.JSON_FIELD_PUBLIC_KEY;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.TOKEN_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
@@ -34,6 +33,7 @@ import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
+import io.vertx.rxjava3.sqlclient.SqlConnection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,13 +48,9 @@ public class TokenConfigService {
   private final ChangelogService changelogService;
   private final RsaKeyPairGeneratorService rsaKeyPairGeneratorService;
 
-  public Completable createDefaultTokenConfig(String tenantId) {
+  public Completable createDefaultTokenConfigInTransaction(SqlConnection client, String tenantId) {
     TokenConfigModel tokenConfig = buildDefaultTokenConfig(tenantId);
-    return tokenConfigDao
-        .createDefaultTokenConfig(tokenConfig)
-        .andThen(
-            changelogService.logConfigChange(
-                tenantId, CONFIG_TYPE_TOKEN_CONFIG, OPERATION_INSERT, null, tokenConfig, tenantId));
+    return tokenConfigDao.createDefaultTokenConfigInTransaction(client, tokenConfig);
   }
 
   public Single<TokenConfigModel> getTokenConfig(String tenantId) {
@@ -119,7 +115,7 @@ public class TokenConfigService {
         .build();
   }
 
-  private TokenConfigModel buildDefaultTokenConfig(String tenantId) {
+  TokenConfigModel buildDefaultTokenConfig(String tenantId) {
     return TokenConfigModel.builder()
         .tenantId(tenantId)
         .algorithm(DEFAULT_TOKEN_CONFIG_ALGORITHM)
