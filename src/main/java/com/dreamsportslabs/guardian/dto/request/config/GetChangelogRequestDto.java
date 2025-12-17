@@ -16,12 +16,19 @@ public class GetChangelogRequestDto {
   @DefaultValue("50")
   private int limit;
 
+  @QueryParam("offset")
+  @DefaultValue("0")
+  private int offset;
+
   public void validate() {
     if (StringUtils.isBlank(tenantId)) {
       throw INVALID_REQUEST.getCustomException("tenant_id is required");
     }
     if (limit < 1 || limit > 100) {
       throw INVALID_REQUEST.getCustomException("limit must be between 1 and 100");
+    }
+    if (offset < 0) {
+      throw INVALID_REQUEST.getCustomException("offset must be greater than or equal to 0");
     }
   }
 }

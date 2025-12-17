@@ -1,10 +1,14 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.TENANT_ID;
+import static com.dreamsportslabs.guardian.utils.Utils.validateTenantIdHeader;
+
 import com.dreamsportslabs.guardian.dto.request.config.GetChangelogRequestDto;
 import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.google.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -22,10 +26,13 @@ public class Changelog {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public CompletionStage<Response> getChangelog(@BeanParam GetChangelogRequestDto requestDto) {
+  public CompletionStage<Response> getChangelog(
+      @HeaderParam(TENANT_ID) String tenantId, @BeanParam GetChangelogRequestDto requestDto) {
     requestDto.validate();
+    validateTenantIdHeader(tenantId, requestDto.getTenantId());
     return changelogService
-        .getChangelogByTenant(requestDto.getTenantId(), requestDto.getLimit(), 0)
+        .getChangelogByTenant(
+            requestDto.getTenantId(), requestDto.getLimit(), requestDto.getOffset())
         .map(changelog -> Response.ok(changelog).build())
         .toCompletionStage();
   }

@@ -50,11 +50,12 @@ public class ChangelogIT {
     Map<String, String> queryParams = new HashMap<>();
     queryParams.put("tenant_id", TENANT_1);
     queryParams.put("limit", "50");
+    queryParams.put("offset", "0");
 
     Response response = getChangelog(TENANT_1, queryParams);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getInt("total"), equalTo(2));
+    assertThat(response.jsonPath().getLong("total"), equalTo(2L));
     assertThat(response.jsonPath().getList("changes"), hasSize(2));
     assertThat(response.jsonPath().getString("changes[0].config_type"), isA(String.class));
     assertThat(response.jsonPath().getString("changes[0].operation_type"), isA(String.class));
@@ -102,6 +103,7 @@ public class ChangelogIT {
   public void testGetChangelogMissingTenantId() {
     Map<String, String> queryParams = new HashMap<>();
     queryParams.put("limit", "50");
+    queryParams.put("offset", "0");
 
     Response response = getChangelog(TENANT_1, queryParams);
 
@@ -116,6 +118,7 @@ public class ChangelogIT {
     Map<String, String> queryParams = new HashMap<>();
     queryParams.put("tenant_id", TENANT_1);
     queryParams.put("limit", "101");
+    queryParams.put("offset", "0");
 
     Response response = getChangelog(TENANT_1, queryParams);
 
@@ -126,8 +129,13 @@ public class ChangelogIT {
   }
 
   @Test
-  @DisplayName("Should return empty list when no changelog exists")
-  public void testGetChangelogEmptyList() {
+  @DisplayName("Should use default offset value of 0 when offset is not provided")
+  public void testGetChangelogDefaultOffset() {
+    String oldValues = "{\"key1\":\"value1\"}";
+    String newValues = "{\"key1\":\"value2\"}";
+
+    insertChangelog(TENANT_1, "otp_config", "UPDATE", oldValues, newValues, "admin@example.com");
+
     Map<String, String> queryParams = new HashMap<>();
     queryParams.put("tenant_id", TENANT_1);
     queryParams.put("limit", "50");
@@ -135,7 +143,38 @@ public class ChangelogIT {
     Response response = getChangelog(TENANT_1, queryParams);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getInt("total"), equalTo(0));
+    assertThat(response.jsonPath().getLong("total"), equalTo(1L));
+    assertThat(response.jsonPath().getList("changes"), hasSize(1));
+  }
+
+  @Test
+  @DisplayName("Should return error when offset is negative")
+  public void testGetChangelogNegativeOffset() {
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("tenant_id", TENANT_1);
+    queryParams.put("limit", "50");
+    queryParams.put("offset", "-1");
+
+    Response response = getChangelog(TENANT_1, queryParams);
+
+    response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo("offset must be greater than or equal to 0"));
+  }
+
+  @Test
+  @DisplayName("Should return empty list when no changelog exists")
+  public void testGetChangelogEmptyList() {
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("tenant_id", TENANT_1);
+    queryParams.put("limit", "50");
+    queryParams.put("offset", "0");
+
+    Response response = getChangelog(TENANT_1, queryParams);
+
+    response.then().statusCode(SC_OK);
+    assertThat(response.jsonPath().getLong("total"), equalTo(0L));
     assertThat(response.jsonPath().getList("changes"), hasSize(0));
   }
 
@@ -152,11 +191,12 @@ public class ChangelogIT {
     Map<String, String> queryParams = new HashMap<>();
     queryParams.put("tenant_id", TENANT_1);
     queryParams.put("limit", "2");
+    queryParams.put("offset", "0");
 
     Response response = getChangelog(TENANT_1, queryParams);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getInt("total"), equalTo(3));
+    assertThat(response.jsonPath().getLong("total"), equalTo(3L));
     assertThat(response.jsonPath().getList("changes"), hasSize(2));
   }
 }

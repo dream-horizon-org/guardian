@@ -30,7 +30,7 @@ public class ChangelogService {
         changelogDao.countChangelogByTenant(tenantId),
         (changelogs, total) ->
             ChangelogResponseDto.builder()
-                .total(total.intValue())
+                .total(total)
                 .changes(changelogs.stream().map(this::mapToSummaryResponseDto).toList())
                 .build());
   }

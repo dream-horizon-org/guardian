@@ -9,6 +9,6 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Getter
 public class ChangelogResponseDto {
-  private Integer total;
+  private Long total;
   private List<ChangelogSummaryResponseDto> changes;
 }
