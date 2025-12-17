@@ -59,18 +59,16 @@ public class EmailConfigService {
               EmailConfigModel updatedConfig = mergeEmailConfig(tenantId, requestDto, oldConfig);
               return emailConfigDao
                   .updateEmailConfig(updatedConfig)
-                  .andThen(getEmailConfig(tenantId))
-                  .flatMap(
-                      newConfig ->
-                          changelogService
-                              .logConfigChange(
-                                  tenantId,
-                                  CONFIG_TYPE_EMAIL_CONFIG,
-                                  OPERATION_UPDATE,
-                                  oldConfig,
-                                  newConfig,
-                                  tenantId)
-                              .andThen(Single.just(newConfig)));
+                  .andThen(
+                      changelogService
+                          .logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_EMAIL_CONFIG,
+                              OPERATION_UPDATE,
+                              oldConfig,
+                              updatedConfig,
+                              tenantId)
+                          .andThen(Single.just(updatedConfig)));
             });
   }
 
@@ -82,15 +80,19 @@ public class EmailConfigService {
             oldConfig ->
                 emailConfigDao
                     .deleteEmailConfig(tenantId)
-                    .ignoreElement()
-                    .andThen(
-                        changelogService.logConfigChange(
-                            tenantId,
-                            CONFIG_TYPE_EMAIL_CONFIG,
-                            OPERATION_DELETE,
-                            oldConfig,
-                            null,
-                            tenantId)));
+                    .flatMapCompletable(
+                        deleted -> {
+                          if (!deleted) {
+                            return Completable.error(EMAIL_CONFIG_NOT_FOUND.getException());
+                          }
+                          return changelogService.logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_EMAIL_CONFIG,
+                              OPERATION_DELETE,
+                              oldConfig,
+                              null,
+                              tenantId);
+                        }));
   }
 
   private EmailConfigModel buildEmailConfigFromCreateRequest(

@@ -205,13 +205,6 @@ public final class Utils {
     return newValue != null ? newValue : oldValue;
   }
 
-  public static void validateTenantIdHeader(String headerTenantId, String bodyTenantId) {
-    if (!headerTenantId.equals(bodyTenantId)) {
-      throw ErrorEnum.INVALID_REQUEST.getCustomException(
-          "tenant-id header must match tenant_id in request body");
-    }
-  }
-
   public static GenerateRsaKeyRequestDto buildRsaKeyRequest(int keySize, String format) {
     GenerateRsaKeyRequestDto keyRequest = new GenerateRsaKeyRequestDto();
     keyRequest.setKeySize(keySize);
