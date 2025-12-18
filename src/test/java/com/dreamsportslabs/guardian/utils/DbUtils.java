@@ -1006,98 +1006,34 @@ public class DbUtils {
     return null;
   }
 
-  public static boolean userConfigExists(String tenantId) {
-    String selectQuery = "SELECT COUNT(*) as count FROM user_config WHERE tenant_id = ?";
-
-    try (Connection conn = mysqlConnectionPool.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
-      stmt.setString(1, tenantId);
-      ResultSet rs = stmt.executeQuery();
-      if (rs.next()) {
-        return rs.getInt("count") > 0;
-      }
-    } catch (Exception e) {
-      log.error("Error while checking user_config existence", e);
-    }
-    return false;
-  }
-
-  public static JsonObject getUserConfig(String tenantId) {
+  public static JsonObject getOidcProviderConfig(String tenantId, String providerName) {
     String selectQuery =
-        "SELECT tenant_id, is_ssl_enabled, host, port, get_user_path, create_user_path, "
-            + "authenticate_user_path, add_provider_path, send_provider_details "
-            + "FROM user_config WHERE tenant_id = ?";
+        "SELECT tenant_id, provider_name, issuer, jwks_url, token_url, client_id, client_secret, redirect_uri, client_auth_method, is_ssl_enabled, user_identifier, audience_claims "
+            + "FROM oidc_provider_config WHERE tenant_id = ? AND provider_name = ?";
 
     try (Connection conn = mysqlConnectionPool.getConnection();
         PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
       stmt.setString(1, tenantId);
+      stmt.setString(2, providerName);
       ResultSet rs = stmt.executeQuery();
       if (rs.next()) {
-        JsonObject userConfig = new JsonObject();
-        userConfig.put("tenant_id", rs.getString("tenant_id"));
-        userConfig.put("is_ssl_enabled", rs.getBoolean("is_ssl_enabled"));
-        userConfig.put("host", rs.getString("host"));
-        userConfig.put("port", rs.getInt("port"));
-        userConfig.put("get_user_path", rs.getString("get_user_path"));
-        userConfig.put("create_user_path", rs.getString("create_user_path"));
-        userConfig.put("authenticate_user_path", rs.getString("authenticate_user_path"));
-        userConfig.put("add_provider_path", rs.getString("add_provider_path"));
-        userConfig.put("send_provider_details", rs.getBoolean("send_provider_details"));
-        return userConfig;
+        JsonObject oidcProviderConfig = new JsonObject();
+        oidcProviderConfig.put("tenant_id", rs.getString("tenant_id"));
+        oidcProviderConfig.put("provider_name", rs.getString("provider_name"));
+        oidcProviderConfig.put("issuer", rs.getString("issuer"));
+        oidcProviderConfig.put("jwks_url", rs.getString("jwks_url"));
+        oidcProviderConfig.put("token_url", rs.getString("token_url"));
+        oidcProviderConfig.put("client_id", rs.getString("client_id"));
+        oidcProviderConfig.put("client_secret", rs.getString("client_secret"));
+        oidcProviderConfig.put("redirect_uri", rs.getString("redirect_uri"));
+        oidcProviderConfig.put("client_auth_method", rs.getString("client_auth_method"));
+        oidcProviderConfig.put("is_ssl_enabled", rs.getBoolean("is_ssl_enabled"));
+        oidcProviderConfig.put("user_identifier", rs.getString("user_identifier"));
+        oidcProviderConfig.put("audience_claims", rs.getString("audience_claims"));
+        return oidcProviderConfig;
       }
     } catch (Exception e) {
-      log.error("Error while getting user_config", e);
-    }
-    return null;
-  }
-
-  public static boolean tokenConfigExists(String tenantId) {
-    String selectQuery = "SELECT COUNT(*) as count FROM token_config WHERE tenant_id = ?";
-
-    try (Connection conn = mysqlConnectionPool.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
-      stmt.setString(1, tenantId);
-      ResultSet rs = stmt.executeQuery();
-      if (rs.next()) {
-        return rs.getInt("count") > 0;
-      }
-    } catch (Exception e) {
-      log.error("Error while checking token_config existence", e);
-    }
-    return false;
-  }
-
-  public static JsonObject getTokenConfig(String tenantId) {
-    String selectQuery =
-        "SELECT tenant_id, algorithm, issuer, rsa_keys, access_token_expiry, refresh_token_expiry, "
-            + "id_token_expiry, id_token_claims, cookie_same_site, cookie_domain, cookie_path, "
-            + "cookie_secure, cookie_http_only, access_token_claims "
-            + "FROM token_config WHERE tenant_id = ?";
-
-    try (Connection conn = mysqlConnectionPool.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
-      stmt.setString(1, tenantId);
-      ResultSet rs = stmt.executeQuery();
-      if (rs.next()) {
-        JsonObject tokenConfig = new JsonObject();
-        tokenConfig.put("tenant_id", rs.getString("tenant_id"));
-        tokenConfig.put("algorithm", rs.getString("algorithm"));
-        tokenConfig.put("issuer", rs.getString("issuer"));
-        tokenConfig.put("rsa_keys", rs.getString("rsa_keys"));
-        tokenConfig.put("access_token_expiry", rs.getInt("access_token_expiry"));
-        tokenConfig.put("refresh_token_expiry", rs.getInt("refresh_token_expiry"));
-        tokenConfig.put("id_token_expiry", rs.getInt("id_token_expiry"));
-        tokenConfig.put("id_token_claims", rs.getString("id_token_claims"));
-        tokenConfig.put("cookie_same_site", rs.getString("cookie_same_site"));
-        tokenConfig.put("cookie_domain", rs.getString("cookie_domain"));
-        tokenConfig.put("cookie_path", rs.getString("cookie_path"));
-        tokenConfig.put("cookie_secure", rs.getBoolean("cookie_secure"));
-        tokenConfig.put("cookie_http_only", rs.getBoolean("cookie_http_only"));
-        tokenConfig.put("access_token_claims", rs.getString("access_token_claims"));
-        return tokenConfig;
-      }
-    } catch (Exception e) {
-      log.error("Error while getting token_config", e);
+      log.error("Error while getting oidc_provider_config", e);
     }
     return null;
   }

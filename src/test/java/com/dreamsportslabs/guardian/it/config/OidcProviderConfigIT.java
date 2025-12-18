@@ -2,8 +2,38 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_OIDC_PROVIDER_CONFIG_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_OIDC_PROVIDER_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_AUDIENCE_CLAIMS_CANNOT_BE_NULL;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_EXCEED_256;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_ID_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_ID_CANNOT_EXCEED_256;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_SECRET_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_ISSUER_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_JWKS_URL_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PROVIDER_NAME_CANNOT_EXCEED_50;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_REDIRECT_URI_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TOKEN_URL_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_USER_IDENTIFIER_CANNOT_EXCEED_20;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_AUDIENCE_CLAIMS;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_CLIENT_AUTH_METHOD;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_CLIENT_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_CLIENT_SECRET;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ISSUER;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_IS_SSL_ENABLED;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_JWKS_URL;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_PROVIDER_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_REDIRECT_URI;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TOKEN_URL;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_USER_IDENTIFIER;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createOidcProviderConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteOidcProviderConfig;
@@ -60,20 +90,23 @@ public class OidcProviderConfigIT {
     Response response = createOidcProviderConfig(testTenantId, createOidcProviderConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("provider_name"), equalTo(testProviderName));
-    assertThat(response.jsonPath().getString("issuer"), equalTo("https://accounts.google.com"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(
-        response.jsonPath().getString("jwks_url"),
+        response.jsonPath().getString(REQUEST_FIELD_PROVIDER_NAME), equalTo(testProviderName));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_ISSUER),
+        equalTo("https://accounts.google.com"));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_JWKS_URL),
         equalTo("https://www.googleapis.com/oauth2/v3/certs"));
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(true));
-    assertThat(response.jsonPath().getString("user_identifier"), equalTo("email"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(true));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_USER_IDENTIFIER), equalTo("email"));
 
     JsonObject dbConfig = DbUtils.getOidcProviderConfig(testTenantId, testProviderName);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getString("provider_name"), equalTo(testProviderName));
-    assertThat(dbConfig.getString("issuer"), equalTo("https://accounts.google.com"));
+    assertThat(dbConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(dbConfig.getString(REQUEST_FIELD_PROVIDER_NAME), equalTo(testProviderName));
+    assertThat(dbConfig.getString(REQUEST_FIELD_ISSUER), equalTo("https://accounts.google.com"));
   }
 
   @Test
@@ -82,25 +115,25 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("tenant_id", testTenantId);
-    requestBody.put("provider_name", testProviderName);
-    requestBody.put("issuer", "https://accounts.google.com");
-    requestBody.put("jwks_url", "https://www.googleapis.com/oauth2/v3/certs");
-    requestBody.put("token_url", "https://oauth2.googleapis.com/token");
-    requestBody.put("client_id", "test-client-id");
-    requestBody.put("client_secret", "test-client-secret");
-    requestBody.put("redirect_uri", "https://example.com/callback");
-    requestBody.put("client_auth_method", "client_secret_post");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_PROVIDER_NAME, testProviderName);
+    requestBody.put(REQUEST_FIELD_ISSUER, "https://accounts.google.com");
+    requestBody.put(REQUEST_FIELD_JWKS_URL, "https://www.googleapis.com/oauth2/v3/certs");
+    requestBody.put(REQUEST_FIELD_TOKEN_URL, "https://oauth2.googleapis.com/token");
+    requestBody.put(REQUEST_FIELD_CLIENT_ID, "test-client-id");
+    requestBody.put(REQUEST_FIELD_CLIENT_SECRET, "test-client-secret");
+    requestBody.put(REQUEST_FIELD_REDIRECT_URI, "https://example.com/callback");
+    requestBody.put(REQUEST_FIELD_CLIENT_AUTH_METHOD, "client_secret_post");
     List<String> audienceClaims = new ArrayList<>();
     audienceClaims.add("aud1");
     audienceClaims.add("aud2");
-    requestBody.put("audience_claims", audienceClaims);
+    requestBody.put(REQUEST_FIELD_AUDIENCE_CLAIMS, audienceClaims);
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(response.jsonPath().getString("user_identifier"), equalTo("email"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_USER_IDENTIFIER), equalTo("email"));
   }
 
   @Test
@@ -109,7 +142,7 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("tenant_id", "");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, "");
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
@@ -124,7 +157,7 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("tenant_id", RandomStringUtils.randomAlphanumeric(11));
+    requestBody.put(REQUEST_FIELD_TENANT_ID, RandomStringUtils.randomAlphanumeric(11));
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
@@ -140,7 +173,7 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("provider_name", "");
+    requestBody.put(REQUEST_FIELD_PROVIDER_NAME, "");
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
@@ -156,14 +189,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("provider_name", RandomStringUtils.randomAlphanumeric(51));
+    requestBody.put(REQUEST_FIELD_PROVIDER_NAME, RandomStringUtils.randomAlphanumeric(51));
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("provider_name cannot exceed 50 characters"));
+        equalTo(ERROR_MSG_PROVIDER_NAME_CANNOT_EXCEED_50));
   }
 
   @Test
@@ -172,13 +205,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("issuer", "");
+    requestBody.put(REQUEST_FIELD_ISSUER, "");
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("issuer cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_ISSUER_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -187,13 +221,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("jwks_url", "");
+    requestBody.put(REQUEST_FIELD_JWKS_URL, "");
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("jwks_url cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_JWKS_URL_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -202,13 +237,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("token_url", "");
+    requestBody.put(REQUEST_FIELD_TOKEN_URL, "");
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("token_url cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_TOKEN_URL_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -217,13 +253,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("client_id", "");
+    requestBody.put(REQUEST_FIELD_CLIENT_ID, "");
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("client_id cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_CLIENT_ID_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -232,14 +269,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("client_id", RandomStringUtils.randomAlphanumeric(257));
+    requestBody.put(REQUEST_FIELD_CLIENT_ID, RandomStringUtils.randomAlphanumeric(257));
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_id cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_CLIENT_ID_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -248,14 +285,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("client_secret", "");
+    requestBody.put(REQUEST_FIELD_CLIENT_SECRET, "");
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_secret cannot be blank"));
+        equalTo(ERROR_MSG_CLIENT_SECRET_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -264,14 +301,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("redirect_uri", "");
+    requestBody.put(REQUEST_FIELD_REDIRECT_URI, "");
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("redirect_uri cannot be blank"));
+        equalTo(ERROR_MSG_REDIRECT_URI_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -280,14 +317,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("client_auth_method", "");
+    requestBody.put(REQUEST_FIELD_CLIENT_AUTH_METHOD, "");
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_auth_method cannot be blank"));
+        equalTo(ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -296,14 +333,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("client_auth_method", RandomStringUtils.randomAlphanumeric(257));
+    requestBody.put(REQUEST_FIELD_CLIENT_AUTH_METHOD, RandomStringUtils.randomAlphanumeric(257));
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_auth_method cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -312,14 +349,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("user_identifier", RandomStringUtils.randomAlphanumeric(21));
+    requestBody.put(REQUEST_FIELD_USER_IDENTIFIER, RandomStringUtils.randomAlphanumeric(21));
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("user_identifier cannot exceed 20 characters"));
+        equalTo(ERROR_MSG_USER_IDENTIFIER_CANNOT_EXCEED_20));
   }
 
   @Test
@@ -328,14 +365,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
-    requestBody.put("audience_claims", null);
+    requestBody.put(REQUEST_FIELD_AUDIENCE_CLAIMS, null);
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("audience_claims cannot be null"));
+        equalTo(ERROR_MSG_AUDIENCE_CLAIMS_CANNOT_BE_NULL));
   }
 
   @Test
@@ -345,7 +382,7 @@ public class OidcProviderConfigIT {
 
     Map<String, Object> requestBody = createOidcProviderConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createOidcProviderConfig(testTenantId, requestBody);
 
@@ -368,7 +405,7 @@ public class OidcProviderConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR);
     assertThat(
         response.jsonPath().getString(ERROR + "." + CODE),
-        equalTo("oidc_provider_config_already_exists"));
+        equalTo(ERROR_CODE_OIDC_PROVIDER_CONFIG_ALREADY_EXISTS));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
         equalTo("OIDC provider config already exists: " + testTenantId + "/" + testProviderName));
@@ -385,9 +422,12 @@ public class OidcProviderConfigIT {
     Response response = getOidcProviderConfig(testTenantId, testProviderName);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("provider_name"), equalTo(testProviderName));
-    assertThat(response.jsonPath().getString("issuer"), equalTo("https://accounts.google.com"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_PROVIDER_NAME), equalTo(testProviderName));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_ISSUER),
+        equalTo("https://accounts.google.com"));
   }
 
   @Test
@@ -400,7 +440,7 @@ public class OidcProviderConfigIT {
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
         response.jsonPath().getString(ERROR + "." + CODE),
-        equalTo("oidc_provider_config_not_found"));
+        equalTo(ERROR_CODE_OIDC_PROVIDER_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -412,17 +452,20 @@ public class OidcProviderConfigIT {
         .statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("issuer", "https://accounts.google.com/v2");
+    updateBody.put(REQUEST_FIELD_ISSUER, "https://accounts.google.com/v2");
 
     Response response = updateOidcProviderConfig(testTenantId, testProviderName, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("issuer"), equalTo("https://accounts.google.com/v2"));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("provider_name"), equalTo(testProviderName));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_ISSUER),
+        equalTo("https://accounts.google.com/v2"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_PROVIDER_NAME), equalTo(testProviderName));
 
     JsonObject dbConfig = DbUtils.getOidcProviderConfig(testTenantId, testProviderName);
-    assertThat(dbConfig.getString("issuer"), equalTo("https://accounts.google.com/v2"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_ISSUER), equalTo("https://accounts.google.com/v2"));
   }
 
   @Test
@@ -434,20 +477,22 @@ public class OidcProviderConfigIT {
         .statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("issuer", "https://accounts.google.com/v2");
-    updateBody.put("is_ssl_enabled", false);
-    updateBody.put("user_identifier", "username");
+    updateBody.put(REQUEST_FIELD_ISSUER, "https://accounts.google.com/v2");
+    updateBody.put(REQUEST_FIELD_IS_SSL_ENABLED, false);
+    updateBody.put(REQUEST_FIELD_USER_IDENTIFIER, "username");
 
     Response response = updateOidcProviderConfig(testTenantId, testProviderName, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("issuer"), equalTo("https://accounts.google.com/v2"));
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(response.jsonPath().getString("user_identifier"), equalTo("username"));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_ISSUER),
+        equalTo("https://accounts.google.com/v2"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_USER_IDENTIFIER), equalTo("username"));
 
     JsonObject dbConfig = DbUtils.getOidcProviderConfig(testTenantId, testProviderName);
-    assertThat(dbConfig.getString("issuer"), equalTo("https://accounts.google.com/v2"));
-    assertThat(dbConfig.getBoolean("is_ssl_enabled"), equalTo(false));
+    assertThat(dbConfig.getString(REQUEST_FIELD_ISSUER), equalTo("https://accounts.google.com/v2"));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
   }
 
   @Test
@@ -459,13 +504,15 @@ public class OidcProviderConfigIT {
         .statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("is_ssl_enabled", false);
+    updateBody.put(REQUEST_FIELD_IS_SSL_ENABLED, false);
 
     Response response = updateOidcProviderConfig(testTenantId, testProviderName, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(response.jsonPath().getString("issuer"), equalTo("https://accounts.google.com"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_ISSUER),
+        equalTo("https://accounts.google.com"));
   }
 
   @Test
@@ -484,7 +531,7 @@ public class OidcProviderConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -493,14 +540,14 @@ public class OidcProviderConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("issuer", "https://accounts.google.com/v2");
+    updateBody.put(REQUEST_FIELD_ISSUER, "https://accounts.google.com/v2");
 
     Response response = updateOidcProviderConfig(testTenantId, testProviderName, updateBody);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
         response.jsonPath().getString(ERROR + "." + CODE),
-        equalTo("oidc_provider_config_not_found"));
+        equalTo(ERROR_CODE_OIDC_PROVIDER_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -529,33 +576,34 @@ public class OidcProviderConfigIT {
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
         response.jsonPath().getString(ERROR + "." + CODE),
-        equalTo("oidc_provider_config_not_found"));
+        equalTo(ERROR_CODE_OIDC_PROVIDER_CONFIG_NOT_FOUND));
   }
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createOidcProviderConfigBody() {
     Map<String, Object> oidcProviderConfigBody = new HashMap<>();
-    oidcProviderConfigBody.put("tenant_id", testTenantId);
-    oidcProviderConfigBody.put("provider_name", testProviderName);
-    oidcProviderConfigBody.put("issuer", "https://accounts.google.com");
-    oidcProviderConfigBody.put("jwks_url", "https://www.googleapis.com/oauth2/v3/certs");
-    oidcProviderConfigBody.put("token_url", "https://oauth2.googleapis.com/token");
-    oidcProviderConfigBody.put("client_id", "test-client-id");
-    oidcProviderConfigBody.put("client_secret", "test-client-secret");
-    oidcProviderConfigBody.put("redirect_uri", "https://example.com/callback");
-    oidcProviderConfigBody.put("client_auth_method", "client_secret_post");
-    oidcProviderConfigBody.put("is_ssl_enabled", true);
-    oidcProviderConfigBody.put("user_identifier", "email");
+    oidcProviderConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    oidcProviderConfigBody.put(REQUEST_FIELD_PROVIDER_NAME, testProviderName);
+    oidcProviderConfigBody.put(REQUEST_FIELD_ISSUER, "https://accounts.google.com");
+    oidcProviderConfigBody.put(
+        REQUEST_FIELD_JWKS_URL, "https://www.googleapis.com/oauth2/v3/certs");
+    oidcProviderConfigBody.put(REQUEST_FIELD_TOKEN_URL, "https://oauth2.googleapis.com/token");
+    oidcProviderConfigBody.put(REQUEST_FIELD_CLIENT_ID, "test-client-id");
+    oidcProviderConfigBody.put(REQUEST_FIELD_CLIENT_SECRET, "test-client-secret");
+    oidcProviderConfigBody.put(REQUEST_FIELD_REDIRECT_URI, "https://example.com/callback");
+    oidcProviderConfigBody.put(REQUEST_FIELD_CLIENT_AUTH_METHOD, "client_secret_post");
+    oidcProviderConfigBody.put(REQUEST_FIELD_IS_SSL_ENABLED, true);
+    oidcProviderConfigBody.put(REQUEST_FIELD_USER_IDENTIFIER, "email");
     List<String> audienceClaims = new ArrayList<>();
     audienceClaims.add("aud1");
     audienceClaims.add("aud2");
-    oidcProviderConfigBody.put("audience_claims", audienceClaims);
+    oidcProviderConfigBody.put(REQUEST_FIELD_AUDIENCE_CLAIMS, audienceClaims);
     return oidcProviderConfigBody;
   }
 }
