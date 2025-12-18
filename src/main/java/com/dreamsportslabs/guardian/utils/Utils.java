@@ -301,4 +301,14 @@ public final class Utils {
       return new JsonObject().getMap();
     }
   }
+
+  public static String encodeWhitelistedInputs(java.util.List<String> whitelistedInputs) {
+    JsonObject jsonObject = new JsonObject();
+    if (whitelistedInputs != null) {
+      for (String input : whitelistedInputs) {
+        jsonObject.put(input, true);
+      }
+    }
+    return jsonObject.encode();
+  }
 }

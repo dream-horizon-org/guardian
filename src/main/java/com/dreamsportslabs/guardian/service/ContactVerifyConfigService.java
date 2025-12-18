@@ -17,10 +17,10 @@ import com.dreamsportslabs.guardian.dao.ContactVerifyConfigDao;
 import com.dreamsportslabs.guardian.dao.model.ContactVerifyConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateContactVerifyConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateContactVerifyConfigRequestDto;
+import com.dreamsportslabs.guardian.utils.Utils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,18 +66,16 @@ public class ContactVerifyConfigService {
                   mergeContactVerifyConfig(tenantId, requestDto, oldConfig);
               return contactVerifyConfigDao
                   .updateContactVerifyConfig(updatedConfig)
-                  .andThen(getContactVerifyConfig(tenantId))
-                  .flatMap(
-                      newConfig ->
-                          changelogService
-                              .logConfigChange(
-                                  tenantId,
-                                  CONFIG_TYPE_CONTACT_VERIFY_CONFIG,
-                                  OPERATION_UPDATE,
-                                  oldConfig,
-                                  newConfig,
-                                  tenantId)
-                              .andThen(Single.just(newConfig)));
+                  .andThen(
+                      changelogService
+                          .logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_CONTACT_VERIFY_CONFIG,
+                              OPERATION_UPDATE,
+                              oldConfig,
+                              updatedConfig,
+                              tenantId)
+                          .andThen(Single.just(updatedConfig)));
             });
   }
 
@@ -89,15 +87,20 @@ public class ContactVerifyConfigService {
             oldConfig ->
                 contactVerifyConfigDao
                     .deleteContactVerifyConfig(tenantId)
-                    .ignoreElement()
-                    .andThen(
-                        changelogService.logConfigChange(
-                            tenantId,
-                            CONFIG_TYPE_CONTACT_VERIFY_CONFIG,
-                            OPERATION_DELETE,
-                            oldConfig,
-                            null,
-                            tenantId)));
+                    .flatMapCompletable(
+                        deleted -> {
+                          if (!deleted) {
+                            return Completable.error(
+                                CONTACT_VERIFY_CONFIG_NOT_FOUND.getException());
+                          }
+                          return changelogService.logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_CONTACT_VERIFY_CONFIG,
+                              OPERATION_DELETE,
+                              oldConfig,
+                              null,
+                              tenantId);
+                        }));
   }
 
   private ContactVerifyConfigModel buildContactVerifyConfigFromCreateRequest(
@@ -110,7 +113,7 @@ public class ContactVerifyConfigService {
         .resendLimit(coalesce(requestDto.getResendLimit(), DEFAULT_RESEND_LIMIT))
         .otpResendInterval(coalesce(requestDto.getOtpResendInterval(), DEFAULT_OTP_RESEND_INTERVAL))
         .otpValidity(coalesce(requestDto.getOtpValidity(), DEFAULT_OTP_VALIDITY))
-        .whitelistedInputs(encodeWhitelistedInputs(requestDto.getWhitelistedInputs()))
+        .whitelistedInputs(Utils.encodeWhitelistedInputs(requestDto.getWhitelistedInputs()))
         .build();
   }
 
@@ -129,18 +132,8 @@ public class ContactVerifyConfigService {
         .otpValidity(coalesce(requestDto.getOtpValidity(), oldConfig.getOtpValidity()))
         .whitelistedInputs(
             requestDto.getWhitelistedInputs() != null
-                ? encodeWhitelistedInputs(requestDto.getWhitelistedInputs())
+                ? Utils.encodeWhitelistedInputs(requestDto.getWhitelistedInputs())
                 : oldConfig.getWhitelistedInputs())
         .build();
-  }
-
-  private String encodeWhitelistedInputs(java.util.List<String> whitelistedInputs) {
-    JsonObject jsonObject = new JsonObject();
-    if (whitelistedInputs != null) {
-      for (String input : whitelistedInputs) {
-        jsonObject.put(input, true);
-      }
-    }
-    return jsonObject.encode();
   }
 }
