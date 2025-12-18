@@ -58,18 +58,16 @@ public class OidcConfigService {
               OidcConfigModel updatedConfig = mergeOidcConfig(tenantId, requestDto, oldConfig);
               return oidcConfigDao
                   .updateOidcConfig(updatedConfig)
-                  .andThen(getOidcConfig(tenantId))
-                  .flatMap(
-                      newConfig ->
-                          changelogService
-                              .logConfigChange(
-                                  tenantId,
-                                  CONFIG_TYPE_OIDC_CONFIG,
-                                  OPERATION_UPDATE,
-                                  oldConfig,
-                                  newConfig,
-                                  tenantId)
-                              .andThen(Single.just(newConfig)));
+                  .andThen(
+                      changelogService
+                          .logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_OIDC_CONFIG,
+                              OPERATION_UPDATE,
+                              oldConfig,
+                              updatedConfig,
+                              tenantId)
+                          .andThen(Single.just(updatedConfig)));
             });
   }
 
@@ -81,15 +79,19 @@ public class OidcConfigService {
             oldConfig ->
                 oidcConfigDao
                     .deleteOidcConfig(tenantId)
-                    .ignoreElement()
-                    .andThen(
-                        changelogService.logConfigChange(
-                            tenantId,
-                            CONFIG_TYPE_OIDC_CONFIG,
-                            OPERATION_DELETE,
-                            oldConfig,
-                            null,
-                            tenantId)));
+                    .flatMapCompletable(
+                        deleted -> {
+                          if (!deleted) {
+                            return Completable.error(OIDC_CONFIG_NOT_FOUND.getException());
+                          }
+                          return changelogService.logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_OIDC_CONFIG,
+                              OPERATION_DELETE,
+                              oldConfig,
+                              null,
+                              tenantId);
+                        }));
   }
 
   private OidcConfigModel buildOidcConfigFromCreateRequest(CreateOidcConfigRequestDto requestDto) {
