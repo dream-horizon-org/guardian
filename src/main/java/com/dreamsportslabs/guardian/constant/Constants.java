@@ -223,6 +223,9 @@ public final class Constants {
   // MySQL Error Codes
   public static final int MYSQL_ERROR_CODE_DUPLICATE_ENTRY = 1062;
 
+  // Database Constraint Names
+  public static final String TENANT_NAME = "tenant_name";
+
   // JSON Field Names
   public static final String JSON_FIELD_KID = "kid";
   public static final String JSON_FIELD_PUBLIC_KEY = "public_key";

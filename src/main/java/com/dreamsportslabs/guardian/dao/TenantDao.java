@@ -1,6 +1,7 @@
 package com.dreamsportslabs.guardian.dao;
 
 import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
+import static com.dreamsportslabs.guardian.constant.Constants.TENANT_NAME;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.CREATE_TENANT;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.DELETE_TENANT;
 import static com.dreamsportslabs.guardian.dao.query.TenantQuery.GET_TENANT;
@@ -89,7 +90,7 @@ public class TenantDao {
       int errorCode = mySQLException.getErrorCode();
       if (errorCode == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
         String errorMessage = mySQLException.getMessage();
-        if (errorMessage != null && errorMessage.contains("tenant_name")) {
+        if (errorMessage != null && errorMessage.contains(TENANT_NAME)) {
           return Single.error(
               TENANT_NAME_ALREADY_EXISTS.getCustomException("Tenant name already exists: " + name));
         } else if (defaultError == TENANT_ALREADY_EXISTS) {

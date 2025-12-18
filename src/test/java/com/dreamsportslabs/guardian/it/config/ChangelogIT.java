@@ -8,6 +8,7 @@ import static com.dreamsportslabs.guardian.Constants.CONFIG_TYPE_SMS_CONFIG;
 import static com.dreamsportslabs.guardian.Constants.DEFAULT_LIMIT;
 import static com.dreamsportslabs.guardian.Constants.DEFAULT_OFFSET;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_CHANGELOG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.JSON_PATH_CHANGED_AT;
 import static com.dreamsportslabs.guardian.Constants.JSON_PATH_CHANGED_BY;
@@ -128,7 +129,7 @@ public class ChangelogIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("changelog_not_found"));
+        .body(CODE, equalTo(ERROR_CODE_CHANGELOG_NOT_FOUND));
   }
 
   @Test

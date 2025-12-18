@@ -4,6 +4,17 @@ import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ACCESS_TOKEN_CLAIMS;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ALGORITHM;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID_TOKEN_CLAIMS;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ISSUER;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_ACCESS_TOKEN_CLAIMS;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_ID_TOKEN_CLAIMS;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_RSA_KEYS;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.getTokenConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.updateTokenConfig;
@@ -55,7 +66,7 @@ public class TokenConfigIT {
     Response response = getTokenConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(response.jsonPath().getString("algorithm"), equalTo("RS512"));
     assertThat(response.jsonPath().getString("issuer"), equalTo("https://dream11.local"));
     assertThat(response.jsonPath().getInt("access_token_expiry"), equalTo(900));
@@ -67,7 +78,7 @@ public class TokenConfigIT {
     assertThat(response.jsonPath().getBoolean("cookie_secure"), equalTo(false));
     assertThat(response.jsonPath().getBoolean("cookie_http_only"), equalTo(true));
 
-    List<Object> rsaKeys = response.jsonPath().getList("rsa_keys");
+    List<Object> rsaKeys = response.jsonPath().getList(RESPONSE_FIELD_RSA_KEYS);
     assertThat(rsaKeys.size(), equalTo(3));
 
     Map<String, Object> rsaKey1 = response.jsonPath().getMap("rsa_keys[0]");
@@ -89,12 +100,13 @@ public class TokenConfigIT {
     assertThat(rsaKey3.containsKey("private_key"), equalTo(true));
     assertThat(rsaKey3.containsKey("current"), equalTo(false));
 
-    List<String> idTokenClaims = response.jsonPath().getList("id_token_claims");
+    List<String> idTokenClaims = response.jsonPath().getList(RESPONSE_FIELD_ID_TOKEN_CLAIMS);
     assertThat(idTokenClaims.size(), equalTo(2));
     assertThat(idTokenClaims.contains("userId"), equalTo(true));
     assertThat(idTokenClaims.contains("emailId"), equalTo(true));
 
-    List<String> accessTokenClaims = response.jsonPath().getList("access_token_claims");
+    List<String> accessTokenClaims =
+        response.jsonPath().getList(RESPONSE_FIELD_ACCESS_TOKEN_CLAIMS);
     assertThat(accessTokenClaims.size(), equalTo(0));
   }
 
@@ -111,15 +123,15 @@ public class TokenConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("algorithm", "RS256");
+    updateBody.put(REQUEST_FIELD_ALGORITHM, "RS256");
 
     Response response = updateTokenConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getString("algorithm"), equalTo("RS256"));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
 
-    List<Object> rsaKeys = response.jsonPath().getList("rsa_keys");
+    List<Object> rsaKeys = response.jsonPath().getList(RESPONSE_FIELD_RSA_KEYS);
     assertThat(rsaKeys.size(), equalTo(3));
 
     Map<String, Object> rsaKey1 = response.jsonPath().getMap("rsa_keys[0]");
@@ -151,8 +163,8 @@ public class TokenConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("algorithm", "RS256");
-    updateBody.put("issuer", "https://updated.dream11.local");
+    updateBody.put(REQUEST_FIELD_ALGORITHM, "RS256");
+    updateBody.put(REQUEST_FIELD_ISSUER, "https://updated.dream11.local");
     updateBody.put("access_token_expiry", 1800);
     updateBody.put("cookie_same_site", "LAX");
     updateBody.put("cookie_secure", true);
@@ -166,7 +178,7 @@ public class TokenConfigIT {
     assertThat(response.jsonPath().getString("cookie_same_site"), equalTo("LAX"));
     assertThat(response.jsonPath().getBoolean("cookie_secure"), equalTo(true));
 
-    List<Object> rsaKeys = response.jsonPath().getList("rsa_keys");
+    List<Object> rsaKeys = response.jsonPath().getList(RESPONSE_FIELD_RSA_KEYS);
     assertThat(rsaKeys.size(), equalTo(3));
 
     Map<String, Object> rsaKey1 = response.jsonPath().getMap("rsa_keys[0]");
@@ -216,7 +228,7 @@ public class TokenConfigIT {
   @DisplayName("Should return 401 when tenant-id header is missing for update")
   public void testUpdateTokenConfigMissingHeader() {
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("algorithm", "RS256");
+    updateBody.put(REQUEST_FIELD_ALGORITHM, "RS256");
 
     Response response =
         given()
@@ -240,7 +252,7 @@ public class TokenConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -249,7 +261,7 @@ public class TokenConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("algorithm", "");
+    updateBody.put(REQUEST_FIELD_ALGORITHM, "");
 
     Response response = updateTokenConfig(testTenantId, updateBody);
 
@@ -265,7 +277,7 @@ public class TokenConfigIT {
 
     String longAlgorithm = RandomStringUtils.randomAlphanumeric(11);
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("algorithm", longAlgorithm);
+    updateBody.put(REQUEST_FIELD_ALGORITHM, longAlgorithm);
 
     Response response = updateTokenConfig(testTenantId, updateBody);
 
@@ -281,7 +293,7 @@ public class TokenConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("issuer", "");
+    updateBody.put(REQUEST_FIELD_ISSUER, "");
 
     Response response = updateTokenConfig(testTenantId, updateBody);
 
@@ -297,7 +309,7 @@ public class TokenConfigIT {
 
     String longIssuer = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("issuer", longIssuer);
+    updateBody.put(REQUEST_FIELD_ISSUER, longIssuer);
 
     Response response = updateTokenConfig(testTenantId, updateBody);
 
@@ -449,12 +461,12 @@ public class TokenConfigIT {
     newClaims.add("phoneNumber");
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("id_token_claims", newClaims);
+    updateBody.put(REQUEST_FIELD_ID_TOKEN_CLAIMS, newClaims);
 
     Response response = updateTokenConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    List<String> idTokenClaims = response.jsonPath().getList("id_token_claims");
+    List<String> idTokenClaims = response.jsonPath().getList(RESPONSE_FIELD_ID_TOKEN_CLAIMS);
     assertThat(idTokenClaims.size(), equalTo(3));
     assertThat(idTokenClaims.contains("userId"), equalTo(true));
     assertThat(idTokenClaims.contains("emailId"), equalTo(true));
@@ -471,12 +483,13 @@ public class TokenConfigIT {
     newClaims.add("emailId");
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("access_token_claims", newClaims);
+    updateBody.put(REQUEST_FIELD_ACCESS_TOKEN_CLAIMS, newClaims);
 
     Response response = updateTokenConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    List<String> accessTokenClaims = response.jsonPath().getList("access_token_claims");
+    List<String> accessTokenClaims =
+        response.jsonPath().getList(RESPONSE_FIELD_ACCESS_TOKEN_CLAIMS);
     assertThat(accessTokenClaims.size(), equalTo(2));
     assertThat(accessTokenClaims.contains("userId"), equalTo(true));
     assertThat(accessTokenClaims.contains("emailId"), equalTo(true));
@@ -484,8 +497,8 @@ public class TokenConfigIT {
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 }

@@ -845,6 +845,22 @@ public class DbUtils {
     }
   }
 
+  public static boolean tenantExists(String tenantId) {
+    String selectQuery = "SELECT COUNT(*) as count FROM tenant WHERE id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        return rs.getInt("count") > 0;
+      }
+    } catch (Exception e) {
+      log.error("Error while checking tenant existence", e);
+    }
+    return false;
+  }
+
   public static Long countChangelogByTenant(String tenantId) {
     String countQuery =
         "SELECT COUNT(*) as "

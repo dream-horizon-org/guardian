@@ -2,8 +2,21 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_TENANT_NAME_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_TENANT_NOT_FOUND;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_ID_REQUIRED;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_NAME_CANNOT_EXCEED_256;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_NAME_REQUIRED;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TENANT_NAME_ALREADY_EXISTS_PREFIX;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_ACCESS_TOKEN_CLAIMS;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_ID_TOKEN_CLAIMS;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_RSA_KEYS;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.getTenant;
@@ -57,8 +70,8 @@ public class TenantIT {
   @DisplayName("Should create tenant successfully")
   public void testCreateTenantSuccess() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     Response response = createTenant(requestBody);
 
@@ -72,8 +85,8 @@ public class TenantIT {
   @DisplayName("Should create default user_config when tenant is created")
   public void testCreateTenantWithDefaultUserConfig() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     Response response = createTenant(requestBody);
 
@@ -82,7 +95,7 @@ public class TenantIT {
 
     JsonObject userConfig = getUserConfig(testTenantId);
     assertThat(userConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(userConfig.getString("tenant_id"), equalTo(testTenantId));
+    assertThat(userConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(userConfig.getBoolean("is_ssl_enabled"), equalTo(false));
     assertThat(userConfig.getString("host"), equalTo("control-tower.dream11.local"));
     assertThat(userConfig.getInteger("port"), equalTo(80));
@@ -97,8 +110,8 @@ public class TenantIT {
   @DisplayName("Should create default token_config when tenant is created")
   public void testCreateTenantWithDefaultTokenConfig() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     Response response = createTenant(requestBody);
 
@@ -107,7 +120,7 @@ public class TenantIT {
 
     JsonObject tokenConfig = getTokenConfig(testTenantId);
     assertThat(tokenConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(tokenConfig.getString("tenant_id"), equalTo(testTenantId));
+    assertThat(tokenConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(tokenConfig.getString("algorithm"), equalTo("RS512"));
     assertThat(tokenConfig.getString("issuer"), equalTo("https://dream11.local"));
     assertThat(tokenConfig.getInteger("access_token_expiry"), equalTo(900));
@@ -119,7 +132,7 @@ public class TenantIT {
     assertThat(tokenConfig.getBoolean("cookie_secure"), equalTo(false));
     assertThat(tokenConfig.getBoolean("cookie_http_only"), equalTo(true));
 
-    JsonArray rsaKeys = new JsonArray(tokenConfig.getString("rsa_keys"));
+    JsonArray rsaKeys = new JsonArray(tokenConfig.getString(RESPONSE_FIELD_RSA_KEYS));
     assertThat(rsaKeys.size(), equalTo(3));
 
     JsonObject firstRsaKey = rsaKeys.getJsonObject(0);
@@ -136,12 +149,13 @@ public class TenantIT {
       assertThat(rsaKey.containsKey("current"), equalTo(false));
     }
 
-    JsonArray idTokenClaims = new JsonArray(tokenConfig.getString("id_token_claims"));
+    JsonArray idTokenClaims = new JsonArray(tokenConfig.getString(RESPONSE_FIELD_ID_TOKEN_CLAIMS));
     assertThat(idTokenClaims.size(), equalTo(2));
     assertThat(idTokenClaims.contains("userId"), equalTo(true));
     assertThat(idTokenClaims.contains("emailId"), equalTo(true));
 
-    JsonArray accessTokenClaims = new JsonArray(tokenConfig.getString("access_token_claims"));
+    JsonArray accessTokenClaims =
+        new JsonArray(tokenConfig.getString(RESPONSE_FIELD_ACCESS_TOKEN_CLAIMS));
     assertThat(accessTokenClaims.size(), equalTo(0));
   }
 
@@ -149,12 +163,13 @@ public class TenantIT {
   @DisplayName("Should return error when id is missing")
   public void testCreateTenantMissingId() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     Response response = createTenant(requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
-    assertThat(response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("id is required"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo(ERROR_MSG_ID_REQUIRED));
   }
 
   @Test
@@ -166,41 +181,44 @@ public class TenantIT {
     Response response = createTenant(requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
-    assertThat(response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("name is required"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo(ERROR_MSG_NAME_REQUIRED));
   }
 
   @Test
   @DisplayName("Should return error when id is blank")
   public void testCreateTenantBlankId() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", "");
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, "");
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     Response response = createTenant(requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
-    assertThat(response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("id is required"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo(ERROR_MSG_ID_REQUIRED));
   }
 
   @Test
   @DisplayName("Should return error when name is blank")
   public void testCreateTenantBlankName() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", "");
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, "");
 
     Response response = createTenant(requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
-    assertThat(response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("name is required"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo(ERROR_MSG_NAME_REQUIRED));
   }
 
   @Test
   @DisplayName("Should return error when id exceeds 10 characters")
   public void testCreateTenantIdTooLong() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", "12345678901");
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, "12345678901");
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     Response response = createTenant(requestBody);
 
@@ -215,29 +233,29 @@ public class TenantIT {
   public void testCreateTenantNameTooLong() {
     String longName = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", longName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, longName);
 
     Response response = createTenant(requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("name cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_NAME_CANNOT_EXCEED_256));
   }
 
   @Test
   @DisplayName("Should return error when tenant id already exists")
   public void testCreateTenantDuplicateId() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     createTenant(requestBody).then().statusCode(SC_CREATED);
 
     Map<String, Object> duplicateRequest = new HashMap<>();
-    duplicateRequest.put("id", testTenantId);
-    duplicateRequest.put("name", "Another Name");
+    duplicateRequest.put(REQUEST_FIELD_ID, testTenantId);
+    duplicateRequest.put(REQUEST_FIELD_NAME, "Another Name");
 
     Response response = createTenant(duplicateRequest);
 
@@ -255,14 +273,14 @@ public class TenantIT {
   @DisplayName("Should return error when tenant name already exists")
   public void testCreateTenantDuplicateName() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     createTenant(requestBody).then().statusCode(SC_CREATED);
 
     Map<String, Object> duplicateRequest = new HashMap<>();
-    duplicateRequest.put("id", "different");
-    duplicateRequest.put("name", testTenantName);
+    duplicateRequest.put(REQUEST_FIELD_ID, "different");
+    duplicateRequest.put(REQUEST_FIELD_NAME, testTenantName);
 
     Response response = createTenant(duplicateRequest);
 
@@ -270,18 +288,18 @@ public class TenantIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("tenant_name_already_exists"));
+        .body(CODE, equalTo(ERROR_CODE_TENANT_NAME_ALREADY_EXISTS));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("Tenant name already exists: " + testTenantName));
+        equalTo(ERROR_MSG_TENANT_NAME_ALREADY_EXISTS_PREFIX + testTenantName));
   }
 
   @Test
   @DisplayName("Should get tenant by id successfully")
   public void testGetTenantByIdSuccess() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     createTenant(requestBody).then().statusCode(SC_CREATED);
 
@@ -301,15 +319,15 @@ public class TenantIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("tenant_not_found"));
+        .body(CODE, equalTo(ERROR_CODE_TENANT_NOT_FOUND));
   }
 
   @Test
   @DisplayName("Should get tenant by name successfully")
   public void testGetTenantByNameSuccess() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     createTenant(requestBody).then().statusCode(SC_CREATED);
 
@@ -329,21 +347,21 @@ public class TenantIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("tenant_not_found"));
+        .body(CODE, equalTo(ERROR_CODE_TENANT_NOT_FOUND));
   }
 
   @Test
   @DisplayName("Should update tenant successfully")
   public void testUpdateTenantSuccess() {
     Map<String, Object> createBody = new HashMap<>();
-    createBody.put("id", testTenantId);
-    createBody.put("name", testTenantName);
+    createBody.put(REQUEST_FIELD_ID, testTenantId);
+    createBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     createTenant(createBody).then().statusCode(SC_CREATED);
 
     String updatedName = "Updated " + testTenantName;
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("name", updatedName);
+    updateBody.put(REQUEST_FIELD_NAME, updatedName);
 
     Response response = updateTenant(testTenantId, updateBody);
 
@@ -359,7 +377,7 @@ public class TenantIT {
   @DisplayName("Should return 400 when updating non-existent tenant")
   public void testUpdateTenantNotFound() {
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("name", "Updated Name");
+    updateBody.put(REQUEST_FIELD_NAME, "Updated Name");
 
     Response response = updateTenant("nonexistent", updateBody);
 
@@ -367,20 +385,20 @@ public class TenantIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("tenant_not_found"));
+        .body(CODE, equalTo(ERROR_CODE_TENANT_NOT_FOUND));
   }
 
   @Test
   @DisplayName("Should return error when update name is blank")
   public void testUpdateTenantBlankName() {
     Map<String, Object> createBody = new HashMap<>();
-    createBody.put("id", testTenantId);
-    createBody.put("name", testTenantName);
+    createBody.put(REQUEST_FIELD_ID, testTenantId);
+    createBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     createTenant(createBody).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("name", "");
+    updateBody.put(REQUEST_FIELD_NAME, "");
 
     Response response = updateTenant(testTenantId, updateBody);
 
@@ -393,29 +411,29 @@ public class TenantIT {
   @DisplayName("Should return error when update name exceeds 256 characters")
   public void testUpdateTenantNameTooLong() {
     Map<String, Object> createBody = new HashMap<>();
-    createBody.put("id", testTenantId);
-    createBody.put("name", testTenantName);
+    createBody.put(REQUEST_FIELD_ID, testTenantId);
+    createBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     createTenant(createBody).then().statusCode(SC_CREATED);
 
     String longName = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("name", longName);
+    updateBody.put(REQUEST_FIELD_NAME, longName);
 
     Response response = updateTenant(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("name cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_NAME_CANNOT_EXCEED_256));
   }
 
   @Test
   @DisplayName("Should return error when update has no fields")
   public void testUpdateTenantNoFields() {
     Map<String, Object> createBody = new HashMap<>();
-    createBody.put("id", testTenantId);
-    createBody.put("name", testTenantName);
+    createBody.put(REQUEST_FIELD_ID, testTenantId);
+    createBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     createTenant(createBody).then().statusCode(SC_CREATED);
 
@@ -427,7 +445,7 @@ public class TenantIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -437,17 +455,17 @@ public class TenantIT {
     String tenantName2 = "Another Tenant";
 
     Map<String, Object> createBody1 = new HashMap<>();
-    createBody1.put("id", testTenantId);
-    createBody1.put("name", testTenantName);
+    createBody1.put(REQUEST_FIELD_ID, testTenantId);
+    createBody1.put(REQUEST_FIELD_NAME, testTenantName);
     createTenant(createBody1).then().statusCode(SC_CREATED);
 
     Map<String, Object> createBody2 = new HashMap<>();
-    createBody2.put("id", tenantId2);
-    createBody2.put("name", tenantName2);
+    createBody2.put(REQUEST_FIELD_ID, tenantId2);
+    createBody2.put(REQUEST_FIELD_NAME, tenantName2);
     createTenant(createBody2).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("name", tenantName2);
+    updateBody.put(REQUEST_FIELD_NAME, tenantName2);
 
     Response response = updateTenant(testTenantId, updateBody);
 
@@ -455,10 +473,10 @@ public class TenantIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("tenant_name_already_exists"));
+        .body(CODE, equalTo(ERROR_CODE_TENANT_NAME_ALREADY_EXISTS));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("Tenant name already exists: " + tenantName2));
+        equalTo(ERROR_MSG_TENANT_NAME_ALREADY_EXISTS_PREFIX + tenantName2));
 
     DbUtils.deleteTenant(tenantId2);
   }
@@ -467,8 +485,8 @@ public class TenantIT {
   @DisplayName("Should delete tenant successfully")
   public void testDeleteTenantSuccess() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     createTenant(requestBody).then().statusCode(SC_CREATED);
     assertThat(tenantExists(testTenantId), equalTo(true));
@@ -488,15 +506,15 @@ public class TenantIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("tenant_not_found"));
+        .body(CODE, equalTo(ERROR_CODE_TENANT_NOT_FOUND));
   }
 
   @Test
   @DisplayName("Should create tenant, user_config, and token_config atomically")
   public void testTransactionAtomicity() {
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
+    requestBody.put(REQUEST_FIELD_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_NAME, testTenantName);
 
     Response response = createTenant(requestBody);
 

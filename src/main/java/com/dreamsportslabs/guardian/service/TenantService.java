@@ -3,6 +3,7 @@ package com.dreamsportslabs.guardian.service;
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_TENANT;
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_USER_CONFIG;
+import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.TENANT_NOT_FOUND;
@@ -143,7 +144,13 @@ public class TenantService {
                           if (!deleted) {
                             return Completable.error(TENANT_NOT_FOUND.getException());
                           }
-                          return Completable.complete();
+                          return changelogService.logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_TENANT,
+                              OPERATION_DELETE,
+                              oldTenant,
+                              null,
+                              tenantId);
                         }));
   }
 }
