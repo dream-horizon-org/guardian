@@ -2,8 +2,28 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_CONTACT_VERIFY_CONFIG_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_CONTACT_VERIFY_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_OTP_LENGTH_MUST_BE_GREATER_THAN_0;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_OTP_RESEND_INTERVAL_MUST_BE_GREATER_THAN_0;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_OTP_VALIDITY_MUST_BE_GREATER_THAN_0;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_RESEND_LIMIT_MUST_BE_GREATER_THAN_0;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TRY_LIMIT_MUST_BE_GREATER_THAN_0;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_WHITELISTED_INPUTS_CANNOT_BE_NULL;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_IS_OTP_MOCKED;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_OTP_LENGTH;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_OTP_RESEND_INTERVAL;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_OTP_VALIDITY;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_RESEND_LIMIT;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TRY_LIMIT;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_WHITELISTED_INPUTS;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createContactVerifyConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteContactVerifyConfig;
@@ -56,19 +76,19 @@ public class ContactVerifyConfigIT {
     Response response = createContactVerifyConfig(testTenantId, createContactVerifyConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getBoolean("is_otp_mocked"), equalTo(false));
-    assertThat(response.jsonPath().getInt("otp_length"), equalTo(6));
-    assertThat(response.jsonPath().getInt("try_limit"), equalTo(5));
-    assertThat(response.jsonPath().getInt("resend_limit"), equalTo(5));
-    assertThat(response.jsonPath().getInt("otp_resend_interval"), equalTo(30));
-    assertThat(response.jsonPath().getInt("otp_validity"), equalTo(900));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_OTP_MOCKED), equalTo(false));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_LENGTH), equalTo(6));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TRY_LIMIT), equalTo(5));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_RESEND_LIMIT), equalTo(5));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_RESEND_INTERVAL), equalTo(30));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_VALIDITY), equalTo(900));
 
     JsonObject dbConfig = DbUtils.getContactVerifyConfig(testTenantId);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getBoolean("is_otp_mocked"), equalTo(false));
-    assertThat(dbConfig.getInteger("otp_length"), equalTo(6));
+    assertThat(dbConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_IS_OTP_MOCKED), equalTo(false));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_OTP_LENGTH), equalTo(6));
   }
 
   @Test
@@ -77,21 +97,21 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("tenant_id", testTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
     Map<String, Boolean> whitelistedInputs = new HashMap<>();
     whitelistedInputs.put("email", true);
     whitelistedInputs.put("mobile", true);
-    requestBody.put("whitelisted_inputs", whitelistedInputs);
+    requestBody.put(REQUEST_FIELD_WHITELISTED_INPUTS, whitelistedInputs);
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getBoolean("is_otp_mocked"), equalTo(false));
-    assertThat(response.jsonPath().getInt("otp_length"), equalTo(6));
-    assertThat(response.jsonPath().getInt("try_limit"), equalTo(5));
-    assertThat(response.jsonPath().getInt("resend_limit"), equalTo(5));
-    assertThat(response.jsonPath().getInt("otp_resend_interval"), equalTo(30));
-    assertThat(response.jsonPath().getInt("otp_validity"), equalTo(900));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_OTP_MOCKED), equalTo(false));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_LENGTH), equalTo(6));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TRY_LIMIT), equalTo(5));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_RESEND_LIMIT), equalTo(5));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_RESEND_INTERVAL), equalTo(30));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_VALIDITY), equalTo(900));
   }
 
   @Test
@@ -100,7 +120,7 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
-    requestBody.put("tenant_id", "");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, "");
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
@@ -115,7 +135,7 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
-    requestBody.put("tenant_id", RandomStringUtils.randomAlphanumeric(11));
+    requestBody.put(REQUEST_FIELD_TENANT_ID, RandomStringUtils.randomAlphanumeric(11));
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
@@ -131,14 +151,14 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
-    requestBody.put("otp_length", 0);
+    requestBody.put(REQUEST_FIELD_OTP_LENGTH, 0);
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("otp_length must be greater than 0"));
+        equalTo(ERROR_MSG_OTP_LENGTH_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -147,14 +167,14 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
-    requestBody.put("try_limit", 0);
+    requestBody.put(REQUEST_FIELD_TRY_LIMIT, 0);
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("try_limit must be greater than 0"));
+        equalTo(ERROR_MSG_TRY_LIMIT_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -163,14 +183,14 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
-    requestBody.put("resend_limit", 0);
+    requestBody.put(REQUEST_FIELD_RESEND_LIMIT, 0);
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("resend_limit must be greater than 0"));
+        equalTo(ERROR_MSG_RESEND_LIMIT_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -179,14 +199,14 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
-    requestBody.put("otp_resend_interval", 0);
+    requestBody.put(REQUEST_FIELD_OTP_RESEND_INTERVAL, 0);
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("otp_resend_interval must be greater than 0"));
+        equalTo(ERROR_MSG_OTP_RESEND_INTERVAL_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -195,14 +215,14 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
-    requestBody.put("otp_validity", 0);
+    requestBody.put(REQUEST_FIELD_OTP_VALIDITY, 0);
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("otp_validity must be greater than 0"));
+        equalTo(ERROR_MSG_OTP_VALIDITY_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -211,14 +231,14 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
-    requestBody.put("whitelisted_inputs", null);
+    requestBody.put(REQUEST_FIELD_WHITELISTED_INPUTS, null);
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("whitelisted_inputs cannot be null"));
+        equalTo(ERROR_MSG_WHITELISTED_INPUTS_CANNOT_BE_NULL));
   }
 
   @Test
@@ -228,7 +248,7 @@ public class ContactVerifyConfigIT {
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 
@@ -251,7 +271,7 @@ public class ContactVerifyConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR);
     assertThat(
         response.jsonPath().getString(ERROR + "." + CODE),
-        equalTo("contact_verify_config_already_exists"));
+        equalTo(ERROR_CODE_CONTACT_VERIFY_CONFIG_ALREADY_EXISTS));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
         equalTo("Contact verify config already exists: " + testTenantId));
@@ -268,13 +288,13 @@ public class ContactVerifyConfigIT {
     Response response = getContactVerifyConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getBoolean("is_otp_mocked"), equalTo(false));
-    assertThat(response.jsonPath().getInt("otp_length"), equalTo(6));
-    assertThat(response.jsonPath().getInt("try_limit"), equalTo(5));
-    assertThat(response.jsonPath().getInt("resend_limit"), equalTo(5));
-    assertThat(response.jsonPath().getInt("otp_resend_interval"), equalTo(30));
-    assertThat(response.jsonPath().getInt("otp_validity"), equalTo(900));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_OTP_MOCKED), equalTo(false));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_LENGTH), equalTo(6));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TRY_LIMIT), equalTo(5));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_RESEND_LIMIT), equalTo(5));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_RESEND_INTERVAL), equalTo(30));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_VALIDITY), equalTo(900));
   }
 
   @Test
@@ -287,7 +307,7 @@ public class ContactVerifyConfigIT {
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
         response.jsonPath().getString(ERROR + "." + CODE),
-        equalTo("contact_verify_config_not_found"));
+        equalTo(ERROR_CODE_CONTACT_VERIFY_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -299,13 +319,13 @@ public class ContactVerifyConfigIT {
         .statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("otp_length", 8);
+    updateBody.put(REQUEST_FIELD_OTP_LENGTH, 8);
 
     Response response = updateContactVerifyConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getInt("otp_length"), equalTo(8));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
 
     JsonObject dbConfig = DbUtils.getContactVerifyConfig(testTenantId);
     assertThat(dbConfig.getInteger("otp_length"), equalTo(8));
@@ -320,27 +340,27 @@ public class ContactVerifyConfigIT {
         .statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("is_otp_mocked", true);
-    updateBody.put("otp_length", 8);
-    updateBody.put("try_limit", 10);
-    updateBody.put("resend_limit", 10);
-    updateBody.put("otp_resend_interval", 60);
-    updateBody.put("otp_validity", 1800);
+    updateBody.put(REQUEST_FIELD_IS_OTP_MOCKED, true);
+    updateBody.put(REQUEST_FIELD_OTP_LENGTH, 8);
+    updateBody.put(REQUEST_FIELD_TRY_LIMIT, 10);
+    updateBody.put(REQUEST_FIELD_RESEND_LIMIT, 10);
+    updateBody.put(REQUEST_FIELD_OTP_RESEND_INTERVAL, 60);
+    updateBody.put(REQUEST_FIELD_OTP_VALIDITY, 1800);
 
     Response response = updateContactVerifyConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getBoolean("is_otp_mocked"), equalTo(true));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_OTP_MOCKED), equalTo(true));
     assertThat(response.jsonPath().getInt("otp_length"), equalTo(8));
-    assertThat(response.jsonPath().getInt("try_limit"), equalTo(10));
-    assertThat(response.jsonPath().getInt("resend_limit"), equalTo(10));
-    assertThat(response.jsonPath().getInt("otp_resend_interval"), equalTo(60));
-    assertThat(response.jsonPath().getInt("otp_validity"), equalTo(1800));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TRY_LIMIT), equalTo(10));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_RESEND_LIMIT), equalTo(10));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_RESEND_INTERVAL), equalTo(60));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_VALIDITY), equalTo(1800));
 
     JsonObject dbConfig = DbUtils.getContactVerifyConfig(testTenantId);
     assertThat(dbConfig.getBoolean("is_otp_mocked"), equalTo(true));
     assertThat(dbConfig.getInteger("otp_length"), equalTo(8));
-    assertThat(dbConfig.getInteger("try_limit"), equalTo(10));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_TRY_LIMIT), equalTo(10));
   }
 
   @Test
@@ -352,14 +372,14 @@ public class ContactVerifyConfigIT {
         .statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("is_otp_mocked", true);
+    updateBody.put(REQUEST_FIELD_IS_OTP_MOCKED, true);
 
     Response response = updateContactVerifyConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getBoolean("is_otp_mocked"), equalTo(true));
-    assertThat(response.jsonPath().getInt("otp_length"), equalTo(6));
-    assertThat(response.jsonPath().getInt("try_limit"), equalTo(5));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_OTP_MOCKED), equalTo(true));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_OTP_LENGTH), equalTo(6));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TRY_LIMIT), equalTo(5));
   }
 
   @Test
@@ -378,7 +398,7 @@ public class ContactVerifyConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -397,7 +417,7 @@ public class ContactVerifyConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("otp_length must be greater than 0"));
+        equalTo(ERROR_MSG_OTP_LENGTH_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -416,7 +436,7 @@ public class ContactVerifyConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("try_limit must be greater than 0"));
+        equalTo(ERROR_MSG_TRY_LIMIT_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -435,7 +455,7 @@ public class ContactVerifyConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("resend_limit must be greater than 0"));
+        equalTo(ERROR_MSG_RESEND_LIMIT_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -454,7 +474,7 @@ public class ContactVerifyConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("otp_resend_interval must be greater than 0"));
+        equalTo(ERROR_MSG_OTP_RESEND_INTERVAL_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -473,7 +493,7 @@ public class ContactVerifyConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("otp_validity must be greater than 0"));
+        equalTo(ERROR_MSG_OTP_VALIDITY_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -490,7 +510,7 @@ public class ContactVerifyConfigIT {
     newWhitelistedInputs.put("username", true);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("whitelisted_inputs", newWhitelistedInputs);
+    updateBody.put(REQUEST_FIELD_WHITELISTED_INPUTS, newWhitelistedInputs);
 
     Response response = updateContactVerifyConfig(testTenantId, updateBody);
 
@@ -508,14 +528,14 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("otp_length", 8);
+    updateBody.put(REQUEST_FIELD_OTP_LENGTH, 8);
 
     Response response = updateContactVerifyConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
         response.jsonPath().getString(ERROR + "." + CODE),
-        equalTo("contact_verify_config_not_found"));
+        equalTo(ERROR_CODE_CONTACT_VERIFY_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -544,29 +564,29 @@ public class ContactVerifyConfigIT {
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
         response.jsonPath().getString(ERROR + "." + CODE),
-        equalTo("contact_verify_config_not_found"));
+        equalTo(ERROR_CODE_CONTACT_VERIFY_CONFIG_NOT_FOUND));
   }
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createContactVerifyConfigBody() {
     Map<String, Object> contactVerifyConfigBody = new HashMap<>();
-    contactVerifyConfigBody.put("tenant_id", testTenantId);
-    contactVerifyConfigBody.put("is_otp_mocked", false);
-    contactVerifyConfigBody.put("otp_length", 6);
-    contactVerifyConfigBody.put("try_limit", 5);
-    contactVerifyConfigBody.put("resend_limit", 5);
-    contactVerifyConfigBody.put("otp_resend_interval", 30);
-    contactVerifyConfigBody.put("otp_validity", 900);
+    contactVerifyConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    contactVerifyConfigBody.put(REQUEST_FIELD_IS_OTP_MOCKED, false);
+    contactVerifyConfigBody.put(REQUEST_FIELD_OTP_LENGTH, 6);
+    contactVerifyConfigBody.put(REQUEST_FIELD_TRY_LIMIT, 5);
+    contactVerifyConfigBody.put(REQUEST_FIELD_RESEND_LIMIT, 5);
+    contactVerifyConfigBody.put(REQUEST_FIELD_OTP_RESEND_INTERVAL, 30);
+    contactVerifyConfigBody.put(REQUEST_FIELD_OTP_VALIDITY, 900);
     Map<String, Boolean> whitelistedInputs = new HashMap<>();
     whitelistedInputs.put("email", true);
     whitelistedInputs.put("mobile", true);
-    contactVerifyConfigBody.put("whitelisted_inputs", whitelistedInputs);
+    contactVerifyConfigBody.put(REQUEST_FIELD_WHITELISTED_INPUTS, whitelistedInputs);
     return contactVerifyConfigBody;
   }
 }
