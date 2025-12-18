@@ -2,8 +2,28 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_EMAIL_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_HOST_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_HOST_CANNOT_EXCEED_256;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_SEND_EMAIL_PATH_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_SEND_EMAIL_PATH_CANNOT_EXCEED_256;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TEMPLATE_NAME_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_HOST;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_IS_SSL_ENABLED;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_PORT;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_SEND_EMAIL_PATH;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TEMPLATE_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TEMPLATE_PARAMS;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createEmailConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteEmailConfig;
@@ -58,19 +78,19 @@ public class EmailConfigIT {
     Response response = createEmailConfig(testTenantId, createEmailConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(response.jsonPath().getString("host"), equalTo("smtp.example.com"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_HOST), equalTo("smtp.example.com"));
     assertThat(response.jsonPath().getInt("port"), equalTo(587));
-    assertThat(response.jsonPath().getString("send_email_path"), equalTo("/send"));
-    assertThat(response.jsonPath().getString("template_name"), equalTo("welcome"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_SEND_EMAIL_PATH), equalTo("/send"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_TEMPLATE_NAME), equalTo("welcome"));
 
     JsonObject dbConfig = DbUtils.getEmailConfig(testTenantId);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
     assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(dbConfig.getString("host"), equalTo("smtp.example.com"));
-    assertThat(dbConfig.getInteger("port"), equalTo(587));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
+    assertThat(dbConfig.getString(REQUEST_FIELD_HOST), equalTo("smtp.example.com"));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_PORT), equalTo(587));
   }
 
   @Test
@@ -79,7 +99,7 @@ public class EmailConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("tenant_id", "");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, "");
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
@@ -94,7 +114,7 @@ public class EmailConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("tenant_id", RandomStringUtils.randomAlphanumeric(11));
+    requestBody.put(REQUEST_FIELD_TENANT_ID, RandomStringUtils.randomAlphanumeric(11));
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
@@ -110,13 +130,14 @@ public class EmailConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("host", "");
+    requestBody.put(REQUEST_FIELD_HOST, "");
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("host cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_HOST_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -126,14 +147,14 @@ public class EmailConfigIT {
 
     String longHost = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("host", longHost);
+    requestBody.put(REQUEST_FIELD_HOST, longHost);
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("host cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_HOST_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -142,14 +163,14 @@ public class EmailConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("port", 0);
+    requestBody.put(REQUEST_FIELD_PORT, 0);
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
   }
 
   @Test
@@ -158,14 +179,14 @@ public class EmailConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("port", 65536);
+    requestBody.put(REQUEST_FIELD_PORT, 65536);
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
   }
 
   @Test
@@ -174,14 +195,14 @@ public class EmailConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("send_email_path", "");
+    requestBody.put(REQUEST_FIELD_SEND_EMAIL_PATH, "");
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("send_email_path cannot be blank"));
+        equalTo(ERROR_MSG_SEND_EMAIL_PATH_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -191,14 +212,14 @@ public class EmailConfigIT {
 
     String longPath = "/" + RandomStringUtils.randomAlphanumeric(256);
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("send_email_path", longPath);
+    requestBody.put(REQUEST_FIELD_SEND_EMAIL_PATH, longPath);
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("send_email_path cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_SEND_EMAIL_PATH_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -207,14 +228,14 @@ public class EmailConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("template_name", "");
+    requestBody.put(REQUEST_FIELD_TEMPLATE_NAME, "");
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("template_name cannot be blank"));
+        equalTo(ERROR_MSG_TEMPLATE_NAME_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -224,14 +245,14 @@ public class EmailConfigIT {
 
     String longTemplateName = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("template_name", longTemplateName);
+    requestBody.put(REQUEST_FIELD_TEMPLATE_NAME, longTemplateName);
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("template_name cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -240,7 +261,7 @@ public class EmailConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createEmailConfigBody();
-    requestBody.put("template_params", null);
+    requestBody.put(REQUEST_FIELD_TEMPLATE_PARAMS, null);
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
@@ -257,7 +278,7 @@ public class EmailConfigIT {
 
     Map<String, Object> requestBody = createEmailConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createEmailConfig(testTenantId, requestBody);
 
@@ -277,7 +298,8 @@ public class EmailConfigIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("email_config_already_exists"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
         equalTo("Email config already exists: " + testTenantId));
@@ -292,12 +314,12 @@ public class EmailConfigIT {
     Response response = getEmailConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(response.jsonPath().getString("host"), equalTo("smtp.example.com"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_HOST), equalTo("smtp.example.com"));
     assertThat(response.jsonPath().getInt("port"), equalTo(587));
-    assertThat(response.jsonPath().getString("send_email_path"), equalTo("/send"));
-    assertThat(response.jsonPath().getString("template_name"), equalTo("welcome"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_SEND_EMAIL_PATH), equalTo("/send"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_TEMPLATE_NAME), equalTo("welcome"));
   }
 
   @Test
@@ -316,7 +338,8 @@ public class EmailConfigIT {
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("email_config_not_found"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_EMAIL_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -326,13 +349,13 @@ public class EmailConfigIT {
     createEmailConfig(testTenantId, createEmailConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", "updated-smtp.example.com");
+    updateBody.put(REQUEST_FIELD_HOST, "updated-smtp.example.com");
 
     Response response = updateEmailConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getString("host"), equalTo("updated-smtp.example.com"));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
 
     JsonObject dbConfig = DbUtils.getEmailConfig(testTenantId);
     assertThat(dbConfig.getString("host"), equalTo("updated-smtp.example.com"));
@@ -345,11 +368,11 @@ public class EmailConfigIT {
     createEmailConfig(testTenantId, createEmailConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("is_ssl_enabled", true);
-    updateBody.put("host", "secure-smtp.example.com");
-    updateBody.put("port", 465);
-    updateBody.put("send_email_path", "/api/send");
-    updateBody.put("template_name", "updated-welcome");
+    updateBody.put(REQUEST_FIELD_IS_SSL_ENABLED, true);
+    updateBody.put(REQUEST_FIELD_HOST, "secure-smtp.example.com");
+    updateBody.put(REQUEST_FIELD_PORT, 465);
+    updateBody.put(REQUEST_FIELD_SEND_EMAIL_PATH, "/api/send");
+    updateBody.put(REQUEST_FIELD_TEMPLATE_NAME, "updated-welcome");
 
     Response response = updateEmailConfig(testTenantId, updateBody);
 
@@ -364,8 +387,8 @@ public class EmailConfigIT {
     assertThat(dbConfig.getBoolean("is_ssl_enabled"), equalTo(true));
     assertThat(dbConfig.getString("host"), equalTo("secure-smtp.example.com"));
     assertThat(dbConfig.getInteger("port"), equalTo(465));
-    assertThat(dbConfig.getString("send_email_path"), equalTo("/api/send"));
-    assertThat(dbConfig.getString("template_name"), equalTo("updated-welcome"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_SEND_EMAIL_PATH), equalTo("/api/send"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_TEMPLATE_NAME), equalTo("updated-welcome"));
   }
 
   @Test
@@ -375,21 +398,21 @@ public class EmailConfigIT {
     createEmailConfig(testTenantId, createEmailConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("port", 2525);
+    updateBody.put(REQUEST_FIELD_PORT, 2525);
 
     Response response = updateEmailConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getInt("port"), equalTo(2525));
-    assertThat(response.jsonPath().getString("host"), equalTo("smtp.example.com"));
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_HOST), equalTo("smtp.example.com"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
   }
 
   @Test
   @DisplayName("Should return 401 when tenant-id header is missing for update")
   public void testUpdateEmailConfigMissingHeader() {
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", "updated-smtp.example.com");
+    updateBody.put(REQUEST_FIELD_HOST, "updated-smtp.example.com");
 
     Response response =
         given()
@@ -414,7 +437,7 @@ public class EmailConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -430,7 +453,8 @@ public class EmailConfigIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("host cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_HOST_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -448,7 +472,7 @@ public class EmailConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("host cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_HOST_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -465,7 +489,7 @@ public class EmailConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
   }
 
   @Test
@@ -482,7 +506,7 @@ public class EmailConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
   }
 
   @Test
@@ -499,7 +523,7 @@ public class EmailConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("send_email_path cannot be blank"));
+        equalTo(ERROR_MSG_SEND_EMAIL_PATH_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -517,7 +541,7 @@ public class EmailConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("send_email_path cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_SEND_EMAIL_PATH_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -534,7 +558,7 @@ public class EmailConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("template_name cannot be blank"));
+        equalTo(ERROR_MSG_TEMPLATE_NAME_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -552,7 +576,7 @@ public class EmailConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("template_name cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -566,12 +590,12 @@ public class EmailConfigIT {
     newTemplateParams.put("key2", "value2");
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("template_params", newTemplateParams);
+    updateBody.put(REQUEST_FIELD_TEMPLATE_PARAMS, newTemplateParams);
 
     Response response = updateEmailConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    Map<String, String> templateParams = response.jsonPath().getMap("template_params");
+    Map<String, String> templateParams = response.jsonPath().getMap(REQUEST_FIELD_TEMPLATE_PARAMS);
     assertThat(templateParams.get("key1"), equalTo("value1"));
     assertThat(templateParams.get("key2"), equalTo("value2"));
   }
@@ -582,13 +606,14 @@ public class EmailConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", "updated-smtp.example.com");
+    updateBody.put(REQUEST_FIELD_HOST, "updated-smtp.example.com");
 
     Response response = updateEmailConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("email_config_not_found"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_EMAIL_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -621,28 +646,29 @@ public class EmailConfigIT {
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("email_config_not_found"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_EMAIL_CONFIG_NOT_FOUND));
   }
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createEmailConfigBody() {
     Map<String, Object> emailConfigBody = new HashMap<>();
-    emailConfigBody.put("tenant_id", testTenantId);
-    emailConfigBody.put("is_ssl_enabled", false);
-    emailConfigBody.put("host", "smtp.example.com");
-    emailConfigBody.put("port", 587);
-    emailConfigBody.put("send_email_path", "/send");
-    emailConfigBody.put("template_name", "welcome");
+    emailConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    emailConfigBody.put(REQUEST_FIELD_IS_SSL_ENABLED, false);
+    emailConfigBody.put(REQUEST_FIELD_HOST, "smtp.example.com");
+    emailConfigBody.put(REQUEST_FIELD_PORT, 587);
+    emailConfigBody.put(REQUEST_FIELD_SEND_EMAIL_PATH, "/send");
+    emailConfigBody.put(REQUEST_FIELD_TEMPLATE_NAME, "welcome");
     Map<String, String> templateParams = new HashMap<>();
     templateParams.put("name", "John");
     templateParams.put("email", "john@example.com");
-    emailConfigBody.put("template_params", templateParams);
+    emailConfigBody.put(REQUEST_FIELD_TEMPLATE_PARAMS, templateParams);
     return emailConfigBody;
   }
 }

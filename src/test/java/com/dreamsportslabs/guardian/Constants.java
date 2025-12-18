@@ -613,6 +613,8 @@ public class Constants {
   public static final String ERROR_CODE_TENANT_NOT_FOUND = "tenant_not_found";
   public static final String ERROR_CODE_TENANT_NAME_ALREADY_EXISTS = "tenant_name_already_exists";
   public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
+  public static final String ERROR_CODE_EMAIL_CONFIG_NOT_FOUND = "email_config_not_found";
+  public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
 
   // Error Messages
   public static final String ERROR_MSG_ID_REQUIRED = "id is required";
@@ -620,6 +622,18 @@ public class Constants {
   public static final String ERROR_MSG_NAME_CANNOT_EXCEED_256 = "name cannot exceed 256 characters";
   public static final String ERROR_MSG_TENANT_NAME_ALREADY_EXISTS_PREFIX =
       "Tenant name already exists: ";
+  public static final String ERROR_MSG_HOST_CANNOT_BE_BLANK = "host cannot be blank";
+  public static final String ERROR_MSG_HOST_CANNOT_EXCEED_256 = "host cannot exceed 256 characters";
+  public static final String ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535 =
+      "port must be between 1 and 65535";
+  public static final String ERROR_MSG_SEND_EMAIL_PATH_CANNOT_BE_BLANK =
+      "send_email_path cannot be blank";
+  public static final String ERROR_MSG_SEND_EMAIL_PATH_CANNOT_EXCEED_256 =
+      "send_email_path cannot exceed 256 characters";
+  public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_BE_BLANK =
+      "template_name cannot be blank";
+  public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256 =
+      "template_name cannot exceed 256 characters";
 
   // Request Body Field Names
   public static final String REQUEST_FIELD_ID = "id";
@@ -630,6 +644,11 @@ public class Constants {
   public static final String REQUEST_FIELD_ISSUER = "issuer";
   public static final String REQUEST_FIELD_ID_TOKEN_CLAIMS = "id_token_claims";
   public static final String REQUEST_FIELD_ACCESS_TOKEN_CLAIMS = "access_token_claims";
+  public static final String REQUEST_FIELD_TENANT_ID = "tenant_id";
+  public static final String REQUEST_FIELD_IS_SSL_ENABLED = "is_ssl_enabled";
+  public static final String REQUEST_FIELD_SEND_EMAIL_PATH = "send_email_path";
+  public static final String REQUEST_FIELD_TEMPLATE_NAME = "template_name";
+  public static final String REQUEST_FIELD_TEMPLATE_PARAMS = "template_params";
 
   // Response Field Names
   public static final String RESPONSE_FIELD_TENANT_ID = "tenant_id";
