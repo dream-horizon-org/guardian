@@ -2,8 +2,22 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_FB_CONFIG_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_FB_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_APP_ID_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_APP_ID_CANNOT_EXCEED_256;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_APP_SECRET_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_APP_SECRET_CANNOT_EXCEED_256;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_APP_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_APP_SECRET;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_SEND_APP_SECRET;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createFbConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteFbConfig;
@@ -58,17 +72,17 @@ public class FbConfigIT {
     Response response = createFbConfig(testTenantId, createFbConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("app_id"), equalTo("123456789"));
-    assertThat(response.jsonPath().getString("app_secret"), equalTo("secret123"));
-    assertThat(response.jsonPath().getBoolean("send_app_secret"), equalTo(true));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_APP_ID), equalTo("123456789"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_APP_SECRET), equalTo("secret123"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_SEND_APP_SECRET), equalTo(true));
 
     JsonObject dbConfig = DbUtils.getFbConfig(testTenantId);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getString("app_id"), equalTo("123456789"));
-    assertThat(dbConfig.getString("app_secret"), equalTo("secret123"));
-    assertThat(dbConfig.getBoolean("send_app_secret"), equalTo(true));
+    assertThat(dbConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(dbConfig.getString(REQUEST_FIELD_APP_ID), equalTo("123456789"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_APP_SECRET), equalTo("secret123"));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_SEND_APP_SECRET), equalTo(true));
   }
 
   @Test
@@ -77,12 +91,12 @@ public class FbConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createFbConfigBody();
-    requestBody.remove("send_app_secret");
+    requestBody.remove(REQUEST_FIELD_SEND_APP_SECRET);
 
     Response response = createFbConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getBoolean("send_app_secret"), equalTo(true));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_SEND_APP_SECRET), equalTo(true));
   }
 
   @Test
@@ -91,7 +105,7 @@ public class FbConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createFbConfigBody();
-    requestBody.put("tenant_id", "");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, "");
 
     Response response = createFbConfig(testTenantId, requestBody);
 
@@ -106,7 +120,7 @@ public class FbConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createFbConfigBody();
-    requestBody.put("tenant_id", RandomStringUtils.randomAlphanumeric(11));
+    requestBody.put(REQUEST_FIELD_TENANT_ID, RandomStringUtils.randomAlphanumeric(11));
 
     Response response = createFbConfig(testTenantId, requestBody);
 
@@ -122,13 +136,14 @@ public class FbConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createFbConfigBody();
-    requestBody.put("app_id", "");
+    requestBody.put(REQUEST_FIELD_APP_ID, "");
 
     Response response = createFbConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("app_id cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_APP_ID_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -138,14 +153,14 @@ public class FbConfigIT {
 
     String longAppId = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> requestBody = createFbConfigBody();
-    requestBody.put("app_id", longAppId);
+    requestBody.put(REQUEST_FIELD_APP_ID, longAppId);
 
     Response response = createFbConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("app_id cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_APP_ID_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -154,14 +169,14 @@ public class FbConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createFbConfigBody();
-    requestBody.put("app_secret", "");
+    requestBody.put(REQUEST_FIELD_APP_SECRET, "");
 
     Response response = createFbConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("app_secret cannot be blank"));
+        equalTo(ERROR_MSG_APP_SECRET_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -171,14 +186,14 @@ public class FbConfigIT {
 
     String longAppSecret = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> requestBody = createFbConfigBody();
-    requestBody.put("app_secret", longAppSecret);
+    requestBody.put(REQUEST_FIELD_APP_SECRET, longAppSecret);
 
     Response response = createFbConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("app_secret cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_APP_SECRET_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -188,7 +203,7 @@ public class FbConfigIT {
 
     Map<String, Object> requestBody = createFbConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createFbConfig(testTenantId, requestBody);
 
@@ -208,7 +223,8 @@ public class FbConfigIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("fb_config_already_exists"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_FB_CONFIG_ALREADY_EXISTS));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
         equalTo("FB config already exists: " + testTenantId));
@@ -223,10 +239,10 @@ public class FbConfigIT {
     Response response = getFbConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("app_id"), equalTo("123456789"));
-    assertThat(response.jsonPath().getString("app_secret"), equalTo("secret123"));
-    assertThat(response.jsonPath().getBoolean("send_app_secret"), equalTo(true));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_APP_ID), equalTo("123456789"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_APP_SECRET), equalTo("secret123"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_SEND_APP_SECRET), equalTo(true));
   }
 
   @Test
@@ -244,7 +260,8 @@ public class FbConfigIT {
     Response response = getFbConfig(testTenantId);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
-    assertThat(response.jsonPath().getString(ERROR + "." + CODE), equalTo("fb_config_not_found"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + CODE), equalTo(ERROR_CODE_FB_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -254,16 +271,16 @@ public class FbConfigIT {
     createFbConfig(testTenantId, createFbConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("app_id", "987654321");
+    updateBody.put(REQUEST_FIELD_APP_ID, "987654321");
 
     Response response = updateFbConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("app_id"), equalTo("987654321"));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_APP_ID), equalTo("987654321"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
 
     JsonObject dbConfig = DbUtils.getFbConfig(testTenantId);
-    assertThat(dbConfig.getString("app_id"), equalTo("987654321"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_APP_ID), equalTo("987654321"));
   }
 
   @Test
@@ -273,21 +290,21 @@ public class FbConfigIT {
     createFbConfig(testTenantId, createFbConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("app_id", "987654321");
-    updateBody.put("app_secret", "newsecret456");
-    updateBody.put("send_app_secret", false);
+    updateBody.put(REQUEST_FIELD_APP_ID, "987654321");
+    updateBody.put(REQUEST_FIELD_APP_SECRET, "newsecret456");
+    updateBody.put(REQUEST_FIELD_SEND_APP_SECRET, false);
 
     Response response = updateFbConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("app_id"), equalTo("987654321"));
-    assertThat(response.jsonPath().getString("app_secret"), equalTo("newsecret456"));
-    assertThat(response.jsonPath().getBoolean("send_app_secret"), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_APP_ID), equalTo("987654321"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_APP_SECRET), equalTo("newsecret456"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_SEND_APP_SECRET), equalTo(false));
 
     JsonObject dbConfig = DbUtils.getFbConfig(testTenantId);
-    assertThat(dbConfig.getString("app_id"), equalTo("987654321"));
-    assertThat(dbConfig.getString("app_secret"), equalTo("newsecret456"));
-    assertThat(dbConfig.getBoolean("send_app_secret"), equalTo(false));
+    assertThat(dbConfig.getString(REQUEST_FIELD_APP_ID), equalTo("987654321"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_APP_SECRET), equalTo("newsecret456"));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_SEND_APP_SECRET), equalTo(false));
   }
 
   @Test
@@ -297,21 +314,21 @@ public class FbConfigIT {
     createFbConfig(testTenantId, createFbConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("send_app_secret", false);
+    updateBody.put(REQUEST_FIELD_SEND_APP_SECRET, false);
 
     Response response = updateFbConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getBoolean("send_app_secret"), equalTo(false));
-    assertThat(response.jsonPath().getString("app_id"), equalTo("123456789"));
-    assertThat(response.jsonPath().getString("app_secret"), equalTo("secret123"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_SEND_APP_SECRET), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_APP_ID), equalTo("123456789"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_APP_SECRET), equalTo("secret123"));
   }
 
   @Test
   @DisplayName("Should return 401 when tenant-id header is missing for update")
   public void testUpdateFbConfigMissingHeader() {
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("app_id", "987654321");
+    updateBody.put(REQUEST_FIELD_APP_ID, "987654321");
 
     Response response =
         given()
@@ -336,7 +353,7 @@ public class FbConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -346,13 +363,14 @@ public class FbConfigIT {
     createFbConfig(testTenantId, createFbConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("app_id", "");
+    updateBody.put(REQUEST_FIELD_APP_ID, "");
 
     Response response = updateFbConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("app_id cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_APP_ID_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -363,14 +381,14 @@ public class FbConfigIT {
 
     String longAppId = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("app_id", longAppId);
+    updateBody.put(REQUEST_FIELD_APP_ID, longAppId);
 
     Response response = updateFbConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("app_id cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_APP_ID_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -380,14 +398,14 @@ public class FbConfigIT {
     createFbConfig(testTenantId, createFbConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("app_secret", "");
+    updateBody.put(REQUEST_FIELD_APP_SECRET, "");
 
     Response response = updateFbConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("app_secret cannot be blank"));
+        equalTo(ERROR_MSG_APP_SECRET_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -398,14 +416,14 @@ public class FbConfigIT {
 
     String longAppSecret = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("app_secret", longAppSecret);
+    updateBody.put(REQUEST_FIELD_APP_SECRET, longAppSecret);
 
     Response response = updateFbConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("app_secret cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_APP_SECRET_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -414,12 +432,13 @@ public class FbConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("app_id", "987654321");
+    updateBody.put(REQUEST_FIELD_APP_ID, "987654321");
 
     Response response = updateFbConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
-    assertThat(response.jsonPath().getString(ERROR + "." + CODE), equalTo("fb_config_not_found"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + CODE), equalTo(ERROR_CODE_FB_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -451,22 +470,23 @@ public class FbConfigIT {
     Response response = deleteFbConfig(testTenantId);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
-    assertThat(response.jsonPath().getString(ERROR + "." + CODE), equalTo("fb_config_not_found"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + CODE), equalTo(ERROR_CODE_FB_CONFIG_NOT_FOUND));
   }
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createFbConfigBody() {
     Map<String, Object> fbConfigBody = new HashMap<>();
-    fbConfigBody.put("tenant_id", testTenantId);
-    fbConfigBody.put("app_id", "123456789");
-    fbConfigBody.put("app_secret", "secret123");
-    fbConfigBody.put("send_app_secret", true);
+    fbConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    fbConfigBody.put(REQUEST_FIELD_APP_ID, "123456789");
+    fbConfigBody.put(REQUEST_FIELD_APP_SECRET, "secret123");
+    fbConfigBody.put(REQUEST_FIELD_SEND_APP_SECRET, true);
     return fbConfigBody;
   }
 }
