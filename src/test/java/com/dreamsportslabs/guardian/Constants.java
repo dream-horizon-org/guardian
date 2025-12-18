@@ -579,4 +579,33 @@ public class Constants {
   public static final String TEST_ISSUER_URL = "https://auth.example.com";
   public static final String TENANT3_PUBLIC_KEY_PATH =
       "src/test/resources/test-data/tenant3-public-key.pem";
+
+  // Changelog Test Constants
+  public static final String CONFIG_TYPE_OTP_CONFIG = "otp_config";
+  public static final String CONFIG_TYPE_EMAIL_CONFIG = "email_config";
+  public static final String CONFIG_TYPE_SMS_CONFIG = "sms_config";
+  public static final String OPERATION_UPDATE = "UPDATE";
+  public static final String OPERATION_INSERT = "INSERT";
+  public static final String OPERATION_DELETE = "DELETE";
+  public static final String QUERY_PARAM_TENANT_ID = "tenant_id";
+  public static final String QUERY_PARAM_LIMIT = "limit";
+  public static final String QUERY_PARAM_OFFSET = "offset";
+  public static final String JSON_PATH_TENANT_ID = "tenant_id";
+  public static final String JSON_PATH_CONFIG_TYPE = "config_type";
+  public static final String JSON_PATH_OPERATION_TYPE = "operation_type";
+  public static final String JSON_PATH_CHANGED_BY = "changed_by";
+  public static final String JSON_PATH_OLD_VALUES = "old_values";
+  public static final String JSON_PATH_NEW_VALUES = "new_values";
+  public static final String JSON_PATH_TOTAL = "total";
+  public static final String JSON_PATH_CHANGES = "changes";
+  public static final String JSON_PATH_CHANGED_AT = "changed_at";
+  public static final String DEFAULT_LIMIT = "50";
+  public static final String DEFAULT_OFFSET = "0";
+
+  // Database Table and Column Names
+  public static final String TABLE_CONFIG_CHANGELOG = "config_changelog";
+  public static final String TABLE_TENANT = "tenant";
+  public static final String COLUMN_TENANT_ID = "tenant_id";
+  public static final String COLUMN_TOTAL = "total";
+  public static final String COLUMN_ID = "id";
 }

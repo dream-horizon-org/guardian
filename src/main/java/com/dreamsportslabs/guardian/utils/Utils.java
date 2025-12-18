@@ -184,4 +184,11 @@ public final class Utils {
       throw ErrorEnum.DECRYPTION_FAILED.getException();
     }
   }
+
+  public static void validateTenantIdHeader(String headerTenantId, String bodyTenantId) {
+    if (!headerTenantId.equals(bodyTenantId)) {
+      throw ErrorEnum.INVALID_REQUEST.getCustomException(
+          "tenant-id header must match tenant_id in request body");
+    }
+  }
 }
