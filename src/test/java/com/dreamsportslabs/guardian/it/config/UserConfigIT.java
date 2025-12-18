@@ -4,6 +4,12 @@ import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_HOST;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_PORT;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.getUserConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.updateUserConfig;
@@ -53,7 +59,7 @@ public class UserConfigIT {
     Response response = getUserConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
     assertThat(response.jsonPath().getString("host"), equalTo("control-tower.dream11.local"));
     assertThat(response.jsonPath().getInt("port"), equalTo(80));
@@ -78,13 +84,13 @@ public class UserConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", "updated-host.dream11.local");
+    updateBody.put(REQUEST_FIELD_HOST, "updated-host.dream11.local");
 
     Response response = updateUserConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getString("host"), equalTo("updated-host.dream11.local"));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
 
     JsonObject dbConfig = DbUtils.getUserConfig(testTenantId);
     assertThat(dbConfig.getString("host"), equalTo("updated-host.dream11.local"));
@@ -97,8 +103,8 @@ public class UserConfigIT {
 
     Map<String, Object> updateBody = new HashMap<>();
     updateBody.put("is_ssl_enabled", true);
-    updateBody.put("host", "secure-host.dream11.local");
-    updateBody.put("port", 443);
+    updateBody.put(REQUEST_FIELD_HOST, "secure-host.dream11.local");
+    updateBody.put(REQUEST_FIELD_PORT, 443);
     updateBody.put("get_user_path", "/api/users/validate");
     updateBody.put("send_provider_details", true);
 
@@ -125,7 +131,7 @@ public class UserConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("port", 8080);
+    updateBody.put(REQUEST_FIELD_PORT, 8080);
 
     Response response = updateUserConfig(testTenantId, updateBody);
 
@@ -139,7 +145,7 @@ public class UserConfigIT {
   @DisplayName("Should return 401 when tenant-id header is missing for update")
   public void testUpdateUserConfigMissingHeader() {
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", "updated-host.dream11.local");
+    updateBody.put(REQUEST_FIELD_HOST, "updated-host.dream11.local");
 
     Response response =
         given()
@@ -163,7 +169,7 @@ public class UserConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -172,7 +178,7 @@ public class UserConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", "");
+    updateBody.put(REQUEST_FIELD_HOST, "");
 
     Response response = updateUserConfig(testTenantId, updateBody);
 
@@ -188,7 +194,7 @@ public class UserConfigIT {
 
     String longHost = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", longHost);
+    updateBody.put(REQUEST_FIELD_HOST, longHost);
 
     Response response = updateUserConfig(testTenantId, updateBody);
 
@@ -204,7 +210,7 @@ public class UserConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("port", 0);
+    updateBody.put(REQUEST_FIELD_PORT, 0);
 
     Response response = updateUserConfig(testTenantId, updateBody);
 
@@ -220,7 +226,7 @@ public class UserConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("port", 65536);
+    updateBody.put(REQUEST_FIELD_PORT, 65536);
 
     Response response = updateUserConfig(testTenantId, updateBody);
 
@@ -313,8 +319,8 @@ public class UserConfigIT {
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 }

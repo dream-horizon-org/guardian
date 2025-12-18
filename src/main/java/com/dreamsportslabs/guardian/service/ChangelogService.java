@@ -37,6 +37,19 @@ public class ChangelogService {
                 .build());
   }
 
+  public Completable logConfigChange(
+      String tenantId,
+      String configType,
+      String operationType,
+      Object oldValues,
+      Object newValues,
+      String changedBy) {
+    JsonObject oldJson = oldValues != null ? JsonObject.mapFrom(oldValues) : null;
+    JsonObject newJson = newValues != null ? JsonObject.mapFrom(newValues) : null;
+    return changelogDao.logConfigChange(
+        tenantId, configType, operationType, oldJson, newJson, changedBy);
+  }
+
   private ChangelogDetailResponseDto mapToDetailResponseDto(ChangelogModel model) {
     return ChangelogDetailResponseDto.builder()
         .id(model.getId())
@@ -58,18 +71,5 @@ public class ChangelogService {
         .changedBy(model.getChangedBy())
         .changedAt(model.getChangedAt())
         .build();
-  }
-
-  public Completable logConfigChange(
-      String tenantId,
-      String configType,
-      String operation,
-      Object oldConfig,
-      Object newConfig,
-      String changedBy) {
-    JsonObject oldValues = oldConfig != null ? JsonObject.mapFrom(oldConfig) : null;
-    JsonObject newValues = newConfig != null ? JsonObject.mapFrom(newConfig) : null;
-    return changelogDao.logConfigChange(
-        tenantId, configType, operation, oldValues, newValues, changedBy);
   }
 }
