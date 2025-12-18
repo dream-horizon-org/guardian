@@ -59,18 +59,16 @@ public class GuestConfigService {
               GuestConfigModel updatedConfig = mergeGuestConfig(tenantId, requestDto, oldConfig);
               return guestConfigDao
                   .updateGuestConfig(updatedConfig)
-                  .andThen(getGuestConfig(tenantId))
-                  .flatMap(
-                      newConfig ->
-                          changelogService
-                              .logConfigChange(
-                                  tenantId,
-                                  CONFIG_TYPE_GUEST_CONFIG,
-                                  OPERATION_UPDATE,
-                                  oldConfig,
-                                  newConfig,
-                                  tenantId)
-                              .andThen(Single.just(newConfig)));
+                  .andThen(
+                      changelogService
+                          .logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_GUEST_CONFIG,
+                              OPERATION_UPDATE,
+                              oldConfig,
+                              updatedConfig,
+                              tenantId)
+                          .andThen(Single.just(updatedConfig)));
             });
   }
 
@@ -82,15 +80,19 @@ public class GuestConfigService {
             oldConfig ->
                 guestConfigDao
                     .deleteGuestConfig(tenantId)
-                    .ignoreElement()
-                    .andThen(
-                        changelogService.logConfigChange(
-                            tenantId,
-                            CONFIG_TYPE_GUEST_CONFIG,
-                            OPERATION_DELETE,
-                            oldConfig,
-                            null,
-                            tenantId)));
+                    .flatMapCompletable(
+                        deleted -> {
+                          if (!deleted) {
+                            return Completable.error(GUEST_CONFIG_NOT_FOUND.getException());
+                          }
+                          return changelogService.logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_GUEST_CONFIG,
+                              OPERATION_DELETE,
+                              oldConfig,
+                              null,
+                              tenantId);
+                        }));
   }
 
   private GuestConfigModel buildGuestConfigFromCreateRequest(
