@@ -112,27 +112,38 @@ public class TenantService {
         .getTenant(tenantId)
         .switchIfEmpty(Single.error(TENANT_NOT_FOUND.getException()))
         .flatMap(
-            oldTenant ->
-                tenantDao
-                    .updateTenant(tenantId, requestDto.getName())
-                    .andThen(getTenant(tenantId))
-                    .flatMap(
-                        newTenant ->
-                            changelogService
-                                .logConfigChange(
-                                    tenantId,
-                                    CONFIG_TYPE_TENANT,
-                                    OPERATION_UPDATE,
-                                    oldTenant,
-                                    newTenant,
-                                    tenantId)
-                                .andThen(Single.just(newTenant))));
+            oldTenant -> {
+              TenantModel updatedTenant =
+                  TenantModel.builder().id(tenantId).name(requestDto.getName()).build();
+              return tenantDao
+                  .updateTenant(tenantId, requestDto.getName())
+                  .andThen(
+                      changelogService
+                          .logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_TENANT,
+                              OPERATION_UPDATE,
+                              oldTenant,
+                              updatedTenant,
+                              tenantId)
+                          .andThen(Single.just(updatedTenant)));
+            });
   }
 
   public Completable deleteTenant(String tenantId) {
     return tenantDao
         .getTenant(tenantId)
         .switchIfEmpty(Single.error(TENANT_NOT_FOUND.getException()))
-        .flatMapCompletable(oldTenant -> tenantDao.deleteTenant(tenantId).ignoreElement());
+        .flatMapCompletable(
+            oldTenant ->
+                tenantDao
+                    .deleteTenant(tenantId)
+                    .flatMapCompletable(
+                        deleted -> {
+                          if (!deleted) {
+                            return Completable.error(TENANT_NOT_FOUND.getException());
+                          }
+                          return Completable.complete();
+                        }));
   }
 }
