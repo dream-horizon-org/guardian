@@ -1,7 +1,6 @@
 package com.dreamsportslabs.guardian.service;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_USER_CONFIG;
-<<<<<<< HEAD
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_CONFIG_ADD_PROVIDER_PATH;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_CONFIG_AUTHENTICATE_USER_PATH;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_CONFIG_CREATE_USER_PATH;
@@ -14,23 +13,13 @@ import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
-=======
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_CONFIG_NOT_FOUND;
-
-import com.dreamsportslabs.guardian.dao.ChangelogDao;
->>>>>>> 266cf0c (combined with user and token config)
 import com.dreamsportslabs.guardian.dao.UserConfigDao;
 import com.dreamsportslabs.guardian.dao.model.UserConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateUserConfigRequestDto;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-<<<<<<< HEAD
 import io.vertx.rxjava3.sqlclient.SqlConnection;
-=======
-import io.vertx.core.json.JsonObject;
->>>>>>> 266cf0c (combined with user and token config)
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,16 +27,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
 public class UserConfigService {
   private final UserConfigDao userConfigDao;
-<<<<<<< HEAD
   private final ChangelogService changelogService;
 
   public Completable createDefaultUserConfigInTransaction(SqlConnection client, String tenantId) {
     UserConfigModel userConfig = buildDefaultUserConfig(tenantId);
     return userConfigDao.createDefaultUserConfigInTransaction(client, userConfig);
   }
-=======
-  private final ChangelogDao changelogDao;
->>>>>>> 266cf0c (combined with user and token config)
 
   public Single<UserConfigModel> getUserConfig(String tenantId) {
     return userConfigDao
@@ -65,7 +50,6 @@ public class UserConfigService {
               UserConfigModel updatedConfig = mergeUserConfig(tenantId, requestDto, oldConfig);
               return userConfigDao
                   .updateUserConfig(updatedConfig)
-<<<<<<< HEAD
                   .andThen(
                       changelogService
                           .logConfigChange(
@@ -76,13 +60,6 @@ public class UserConfigService {
                               updatedConfig,
                               tenantId)
                           .andThen(Single.just(updatedConfig)));
-=======
-                  .andThen(getUserConfig(tenantId))
-                  .flatMap(
-                      newConfig ->
-                          logConfigUpdate(tenantId, oldConfig, newConfig)
-                              .andThen(Single.just(newConfig)));
->>>>>>> 266cf0c (combined with user and token config)
             });
   }
 
@@ -103,7 +80,6 @@ public class UserConfigService {
         .build();
   }
 
-<<<<<<< HEAD
   UserConfigModel buildDefaultUserConfig(String tenantId) {
     return UserConfigModel.builder()
         .tenantId(tenantId)
@@ -116,20 +92,5 @@ public class UserConfigService {
         .addProviderPath(DEFAULT_USER_CONFIG_ADD_PROVIDER_PATH)
         .sendProviderDetails(DEFAULT_USER_CONFIG_SEND_PROVIDER_DETAILS)
         .build();
-=======
-  private <T> T coalesce(T newValue, T oldValue) {
-    return newValue != null ? newValue : oldValue;
-  }
-
-  private Completable logConfigUpdate(
-      String tenantId, UserConfigModel oldConfig, UserConfigModel newConfig) {
-    return changelogDao.logConfigChange(
-        tenantId,
-        CONFIG_TYPE_USER_CONFIG,
-        OPERATION_UPDATE,
-        JsonObject.mapFrom(oldConfig),
-        JsonObject.mapFrom(newConfig),
-        tenantId);
->>>>>>> 266cf0c (combined with user and token config)
   }
 }

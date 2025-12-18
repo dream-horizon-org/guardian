@@ -2,8 +2,15 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_ISSUER_CANNOT_BE_BLANK;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ISSUER;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createOidcConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteOidcConfig;
@@ -58,8 +65,8 @@ public class OidcConfigIT {
     Response response = createOidcConfig(testTenantId, createOidcConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("issuer"), equalTo("https://example.com"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_ISSUER), equalTo("https://example.com"));
     assertThat(
         response.jsonPath().getString("authorization_endpoint"),
         equalTo("https://example.com/authorize"));
@@ -67,8 +74,8 @@ public class OidcConfigIT {
 
     JsonObject dbConfig = DbUtils.getOidcConfig(testTenantId);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getString("issuer"), equalTo("https://example.com"));
+    assertThat(dbConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(dbConfig.getString(REQUEST_FIELD_ISSUER), equalTo("https://example.com"));
   }
 
   @Test
@@ -77,7 +84,7 @@ public class OidcConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcConfigBody();
-    requestBody.put("tenant_id", "");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, "");
 
     Response response = createOidcConfig(testTenantId, requestBody);
 
@@ -92,13 +99,14 @@ public class OidcConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createOidcConfigBody();
-    requestBody.put("issuer", "");
+    requestBody.put(REQUEST_FIELD_ISSUER, "");
 
     Response response = createOidcConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("issuer cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_ISSUER_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -116,7 +124,7 @@ public class OidcConfigIT {
     Response response = createOidcConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(response.jsonPath().getList("grant_types_supported").size(), equalTo(0));
     assertThat(response.jsonPath().getList("response_types_supported").size(), equalTo(0));
     assertThat(response.jsonPath().getList("subject_types_supported").size(), equalTo(0));
@@ -133,7 +141,7 @@ public class OidcConfigIT {
 
     Map<String, Object> requestBody = createOidcConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createOidcConfig(testTenantId, requestBody);
 
@@ -168,8 +176,8 @@ public class OidcConfigIT {
     Response response = getOidcConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("issuer"), equalTo("https://example.com"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_ISSUER), equalTo("https://example.com"));
   }
 
   @Test
@@ -190,16 +198,16 @@ public class OidcConfigIT {
     createOidcConfig(testTenantId, createOidcConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("issuer", "https://new-example.com");
+    updateBody.put(REQUEST_FIELD_ISSUER, "https://new-example.com");
 
     Response response = updateOidcConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getString("issuer"), equalTo("https://new-example.com"));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
 
     JsonObject dbConfig = DbUtils.getOidcConfig(testTenantId);
-    assertThat(dbConfig.getString("issuer"), equalTo("https://new-example.com"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_ISSUER), equalTo("https://new-example.com"));
   }
 
   @Test
@@ -209,7 +217,7 @@ public class OidcConfigIT {
     createOidcConfig(testTenantId, createOidcConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("issuer", "https://new-example.com");
+    updateBody.put(REQUEST_FIELD_ISSUER, "https://new-example.com");
     updateBody.put("authorize_ttl", 3600);
     List<String> newGrantTypes = new ArrayList<>();
     newGrantTypes.add("authorization_code");
@@ -238,7 +246,7 @@ public class OidcConfigIT {
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getInt("authorize_ttl"), equalTo(3600));
-    assertThat(response.jsonPath().getString("issuer"), equalTo("https://example.com"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_ISSUER), equalTo("https://example.com"));
   }
 
   @Test
@@ -255,7 +263,7 @@ public class OidcConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -264,7 +272,7 @@ public class OidcConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("issuer", "https://new-example.com");
+    updateBody.put(REQUEST_FIELD_ISSUER, "https://new-example.com");
 
     Response response = updateOidcConfig(testTenantId, updateBody);
 
@@ -299,15 +307,15 @@ public class OidcConfigIT {
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createOidcConfigBody() {
     Map<String, Object> oidcConfigBody = new HashMap<>();
-    oidcConfigBody.put("tenant_id", testTenantId);
-    oidcConfigBody.put("issuer", "https://example.com");
+    oidcConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    oidcConfigBody.put(REQUEST_FIELD_ISSUER, "https://example.com");
     oidcConfigBody.put("authorization_endpoint", "https://example.com/authorize");
     oidcConfigBody.put("token_endpoint", "https://example.com/token");
     oidcConfigBody.put("userinfo_endpoint", "https://example.com/userinfo");

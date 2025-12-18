@@ -615,6 +615,8 @@ public class Constants {
   public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_NOT_FOUND = "email_config_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
+  public static final String ERROR_CODE_OIDC_CONFIG_NOT_FOUND = "oidc_config_not_found";
+  public static final String ERROR_CODE_OIDC_CONFIG_ALREADY_EXISTS = "oidc_config_already_exists";
 
   // Error Messages
   public static final String ERROR_MSG_ID_REQUIRED = "id is required";
@@ -634,6 +636,7 @@ public class Constants {
       "template_name cannot be blank";
   public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256 =
       "template_name cannot exceed 256 characters";
+  public static final String ERROR_MSG_ISSUER_CANNOT_BE_BLANK = "issuer cannot be blank";
 
   // Request Body Field Names
   public static final String REQUEST_FIELD_ID = "id";
