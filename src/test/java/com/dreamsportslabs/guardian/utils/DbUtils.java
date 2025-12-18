@@ -1005,4 +1005,25 @@ public class DbUtils {
     }
     return null;
   }
+
+  public static JsonObject getGoogleConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, client_id, client_secret " + "FROM google_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject googleConfig = new JsonObject();
+        googleConfig.put("tenant_id", rs.getString("tenant_id"));
+        googleConfig.put("client_id", rs.getString("client_id"));
+        googleConfig.put("client_secret", rs.getString("client_secret"));
+        return googleConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting google_config", e);
+    }
+    return null;
+  }
 }
