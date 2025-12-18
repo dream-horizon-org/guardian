@@ -82,7 +82,9 @@ public enum ErrorEnum {
   TENANT_ALREADY_EXISTS("tenant_already_exists", "Tenant already exists", 400),
   TENANT_NAME_ALREADY_EXISTS("tenant_name_already_exists", "Tenant name already exists", 400),
   USER_CONFIG_NOT_FOUND("user_config_not_found", "User config not found", 404),
-  TOKEN_CONFIG_NOT_FOUND("token_config_not_found", "Token config not found", 404);
+  TOKEN_CONFIG_NOT_FOUND("token_config_not_found", "Token config not found", 404),
+  EMAIL_CONFIG_NOT_FOUND("email_config_not_found", "Email config not found", 404),
+  EMAIL_CONFIG_ALREADY_EXISTS("email_config_already_exists", "Email config already exists", 400);
 
   private final String code;
   private final String message;

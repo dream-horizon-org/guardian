@@ -166,11 +166,11 @@ curl --location 'localhost:8080/v2/passwordless/complete' \
 }'
 ```
 
-Follow our comprehensive guide on [website](https://guardian.dreamhorizon.org/docs/guides/passwordless-authentication/) to set up Guardian in minutes.
+Follow our comprehensive guide on [website](https://guardianhq.io/docs/guides/passwordless-authentication/) to set up Guardian in minutes.
 
 ## ⚙️ Configuration <a name="-configuration"></a>
 
-For the complete configuration reference and detailed setup instructions, see the [Configuration Guide](https://guardian.dreamhorizon.org/docs/configuration/configuration/).
+For the complete configuration reference and detailed setup instructions, see the [Configuration Guide](https://guardianhq.io/docs/configuration/overview/).
 
 ## 📚 API Reference
 
@@ -184,7 +184,7 @@ For information about the endpoints that your services need to implement to inte
 
 Guardian can be deployed using Docker Compose for development or containerized / virtual machine for production environments.
 
-For detailed deployment instructions, production best practices, and infrastructure setup, see the [Deployment Guide](https://guardian.dreamhorizon.org/docs/deployment/deployment/).
+For detailed deployment instructions, production best practices, and infrastructure setup, see the [Deployment Guide](https://guardianhq.io/docs/deployment/overview/).
 
 
 ## 🤝 Contributing
@@ -208,7 +208,7 @@ We welcome contributions! Please see our [Contributing Guide](/CONTRIBUTING.md) 
 
 *   🐛 [Issue Tracker](https://github.com/dream-horizon-org/guardian/issues "https://github.com/dream-horizon-org/guardian/issues") - Report bugs and request features
 
-*   📖 [Documentation](https://guardian.dreamhorizon.org/docs/ "https://guardian.dreamhorizon.org/docs/") - Comprehensive guides
+*   📖 [Documentation](https://guardianhq.io/docs/ "https://guardianhq.io/docs/") - Comprehensive guides
 
 
 ## 📄 License
