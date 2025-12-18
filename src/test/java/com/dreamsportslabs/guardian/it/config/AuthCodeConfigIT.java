@@ -2,8 +2,20 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_AUTH_CODE_CONFIG_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_AUTH_CODE_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_LENGTH_CANNOT_BE_NULL;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_LENGTH_MUST_BE_GREATER_THAN_0;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TTL_MUST_BE_GREATER_THAN_0;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_LENGTH;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TTL;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createAuthCodeConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteAuthCodeConfig;
@@ -56,15 +68,15 @@ public class AuthCodeConfigIT {
     Response response = createAuthCodeConfig(testTenantId, createAuthCodeConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getInt("ttl"), equalTo(300));
-    assertThat(response.jsonPath().getInt("length"), equalTo(6));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TTL), equalTo(300));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_LENGTH), equalTo(6));
 
     JsonObject dbConfig = DbUtils.getAuthCodeConfig(testTenantId);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getInteger("ttl"), equalTo(300));
-    assertThat(dbConfig.getInteger("length"), equalTo(6));
+    assertThat(dbConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_TTL), equalTo(300));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_LENGTH), equalTo(6));
   }
 
   @Test
@@ -73,7 +85,7 @@ public class AuthCodeConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAuthCodeConfigBody();
-    requestBody.put("tenant_id", "");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, "");
 
     Response response = createAuthCodeConfig(testTenantId, requestBody);
 
@@ -88,7 +100,7 @@ public class AuthCodeConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAuthCodeConfigBody();
-    requestBody.put("tenant_id", RandomStringUtils.randomAlphanumeric(11));
+    requestBody.put(REQUEST_FIELD_TENANT_ID, RandomStringUtils.randomAlphanumeric(11));
 
     Response response = createAuthCodeConfig(testTenantId, requestBody);
 
@@ -104,7 +116,7 @@ public class AuthCodeConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAuthCodeConfigBody();
-    requestBody.put("ttl", null);
+    requestBody.put(REQUEST_FIELD_TTL, null);
 
     Response response = createAuthCodeConfig(testTenantId, requestBody);
 
@@ -118,14 +130,14 @@ public class AuthCodeConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAuthCodeConfigBody();
-    requestBody.put("ttl", 0);
+    requestBody.put(REQUEST_FIELD_TTL, 0);
 
     Response response = createAuthCodeConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("ttl must be greater than 0"));
+        equalTo(ERROR_MSG_TTL_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -134,13 +146,14 @@ public class AuthCodeConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAuthCodeConfigBody();
-    requestBody.put("length", null);
+    requestBody.put(REQUEST_FIELD_LENGTH, null);
 
     Response response = createAuthCodeConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("length cannot be null"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_LENGTH_CANNOT_BE_NULL));
   }
 
   @Test
@@ -149,14 +162,14 @@ public class AuthCodeConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAuthCodeConfigBody();
-    requestBody.put("length", 0);
+    requestBody.put(REQUEST_FIELD_LENGTH, 0);
 
     Response response = createAuthCodeConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("length must be greater than 0"));
+        equalTo(ERROR_MSG_LENGTH_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -166,7 +179,7 @@ public class AuthCodeConfigIT {
 
     Map<String, Object> requestBody = createAuthCodeConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createAuthCodeConfig(testTenantId, requestBody);
 
@@ -187,7 +200,7 @@ public class AuthCodeConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR);
     assertThat(
         response.jsonPath().getString(ERROR + "." + CODE),
-        equalTo("auth_code_config_already_exists"));
+        equalTo(ERROR_CODE_AUTH_CODE_CONFIG_ALREADY_EXISTS));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
         equalTo("Auth code config already exists: " + testTenantId));
@@ -202,9 +215,9 @@ public class AuthCodeConfigIT {
     Response response = getAuthCodeConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getInt("ttl"), equalTo(300));
-    assertThat(response.jsonPath().getInt("length"), equalTo(6));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TTL), equalTo(300));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_LENGTH), equalTo(6));
   }
 
   @Test
@@ -216,7 +229,8 @@ public class AuthCodeConfigIT {
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("auth_code_config_not_found"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_AUTH_CODE_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -226,16 +240,16 @@ public class AuthCodeConfigIT {
     createAuthCodeConfig(testTenantId, createAuthCodeConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("ttl", 600);
+    updateBody.put(REQUEST_FIELD_TTL, 600);
 
     Response response = updateAuthCodeConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getInt("ttl"), equalTo(600));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TTL), equalTo(600));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
 
     JsonObject dbConfig = DbUtils.getAuthCodeConfig(testTenantId);
-    assertThat(dbConfig.getInteger("ttl"), equalTo(600));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_TTL), equalTo(600));
   }
 
   @Test
@@ -245,18 +259,18 @@ public class AuthCodeConfigIT {
     createAuthCodeConfig(testTenantId, createAuthCodeConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("ttl", 600);
-    updateBody.put("length", 8);
+    updateBody.put(REQUEST_FIELD_TTL, 600);
+    updateBody.put(REQUEST_FIELD_LENGTH, 8);
 
     Response response = updateAuthCodeConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getInt("ttl"), equalTo(600));
-    assertThat(response.jsonPath().getInt("length"), equalTo(8));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TTL), equalTo(600));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_LENGTH), equalTo(8));
 
     JsonObject dbConfig = DbUtils.getAuthCodeConfig(testTenantId);
-    assertThat(dbConfig.getInteger("ttl"), equalTo(600));
-    assertThat(dbConfig.getInteger("length"), equalTo(8));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_TTL), equalTo(600));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_LENGTH), equalTo(8));
   }
 
   @Test
@@ -266,13 +280,13 @@ public class AuthCodeConfigIT {
     createAuthCodeConfig(testTenantId, createAuthCodeConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("length", 8);
+    updateBody.put(REQUEST_FIELD_LENGTH, 8);
 
     Response response = updateAuthCodeConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getInt("length"), equalTo(8));
-    assertThat(response.jsonPath().getInt("ttl"), equalTo(300));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_LENGTH), equalTo(8));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_TTL), equalTo(300));
   }
 
   @Test
@@ -289,7 +303,7 @@ public class AuthCodeConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -299,14 +313,14 @@ public class AuthCodeConfigIT {
     createAuthCodeConfig(testTenantId, createAuthCodeConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("ttl", 0);
+    updateBody.put(REQUEST_FIELD_TTL, 0);
 
     Response response = updateAuthCodeConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("ttl must be greater than 0"));
+        equalTo(ERROR_MSG_TTL_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -316,14 +330,14 @@ public class AuthCodeConfigIT {
     createAuthCodeConfig(testTenantId, createAuthCodeConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("length", 0);
+    updateBody.put(REQUEST_FIELD_LENGTH, 0);
 
     Response response = updateAuthCodeConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("length must be greater than 0"));
+        equalTo(ERROR_MSG_LENGTH_MUST_BE_GREATER_THAN_0));
   }
 
   @Test
@@ -332,13 +346,14 @@ public class AuthCodeConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("ttl", 600);
+    updateBody.put(REQUEST_FIELD_TTL, 600);
 
     Response response = updateAuthCodeConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("auth_code_config_not_found"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_AUTH_CODE_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -364,21 +379,22 @@ public class AuthCodeConfigIT {
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("auth_code_config_not_found"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_AUTH_CODE_CONFIG_NOT_FOUND));
   }
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createAuthCodeConfigBody() {
     Map<String, Object> authCodeConfigBody = new HashMap<>();
-    authCodeConfigBody.put("tenant_id", testTenantId);
-    authCodeConfigBody.put("ttl", 300);
-    authCodeConfigBody.put("length", 6);
+    authCodeConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    authCodeConfigBody.put(REQUEST_FIELD_TTL, 300);
+    authCodeConfigBody.put(REQUEST_FIELD_LENGTH, 6);
     return authCodeConfigBody;
   }
 }
