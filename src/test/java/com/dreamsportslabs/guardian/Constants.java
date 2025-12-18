@@ -617,6 +617,8 @@ public class Constants {
   public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
   public static final String ERROR_CODE_OIDC_CONFIG_NOT_FOUND = "oidc_config_not_found";
   public static final String ERROR_CODE_OIDC_CONFIG_ALREADY_EXISTS = "oidc_config_already_exists";
+  public static final String ERROR_CODE_GUEST_CONFIG_NOT_FOUND = "guest_config_not_found";
+  public static final String ERROR_CODE_GUEST_CONFIG_ALREADY_EXISTS = "guest_config_already_exists";
 
   // Error Messages
   public static final String ERROR_MSG_ID_REQUIRED = "id is required";
@@ -637,6 +639,8 @@ public class Constants {
   public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256 =
       "template_name cannot exceed 256 characters";
   public static final String ERROR_MSG_ISSUER_CANNOT_BE_BLANK = "issuer cannot be blank";
+  public static final String ERROR_MSG_SECRET_KEY_CANNOT_EXCEED_16 =
+      "secret_key cannot exceed 16 characters";
 
   // Request Body Field Names
   public static final String REQUEST_FIELD_ID = "id";
@@ -652,6 +656,9 @@ public class Constants {
   public static final String REQUEST_FIELD_SEND_EMAIL_PATH = "send_email_path";
   public static final String REQUEST_FIELD_TEMPLATE_NAME = "template_name";
   public static final String REQUEST_FIELD_TEMPLATE_PARAMS = "template_params";
+  public static final String REQUEST_FIELD_IS_ENCRYPTED = "is_encrypted";
+  public static final String REQUEST_FIELD_SECRET_KEY = "secret_key";
+  public static final String REQUEST_FIELD_ALLOWED_SCOPES = "allowed_scopes";
 
   // Response Field Names
   public static final String RESPONSE_FIELD_TENANT_ID = "tenant_id";

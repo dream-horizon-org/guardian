@@ -711,4 +711,32 @@ public class ApplicationIoUtils {
     return execute(
         null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/oidc-config"));
   }
+
+  public static Response createGuestConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/guest-config"));
+  }
+
+  public static Response getGuestConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/guest-config"));
+  }
+
+  public static Response updateGuestConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/guest-config"));
+  }
+
+  public static Response deleteGuestConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/guest-config"));
+  }
 }

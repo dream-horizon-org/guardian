@@ -1048,4 +1048,26 @@ public class DbUtils {
     }
     return null;
   }
+
+  public static JsonObject getGuestConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_encrypted, secret_key, allowed_scopes FROM guest_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject guestConfig = new JsonObject();
+        guestConfig.put("tenant_id", rs.getString("tenant_id"));
+        guestConfig.put("is_encrypted", rs.getBoolean("is_encrypted"));
+        guestConfig.put("secret_key", rs.getString("secret_key"));
+        guestConfig.put("allowed_scopes", rs.getString("allowed_scopes"));
+        return guestConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting guest_config", e);
+    }
+    return null;
+  }
 }

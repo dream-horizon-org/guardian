@@ -86,7 +86,9 @@ public enum ErrorEnum {
   EMAIL_CONFIG_NOT_FOUND("email_config_not_found", "Email config not found", 404),
   EMAIL_CONFIG_ALREADY_EXISTS("email_config_already_exists", "Email config already exists", 400),
   OIDC_CONFIG_NOT_FOUND("oidc_config_not_found", "OIDC config not found", 404),
-  OIDC_CONFIG_ALREADY_EXISTS("oidc_config_already_exists", "OIDC config already exists", 400);
+  OIDC_CONFIG_ALREADY_EXISTS("oidc_config_already_exists", "OIDC config already exists", 400),
+  GUEST_CONFIG_NOT_FOUND("guest_config_not_found", "Guest config not found", 404),
+  GUEST_CONFIG_ALREADY_EXISTS("guest_config_already_exists", "Guest config already exists", 400);
 
   private final String code;
   private final String message;
