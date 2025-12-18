@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dao;
 
+import static com.dreamsportslabs.guardian.constant.Constants.CHANGELOG_COLUMN_TOTAL;
 import static com.dreamsportslabs.guardian.dao.query.ChangelogQuery.COUNT_CHANGELOG_BY_TENANT;
 import static com.dreamsportslabs.guardian.dao.query.ChangelogQuery.GET_CHANGELOG_BY_ID;
 import static com.dreamsportslabs.guardian.dao.query.ChangelogQuery.GET_CHANGELOG_BY_TENANT;
@@ -84,7 +85,7 @@ public class ChangelogDao {
                 return 0L;
               }
               Row row = result.iterator().next();
-              return row.getLong("total");
+              return row.getLong(CHANGELOG_COLUMN_TOTAL);
             })
         .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)));
   }

@@ -1,5 +1,10 @@
 package com.dreamsportslabs.guardian.utils;
 
+import static com.dreamsportslabs.guardian.Constants.COLUMN_ID;
+import static com.dreamsportslabs.guardian.Constants.COLUMN_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.COLUMN_TOTAL;
+import static com.dreamsportslabs.guardian.Constants.TABLE_CONFIG_CHANGELOG;
+import static com.dreamsportslabs.guardian.Constants.TABLE_TENANT;
 import static com.dreamsportslabs.guardian.utils.Utils.getCurrentTimeInSeconds;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -787,7 +792,11 @@ public class DbUtils {
       String newValues,
       String changedBy) {
     String insertQuery =
-        "INSERT INTO config_changelog (tenant_id, config_type, operation_type, old_values, new_values, changed_by) VALUES (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO "
+            + TABLE_CONFIG_CHANGELOG
+            + " ("
+            + COLUMN_TENANT_ID
+            + ", config_type, operation_type, old_values, new_values, changed_by) VALUES (?, ?, ?, ?, ?, ?)";
 
     try (Connection conn = mysqlConnectionPool.getConnection();
         PreparedStatement stmt =
@@ -812,7 +821,8 @@ public class DbUtils {
   }
 
   public static void cleanupChangelog(String tenantId) {
-    String deleteQuery = "DELETE FROM config_changelog WHERE tenant_id = ?";
+    String deleteQuery =
+        "DELETE FROM " + TABLE_CONFIG_CHANGELOG + " WHERE " + COLUMN_TENANT_ID + " = ?";
 
     try (Connection conn = mysqlConnectionPool.getConnection();
         PreparedStatement stmt = conn.prepareStatement(deleteQuery)) {
@@ -821,5 +831,40 @@ public class DbUtils {
     } catch (Exception e) {
       log.error("Error while cleaning up changelog", e);
     }
+  }
+
+  public static void deleteTenant(String tenantId) {
+    String deleteQuery = "DELETE FROM " + TABLE_TENANT + " WHERE " + COLUMN_ID + " = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(deleteQuery)) {
+      stmt.setString(1, tenantId);
+      stmt.executeUpdate();
+    } catch (Exception e) {
+      log.error("Error while deleting tenant", e);
+    }
+  }
+
+  public static Long countChangelogByTenant(String tenantId) {
+    String countQuery =
+        "SELECT COUNT(*) as "
+            + COLUMN_TOTAL
+            + " FROM "
+            + TABLE_CONFIG_CHANGELOG
+            + " WHERE "
+            + COLUMN_TENANT_ID
+            + " = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(countQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        return rs.getLong(COLUMN_TOTAL);
+      }
+    } catch (Exception e) {
+      log.error("Error while counting changelog", e);
+    }
+    return 0L;
   }
 }
