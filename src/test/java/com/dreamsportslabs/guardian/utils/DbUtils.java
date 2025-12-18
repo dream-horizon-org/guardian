@@ -1005,4 +1005,25 @@ public class DbUtils {
     }
     return null;
   }
+
+  public static JsonObject getAuthCodeConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, ttl, length " + "FROM auth_code_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject authCodeConfig = new JsonObject();
+        authCodeConfig.put("tenant_id", rs.getString("tenant_id"));
+        authCodeConfig.put("ttl", rs.getInt("ttl"));
+        authCodeConfig.put("length", rs.getInt("length"));
+        return authCodeConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting auth_code_config", e);
+    }
+    return null;
+  }
 }
