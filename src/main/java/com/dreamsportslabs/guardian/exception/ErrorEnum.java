@@ -84,7 +84,9 @@ public enum ErrorEnum {
   USER_CONFIG_NOT_FOUND("user_config_not_found", "User config not found", 404),
   TOKEN_CONFIG_NOT_FOUND("token_config_not_found", "Token config not found", 404),
   EMAIL_CONFIG_NOT_FOUND("email_config_not_found", "Email config not found", 404),
-  EMAIL_CONFIG_ALREADY_EXISTS("email_config_already_exists", "Email config already exists", 400);
+  EMAIL_CONFIG_ALREADY_EXISTS("email_config_already_exists", "Email config already exists", 400),
+  SMS_CONFIG_NOT_FOUND("sms_config_not_found", "SMS config not found", 404),
+  SMS_CONFIG_ALREADY_EXISTS("sms_config_already_exists", "SMS config already exists", 400);
 
   private final String code;
   private final String message;

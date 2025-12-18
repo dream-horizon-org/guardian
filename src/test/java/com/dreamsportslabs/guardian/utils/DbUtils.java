@@ -1005,4 +1005,30 @@ public class DbUtils {
     }
     return null;
   }
+
+  public static JsonObject getSmsConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_ssl_enabled, host, port, send_sms_path, template_name, template_params "
+            + "FROM sms_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject smsConfig = new JsonObject();
+        smsConfig.put("tenant_id", rs.getString("tenant_id"));
+        smsConfig.put("is_ssl_enabled", rs.getBoolean("is_ssl_enabled"));
+        smsConfig.put("host", rs.getString("host"));
+        smsConfig.put("port", rs.getInt("port"));
+        smsConfig.put("send_sms_path", rs.getString("send_sms_path"));
+        smsConfig.put("template_name", rs.getString("template_name"));
+        smsConfig.put("template_params", rs.getString("template_params"));
+        return smsConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting sms_config", e);
+    }
+    return null;
+  }
 }

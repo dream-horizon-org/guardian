@@ -220,6 +220,7 @@ public final class Constants {
   public static final String CONFIG_TYPE_USER_CONFIG = "user_config";
   public static final String CONFIG_TYPE_TOKEN_CONFIG = "token_config";
   public static final String CONFIG_TYPE_EMAIL_CONFIG = "email_config";
+  public static final String CONFIG_TYPE_SMS_CONFIG = "sms_config";
 
   // MySQL Error Codes
   public static final int MYSQL_ERROR_CODE_DUPLICATE_ENTRY = 1062;
@@ -270,4 +271,7 @@ public final class Constants {
 
   // Default Email Config Values
   public static final int DEFAULT_EMAIL_CONFIG_PORT = 80;
+
+  // Default SMS Config Values
+  public static final int DEFAULT_SMS_CONFIG_PORT = 80;
 }
