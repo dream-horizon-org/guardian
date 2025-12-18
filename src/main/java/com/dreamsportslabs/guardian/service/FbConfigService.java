@@ -57,18 +57,16 @@ public class FbConfigService {
               FbConfigModel updatedConfig = mergeFbConfig(tenantId, requestDto, oldConfig);
               return fbConfigDao
                   .updateFbConfig(updatedConfig)
-                  .andThen(getFbConfig(tenantId))
-                  .flatMap(
-                      newConfig ->
-                          changelogService
-                              .logConfigChange(
-                                  tenantId,
-                                  CONFIG_TYPE_FB_CONFIG,
-                                  OPERATION_UPDATE,
-                                  oldConfig,
-                                  newConfig,
-                                  tenantId)
-                              .andThen(Single.just(newConfig)));
+                  .andThen(
+                      changelogService
+                          .logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_FB_CONFIG,
+                              OPERATION_UPDATE,
+                              oldConfig,
+                              updatedConfig,
+                              tenantId)
+                          .andThen(Single.just(updatedConfig)));
             });
   }
 
@@ -80,15 +78,19 @@ public class FbConfigService {
             oldConfig ->
                 fbConfigDao
                     .deleteFbConfig(tenantId)
-                    .ignoreElement()
-                    .andThen(
-                        changelogService.logConfigChange(
-                            tenantId,
-                            CONFIG_TYPE_FB_CONFIG,
-                            OPERATION_DELETE,
-                            oldConfig,
-                            null,
-                            tenantId)));
+                    .flatMapCompletable(
+                        deleted -> {
+                          if (!deleted) {
+                            return Completable.error(FB_CONFIG_NOT_FOUND.getException());
+                          }
+                          return changelogService.logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_FB_CONFIG,
+                              OPERATION_DELETE,
+                              oldConfig,
+                              null,
+                              tenantId);
+                        }));
   }
 
   private FbConfigModel buildFbConfigFromCreateRequest(CreateFbConfigRequestDto requestDto) {
