@@ -56,18 +56,16 @@ public class AdminConfigService {
               AdminConfigModel updatedConfig = mergeAdminConfig(tenantId, requestDto, oldConfig);
               return adminConfigDao
                   .updateAdminConfig(updatedConfig)
-                  .andThen(getAdminConfig(tenantId))
-                  .flatMap(
-                      newConfig ->
-                          changelogService
-                              .logConfigChange(
-                                  tenantId,
-                                  CONFIG_TYPE_ADMIN_CONFIG,
-                                  OPERATION_UPDATE,
-                                  oldConfig,
-                                  newConfig,
-                                  tenantId)
-                              .andThen(Single.just(newConfig)));
+                  .andThen(
+                      changelogService
+                          .logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_ADMIN_CONFIG,
+                              OPERATION_UPDATE,
+                              oldConfig,
+                              updatedConfig,
+                              tenantId)
+                          .andThen(Single.just(updatedConfig)));
             });
   }
 
@@ -79,15 +77,19 @@ public class AdminConfigService {
             oldConfig ->
                 adminConfigDao
                     .deleteAdminConfig(tenantId)
-                    .ignoreElement()
-                    .andThen(
-                        changelogService.logConfigChange(
-                            tenantId,
-                            CONFIG_TYPE_ADMIN_CONFIG,
-                            OPERATION_DELETE,
-                            oldConfig,
-                            null,
-                            tenantId)));
+                    .flatMapCompletable(
+                        deleted -> {
+                          if (!deleted) {
+                            return Completable.error(ADMIN_CONFIG_NOT_FOUND.getException());
+                          }
+                          return changelogService.logConfigChange(
+                              tenantId,
+                              CONFIG_TYPE_ADMIN_CONFIG,
+                              OPERATION_DELETE,
+                              oldConfig,
+                              null,
+                              tenantId);
+                        }));
   }
 
   private AdminConfigModel buildAdminConfigFromCreateRequest(
