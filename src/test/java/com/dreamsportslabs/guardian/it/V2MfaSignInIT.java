@@ -684,8 +684,8 @@ public class V2MfaSignInIT {
       responseBody.put(BODY_PARAM_USERID, userId);
       responseBody.put(BODY_PARAM_USERNAME, V2_SIGNIN_TEST_USERNAME_1);
       responseBody.put(BODY_PARAM_NAME, "John Doe");
-      responseBody.put("passwordSet", isPasswordSet);
-      responseBody.put("pinSet", isPinSet);
+      responseBody.put("isPasswordSet", isPasswordSet);
+      responseBody.put("isPinSet", isPinSet);
       if (phoneNumber != null) {
         responseBody.put(BODY_PARAM_PHONE_NUMBER, phoneNumber);
       }
@@ -711,8 +711,8 @@ public class V2MfaSignInIT {
             .put("email", email)
             .put("phoneNumber", phoneNumber)
             .put("username", username)
-            .put("passwordSet", V2_SIGNIN_CREDENTIAL_TYPE_PASSWORD.equals(credentialType))
-            .put("pinSet", V2_SIGNIN_CREDENTIAL_TYPE_PIN.equals(credentialType))
+            .put("isPasswordSet", V2_SIGNIN_CREDENTIAL_TYPE_PASSWORD.equals(credentialType))
+            .put("isPinSet", V2_SIGNIN_CREDENTIAL_TYPE_PIN.equals(credentialType))
             .put("userId", userId);
 
     return wireMockServer.stubFor(
@@ -751,8 +751,8 @@ public class V2MfaSignInIT {
             .put("username", username)
             .put("email", V2_SIGNIN_TEST_EMAIL_1)
             .put("phoneNumber", V2_SIGNIN_TEST_PHONE_1)
-            .put("passwordSet", passwordSet)
-            .put("pinSet", pinSet)
+            .put("isPasswordSet", passwordSet)
+            .put("isPinSet", pinSet)
             .put("userId", RandomStringUtils.randomAlphanumeric(10));
 
     return wireMockServer.stubFor(

@@ -13,6 +13,7 @@ import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +48,7 @@ public class PasswordAuth {
                     .flatMap(
                         pair -> {
                           String clientId = pair.getLeft();
-                          String scopes = String.join(" ", pair.getRight());
+                          String scopes = String.join(SCOPE_DELIMITER, pair.getRight());
                           return authorizationService.generate(
                               user,
                               dto.getResponseType(),
@@ -79,7 +80,7 @@ public class PasswordAuth {
                     .flatMap(
                         pair -> {
                           String clientId = pair.getLeft();
-                          String scopes = String.join(" ", pair.getRight());
+                          String scopes = String.join(SCOPE_DELIMITER, pair.getRight());
                           return authorizationService.generate(
                               user,
                               dto.getResponseType(),
@@ -98,11 +99,10 @@ public class PasswordAuth {
             ? AuthMethod.PIN_OR_PATTERN
             : AuthMethod.PASSWORD;
     String userIdentifier =
-        StringUtils.isNotBlank(requestDto.getUsername())
-            ? requestDto.getUsername()
-            : (StringUtils.isNotBlank(requestDto.getEmail())
-                ? requestDto.getEmail()
-                : requestDto.getPhoneNumber());
+        Stream.of(requestDto.getUsername(), requestDto.getEmail(), requestDto.getPhoneNumber())
+            .filter(StringUtils::isNotBlank)
+            .findFirst()
+            .orElse(requestDto.getUsername());
 
     return clientService
         .validateFirstPartyClientAndClientScopes(

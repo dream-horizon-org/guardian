@@ -1,5 +1,11 @@
 package com.dreamsportslabs.guardian.service;
 
+import static com.dreamsportslabs.guardian.constant.Constants.EMAIL;
+import static com.dreamsportslabs.guardian.constant.Constants.PASSWORD;
+import static com.dreamsportslabs.guardian.constant.Constants.PASSWORD_SET;
+import static com.dreamsportslabs.guardian.constant.Constants.PHONE_NUMBER;
+import static com.dreamsportslabs.guardian.constant.Constants.PIN;
+import static com.dreamsportslabs.guardian.constant.Constants.PIN_SET;
 import static com.dreamsportslabs.guardian.constant.Constants.USERID;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
@@ -29,6 +35,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
@@ -48,27 +55,8 @@ public class MfaService {
             authorizationService.validateRefreshToken(
                 tenantId, requestDto.getClientId(), requestDto.getRefreshToken()))
         .flatMap(
-            refreshTokenModel -> {
-              List<AuthMethod> authMethods = refreshTokenModel.getAuthMethod();
-              if (authMethods == null || authMethods.isEmpty()) {
-                return Single.error(
-                    INVALID_REQUEST.getCustomException(
-                        "Refresh token must have at least one authentication method"));
-              }
-              // Check if the factor being enrolled is already in the refresh token's auth methods
-              AuthMethod factorAuthMethod = requestDto.getFactor().getAuthMethod();
-              if (authMethods.contains(factorAuthMethod)) {
-                return Single.error(
-                    MFA_FACTOR_ALREADY_ENROLLED.getCustomException(
-                        "The factor is already enrolled in the refresh token"));
-              }
-              if (authMethods.size() == 1) {
-                return validateSingleFactorEnrollment(
-                        refreshTokenModel.getUserId(), headers, tenantId, requestDto.getFactor())
-                    .andThen(Single.just(refreshTokenModel));
-              }
-              return Single.just(refreshTokenModel);
-            })
+            refreshTokenModel ->
+                validateEnrollmentRequest(refreshTokenModel, requestDto, headers, tenantId))
         .flatMap(
             refreshTokenModel ->
                 enrollFactor(requestDto, headers, refreshTokenModel, tenantId)
@@ -84,6 +72,30 @@ public class MfaService {
                                     requestDto.getFactor().getAuthMethod()),
                                 requestDto.getClientId(),
                                 tenantId)));
+  }
+
+  private Single<RefreshTokenModel> validateEnrollmentRequest(
+      RefreshTokenModel refreshTokenModel,
+      V2MfaSignInRequestDto requestDto,
+      MultivaluedMap<String, String> headers,
+      String tenantId) {
+    List<AuthMethod> authMethods = refreshTokenModel.getAuthMethod();
+    if (CollectionUtils.isEmpty(authMethods)) {
+      return Single.error(
+          INVALID_REQUEST.getCustomException(
+              "Refresh token must have at least one authentication method"));
+    }
+
+    AuthMethod factorAuthMethod = requestDto.getFactor().getAuthMethod();
+    if (authMethods.contains(factorAuthMethod)) {
+      return Single.error(
+          MFA_FACTOR_ALREADY_ENROLLED.getCustomException(
+              "The factor is already enrolled in the refresh token"));
+    }
+
+    return validateIfFactorIsEnrolled(
+            refreshTokenModel.getUserId(), headers, tenantId, requestDto.getFactor())
+        .andThen(Single.just(refreshTokenModel));
   }
 
   public Single<TokenResponseDto> mfaSignIn(
@@ -153,35 +165,9 @@ public class MfaService {
       String userId,
       String tenantId) {
     return switch (requestDto.getFactor()) {
-      case PASSWORD, PIN -> validateFactorEnrolledAndAuthenticate(
-          requestDto, headers, userId, tenantId);
+      case PASSWORD, PIN -> authenticateUser(requestDto, headers, userId, tenantId);
       default -> Single.error(MFA_FACTOR_NOT_SUPPORTED.getException());
     };
-  }
-
-  private Single<JsonObject> validateFactorEnrolledAndAuthenticate(
-      V2MfaSignInRequestDto requestDto,
-      MultivaluedMap<String, String> headers,
-      String userId,
-      String tenantId) {
-    MfaFactor factor = requestDto.getFactor();
-    String factorSetField = factor == MfaFactor.PASSWORD ? "passwordSet" : "pinSet";
-    String factorName = factor == MfaFactor.PASSWORD ? "password" : "PIN";
-
-    return userService
-        .getUser(Map.of(USERID, userId), headers, tenantId)
-        .flatMap(
-            user -> {
-              Boolean factorSet = user.getBoolean(factorSetField, false);
-              if (!Boolean.TRUE.equals(factorSet)) {
-                return Single.error(
-                    MFA_FACTOR_NOT_SUPPORTED.getCustomException(
-                        String.format(
-                            "%s factor is not enrolled for the user. Please enroll it first.",
-                            factorName)));
-              }
-              return authenticateUser(requestDto, headers, userId, tenantId);
-            });
   }
 
   private Single<JsonObject> authenticateUser(
@@ -193,15 +179,10 @@ public class MfaService {
 
     return userService
         .authenticate(userDto, headers, tenantId)
-        .flatMap(
-            user -> {
-              if (!user.getString(USERID).equals(userId)) {
-                return Single.error(
-                    UNAUTHORIZED.getCustomException(
-                        "User identifier does not match refresh token"));
-              }
-              return Single.just(user);
-            });
+        .filter(user -> user.getString(USERID).equals(userId))
+        .switchIfEmpty(
+            Single.error(
+                UNAUTHORIZED.getCustomException("User identifier does not match refresh token")));
   }
 
   private List<String> getMergedScopes(List<String> existingScopes, List<String> newScopes) {
@@ -237,7 +218,7 @@ public class MfaService {
     return userDtoBuilder.build();
   }
 
-  private Completable validateSingleFactorEnrollment(
+  private Completable validateIfFactorIsEnrolled(
       String userId, MultivaluedMap<String, String> headers, String tenantId, MfaFactor mfaFactor) {
     return userService
         .getUser(Map.of(USERID, userId), headers, tenantId)
@@ -277,7 +258,7 @@ public class MfaService {
         headers,
         userId,
         tenantId,
-        "passwordSet",
+        PASSWORD_SET,
         "Password factor cannot be enrolled as it is already set for the user",
         userDtoBuilder -> userDtoBuilder.password(requestDto.getPassword()));
   }
@@ -292,7 +273,7 @@ public class MfaService {
         headers,
         userId,
         tenantId,
-        "pinSet",
+        PIN_SET,
         "PIN factor cannot be enrolled as it is already set for the user",
         userDtoBuilder -> userDtoBuilder.pin(requestDto.getPin()));
   }
@@ -338,61 +319,46 @@ public class MfaService {
     return availableFactors;
   }
 
-  public static boolean isFactorEnabled(MfaFactor factor, JsonObject user) {
+  private static Boolean isFactorEnabled(MfaFactor factor, JsonObject user) {
     if (user == null) {
       return false;
     }
 
     return switch (factor) {
-      case PASSWORD -> {
-        Boolean isPasswordSet = user.getBoolean("passwordSet");
-        yield isPasswordSet != null && isPasswordSet;
-      }
-      case PIN -> {
-        Boolean isPinSet = user.getBoolean("pinSet");
-        yield isPinSet != null && isPinSet;
-      }
-      case SMS_OTP -> {
-        String phoneNumber = user.getString("phoneNumber");
-        yield phoneNumber != null && !phoneNumber.isBlank();
-      }
-      case EMAIL_OTP -> {
-        String email = user.getString("email");
-        yield email != null && !email.isBlank();
-      }
+      case PASSWORD -> Boolean.TRUE.equals(user.getBoolean(PASSWORD_SET));
+      case PIN -> Boolean.TRUE.equals(user.getBoolean(PIN_SET));
+      case SMS_OTP -> hasValue(user.getString(PHONE_NUMBER));
+      case EMAIL_OTP -> hasValue(user.getString(EMAIL));
       default -> false;
     };
   }
 
+  private static boolean hasValue(String value) {
+    return value != null && !value.isBlank();
+  }
+
   public static List<MfaFactorDto> buildMfaFactors(
-      List<AuthMethod> currentAuthMethods, JsonObject user, List<String> clientMfaEnabled) {
+      List<AuthMethod> currentAuthMethods, JsonObject user, List<String> clientMfaMethods) {
     if (currentAuthMethods == null || currentAuthMethods.isEmpty()) {
       throw INTERNAL_SERVER_ERROR.getCustomException(
           "AuthMethods cannot be null or empty when building MFA factors");
     }
 
-    Set<AuthMethodCategory> usedCategories = getUsedCategories(currentAuthMethods);
-    List<MfaFactor> availableFactors = getAvailableMfaFactors(usedCategories);
-
-    List<MfaFactor> clientEnabledFactors = new ArrayList<>();
-    if (clientMfaEnabled != null && !clientMfaEnabled.isEmpty()) {
-      for (MfaFactor factor : availableFactors) {
-        if (clientMfaEnabled.contains(factor.getValue())) {
-          clientEnabledFactors.add(factor);
-        }
-      }
-    } else {
+    if (clientMfaMethods == null || clientMfaMethods.isEmpty()) {
       return new ArrayList<>();
     }
 
-    List<MfaFactorDto> mfaFactors = new ArrayList<>();
-    for (MfaFactor factor : clientEnabledFactors) {
-      mfaFactors.add(
-          MfaFactorDto.builder()
-              .factor(factor.getValue())
-              .isEnabled(isFactorEnabled(factor, user))
-              .build());
-    }
-    return mfaFactors;
+    Set<AuthMethodCategory> usedCategories = getUsedCategories(currentAuthMethods);
+    List<MfaFactor> availableFactors = getAvailableMfaFactors(usedCategories);
+
+    return availableFactors.stream()
+        .filter(factor -> clientMfaMethods.contains(factor.getValue()))
+        .map(
+            factor ->
+                MfaFactorDto.builder()
+                    .factor(factor.getValue())
+                    .isEnabled(isFactorEnabled(factor, user))
+                    .build())
+        .collect(Collectors.toList());
   }
 }

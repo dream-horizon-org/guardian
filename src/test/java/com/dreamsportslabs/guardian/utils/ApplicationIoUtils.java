@@ -5,6 +5,7 @@ import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_ADDITIONAL_INFO;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_CLIENT_ID;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_CONTACTS;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_EMAIL;
+import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_FACTOR;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_FLOW;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_META_INFO;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_META_INFO_V2;
@@ -697,7 +698,7 @@ public class ApplicationIoUtils {
     headers.put(HEADER_TENANT_ID, tenantId);
 
     Map<String, Object> body = new HashMap<>();
-    body.put("factor", factor);
+    body.put(BODY_PARAM_FACTOR, factor);
     body.put(OIDC_BODY_PARAM_REFRESH_TOKEN, refreshToken);
     body.put(BODY_PARAM_CLIENT_ID, clientId);
     if (username != null) {
@@ -737,7 +738,7 @@ public class ApplicationIoUtils {
     headers.put(HEADER_TENANT_ID, tenantId);
 
     Map<String, Object> body = new HashMap<>();
-    body.put("factor", factor);
+    body.put(BODY_PARAM_FACTOR, factor);
     body.put(OIDC_BODY_PARAM_REFRESH_TOKEN, refreshToken);
     body.put(BODY_PARAM_CLIENT_ID, clientId);
     if (username != null) {

@@ -1311,8 +1311,8 @@ public class V2SignInIT {
             .put("email", email)
             .put("phoneNumber", phoneNumber)
             .put("username", username)
-            .put("passwordSet", V2_SIGNIN_CREDENTIAL_TYPE_PASSWORD.equals(credentialType))
-            .put("pinSet", V2_SIGNIN_CREDENTIAL_TYPE_PIN.equals(credentialType))
+            .put("isPasswordSet", V2_SIGNIN_CREDENTIAL_TYPE_PASSWORD.equals(credentialType))
+            .put("isPinSet", V2_SIGNIN_CREDENTIAL_TYPE_PIN.equals(credentialType))
             .put("userId", RandomStringUtils.randomAlphanumeric(10));
 
     return wireMockServer.stubFor(

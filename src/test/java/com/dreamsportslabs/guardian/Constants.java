@@ -80,6 +80,7 @@ public class Constants {
   public static final String BODY_PARAM_ICON_URL = "icon_url";
   public static final String BODY_PARAM_IS_OIDC = "is_oidc";
   public static final String BODY_PARAM_OTP = "otp";
+  public static final String BODY_PARAM_FACTOR = "factor";
 
   public static final String BODY_CHANNEL_EMAIL = "EMAIL";
   public static final String BODY_CHANNEL_SMS = "SMS";

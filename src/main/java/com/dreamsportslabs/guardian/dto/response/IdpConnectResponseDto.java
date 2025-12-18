@@ -6,6 +6,9 @@ import static com.dreamsportslabs.guardian.constant.Constants.APP_ID_TOKEN;
 import static com.dreamsportslabs.guardian.constant.Constants.APP_REFRESH_TOKEN;
 import static com.dreamsportslabs.guardian.constant.Constants.APP_TOKEN_CODE_EXPIRY;
 import static com.dreamsportslabs.guardian.constant.Constants.APP_TOKEN_TYPE;
+import static com.dreamsportslabs.guardian.constant.Constants.MFA_FACTOR;
+import static com.dreamsportslabs.guardian.constant.Constants.MFA_FACTORS;
+import static com.dreamsportslabs.guardian.constant.Constants.MFA_IS_ENABLED;
 
 import com.dreamsportslabs.guardian.dao.model.IdpCredentials;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -34,23 +37,9 @@ public class IdpConnectResponseDto {
       Object authResponse, Boolean isNewUser, IdpCredentials idpTokens) {
     JsonObject responseJson = JsonObject.mapFrom(authResponse);
 
-    List<MfaFactorDto> mfaFactors = null;
-    if (responseJson.containsKey("mfaFactors")) {
-      JsonArray mfaFactorsArray = responseJson.getJsonArray("mfaFactors");
-      if (mfaFactorsArray != null) {
-        mfaFactors =
-            mfaFactorsArray.stream()
-                .map(
-                    item -> {
-                      JsonObject factorObj = (JsonObject) item;
-                      return MfaFactorDto.builder()
-                          .factor(factorObj.getString("factor"))
-                          .isEnabled(factorObj.getBoolean("isEnabled"))
-                          .build();
-                    })
-                .collect(Collectors.toList());
-      }
-    }
+    JsonArray mfaFactorsArray = responseJson.getJsonArray(MFA_FACTORS);
+    List<MfaFactorDto> mfaFactors =
+        mfaFactorsArray != null ? mapToMfaFactors(mfaFactorsArray) : null;
 
     return new IdpConnectResponseDto(
         responseJson.getString(APP_CODE),
@@ -62,5 +51,17 @@ public class IdpConnectResponseDto {
         isNewUser,
         idpTokens,
         mfaFactors);
+  }
+
+  private static List<MfaFactorDto> mapToMfaFactors(JsonArray mfaFactorsArray) {
+    return mfaFactorsArray.stream()
+        .map(factorObj -> (JsonObject) factorObj)
+        .map(
+            factorObj ->
+                MfaFactorDto.builder()
+                    .factor(factorObj.getString(MFA_FACTOR))
+                    .isEnabled(factorObj.getBoolean(MFA_IS_ENABLED))
+                    .build())
+        .collect(Collectors.toList());
   }
 }

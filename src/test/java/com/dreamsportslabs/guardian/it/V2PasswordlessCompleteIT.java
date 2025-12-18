@@ -646,10 +646,10 @@ public class V2PasswordlessCompleteIT {
     }
 
     if (isPasswordSet != null) {
-      user.put("passwordSet", isPasswordSet);
+      user.put("isPasswordSet", isPasswordSet);
     }
     if (isPinSet != null) {
-      user.put("pinSet", isPinSet);
+      user.put("isPinSet", isPinSet);
     }
 
     if (email != null) {

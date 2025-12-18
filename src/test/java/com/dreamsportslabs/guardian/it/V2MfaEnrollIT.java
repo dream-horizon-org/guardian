@@ -470,8 +470,8 @@ public class V2MfaEnrollIT {
             .put("username", username)
             .put("email", V2_SIGNIN_TEST_EMAIL_1)
             .put("phoneNumber", V2_SIGNIN_TEST_PHONE_1)
-            .put("passwordSet", passwordSet)
-            .put("pinSet", pinSet)
+            .put("isPasswordSet", passwordSet)
+            .put("isPinSet", pinSet)
             .put("userId", RandomStringUtils.randomAlphanumeric(10));
 
     return wireMockServer.stubFor(

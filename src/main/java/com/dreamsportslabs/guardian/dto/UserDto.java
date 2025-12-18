@@ -21,8 +21,8 @@ public class UserDto {
   private String username;
   private String password;
   private String pin;
-  private Boolean passwordSet;
-  private Boolean pinSet;
+  private Boolean isPasswordSet;
+  private Boolean isPinSet;
   private String name;
   private String firstName;
   private String middleName;
