@@ -615,6 +615,8 @@ public class Constants {
   public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_NOT_FOUND = "email_config_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
+  public static final String ERROR_CODE_ADMIN_CONFIG_NOT_FOUND = "admin_config_not_found";
+  public static final String ERROR_CODE_ADMIN_CONFIG_ALREADY_EXISTS = "admin_config_already_exists";
 
   // Error Messages
   public static final String ERROR_MSG_ID_REQUIRED = "id is required";
@@ -634,6 +636,12 @@ public class Constants {
       "template_name cannot be blank";
   public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256 =
       "template_name cannot exceed 256 characters";
+  public static final String ERROR_MSG_USERNAME_CANNOT_BE_BLANK = "username cannot be blank";
+  public static final String ERROR_MSG_USERNAME_CANNOT_EXCEED_50 =
+      "username cannot exceed 50 characters";
+  public static final String ERROR_MSG_PASSWORD_CANNOT_BE_BLANK = "password cannot be blank";
+  public static final String ERROR_MSG_PASSWORD_CANNOT_EXCEED_50 =
+      "password cannot exceed 50 characters";
 
   // Request Body Field Names
   public static final String REQUEST_FIELD_ID = "id";
@@ -649,6 +657,8 @@ public class Constants {
   public static final String REQUEST_FIELD_SEND_EMAIL_PATH = "send_email_path";
   public static final String REQUEST_FIELD_TEMPLATE_NAME = "template_name";
   public static final String REQUEST_FIELD_TEMPLATE_PARAMS = "template_params";
+  public static final String REQUEST_FIELD_USERNAME = "username";
+  public static final String REQUEST_FIELD_PASSWORD = "password";
 
   // Response Field Names
   public static final String RESPONSE_FIELD_TENANT_ID = "tenant_id";

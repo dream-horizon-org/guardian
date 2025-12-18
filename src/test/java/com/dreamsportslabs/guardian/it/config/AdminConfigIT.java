@@ -2,8 +2,19 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PASSWORD_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PASSWORD_CANNOT_EXCEED_50;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_USERNAME_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_USERNAME_CANNOT_EXCEED_50;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_PASSWORD;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_USERNAME;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createAdminConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteAdminConfig;
@@ -56,15 +67,15 @@ public class AdminConfigIT {
     Response response = createAdminConfig(testTenantId, createAdminConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("username"), equalTo("admin"));
-    assertThat(response.jsonPath().getString("password"), equalTo("password123"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_USERNAME), equalTo("admin"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_PASSWORD), equalTo("password123"));
 
     JsonObject dbConfig = DbUtils.getAdminConfig(testTenantId);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getString("username"), equalTo("admin"));
-    assertThat(dbConfig.getString("password"), equalTo("password123"));
+    assertThat(dbConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(dbConfig.getString(REQUEST_FIELD_USERNAME), equalTo("admin"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_PASSWORD), equalTo("password123"));
   }
 
   @Test
@@ -73,7 +84,7 @@ public class AdminConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAdminConfigBody();
-    requestBody.put("tenant_id", "");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, "");
 
     Response response = createAdminConfig(testTenantId, requestBody);
 
@@ -88,7 +99,7 @@ public class AdminConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAdminConfigBody();
-    requestBody.put("tenant_id", RandomStringUtils.randomAlphanumeric(11));
+    requestBody.put(REQUEST_FIELD_TENANT_ID, RandomStringUtils.randomAlphanumeric(11));
 
     Response response = createAdminConfig(testTenantId, requestBody);
 
@@ -104,13 +115,14 @@ public class AdminConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAdminConfigBody();
-    requestBody.put("username", "");
+    requestBody.put(REQUEST_FIELD_USERNAME, "");
 
     Response response = createAdminConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("username cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_USERNAME_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -120,14 +132,14 @@ public class AdminConfigIT {
 
     String longUsername = RandomStringUtils.randomAlphanumeric(51);
     Map<String, Object> requestBody = createAdminConfigBody();
-    requestBody.put("username", longUsername);
+    requestBody.put(REQUEST_FIELD_USERNAME, longUsername);
 
     Response response = createAdminConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("username cannot exceed 50 characters"));
+        equalTo(ERROR_MSG_USERNAME_CANNOT_EXCEED_50));
   }
 
   @Test
@@ -136,13 +148,14 @@ public class AdminConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createAdminConfigBody();
-    requestBody.put("password", "");
+    requestBody.put(REQUEST_FIELD_PASSWORD, "");
 
     Response response = createAdminConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("password cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_PASSWORD_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -152,14 +165,14 @@ public class AdminConfigIT {
 
     String longPassword = RandomStringUtils.randomAlphanumeric(51);
     Map<String, Object> requestBody = createAdminConfigBody();
-    requestBody.put("password", longPassword);
+    requestBody.put(REQUEST_FIELD_PASSWORD, longPassword);
 
     Response response = createAdminConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("password cannot exceed 50 characters"));
+        equalTo(ERROR_MSG_PASSWORD_CANNOT_EXCEED_50));
   }
 
   @Test
@@ -169,7 +182,7 @@ public class AdminConfigIT {
 
     Map<String, Object> requestBody = createAdminConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createAdminConfig(testTenantId, requestBody);
 
@@ -204,9 +217,9 @@ public class AdminConfigIT {
     Response response = getAdminConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("username"), equalTo("admin"));
-    assertThat(response.jsonPath().getString("password"), equalTo("password123"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_USERNAME), equalTo("admin"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_PASSWORD), equalTo("password123"));
   }
 
   @Test
@@ -228,14 +241,14 @@ public class AdminConfigIT {
     createAdminConfig(testTenantId, createAdminConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("username", "newadmin");
+    updateBody.put(REQUEST_FIELD_USERNAME, "newadmin");
 
     Response response = updateAdminConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getString("username"), equalTo("newadmin"));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("password"), equalTo("password123"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_PASSWORD), equalTo("password123"));
 
     JsonObject dbConfig = DbUtils.getAdminConfig(testTenantId);
     assertThat(dbConfig.getString("username"), equalTo("newadmin"));
@@ -248,8 +261,8 @@ public class AdminConfigIT {
     createAdminConfig(testTenantId, createAdminConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("username", "newadmin");
-    updateBody.put("password", "newpassword123");
+    updateBody.put(REQUEST_FIELD_USERNAME, "newadmin");
+    updateBody.put(REQUEST_FIELD_PASSWORD, "newpassword123");
 
     Response response = updateAdminConfig(testTenantId, updateBody);
 
@@ -269,13 +282,13 @@ public class AdminConfigIT {
     createAdminConfig(testTenantId, createAdminConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("username", "newadmin");
+    updateBody.put(REQUEST_FIELD_USERNAME, "newadmin");
 
     Response response = updateAdminConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getString("username"), equalTo("newadmin"));
-    assertThat(response.jsonPath().getString("password"), equalTo("password123"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_PASSWORD), equalTo("password123"));
   }
 
   @Test
@@ -292,7 +305,7 @@ public class AdminConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -308,7 +321,8 @@ public class AdminConfigIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("username cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_USERNAME_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -325,7 +339,7 @@ public class AdminConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("username cannot exceed 50 characters"));
+        equalTo(ERROR_MSG_USERNAME_CANNOT_EXCEED_50));
   }
 
   @Test
@@ -341,7 +355,8 @@ public class AdminConfigIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("password cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_PASSWORD_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -351,14 +366,14 @@ public class AdminConfigIT {
     createAdminConfig(testTenantId, createAdminConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("password", RandomStringUtils.randomAlphanumeric(51));
+    updateBody.put(REQUEST_FIELD_PASSWORD, RandomStringUtils.randomAlphanumeric(51));
 
     Response response = updateAdminConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("password cannot exceed 50 characters"));
+        equalTo(ERROR_MSG_PASSWORD_CANNOT_EXCEED_50));
   }
 
   @Test
@@ -367,7 +382,7 @@ public class AdminConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("username", "newadmin");
+    updateBody.put(REQUEST_FIELD_USERNAME, "newadmin");
 
     Response response = updateAdminConfig(testTenantId, updateBody);
 
@@ -404,16 +419,16 @@ public class AdminConfigIT {
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createAdminConfigBody() {
     Map<String, Object> adminConfigBody = new HashMap<>();
-    adminConfigBody.put("tenant_id", testTenantId);
-    adminConfigBody.put("username", "admin");
-    adminConfigBody.put("password", "password123");
+    adminConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    adminConfigBody.put(REQUEST_FIELD_USERNAME, "admin");
+    adminConfigBody.put(REQUEST_FIELD_PASSWORD, "password123");
     return adminConfigBody;
   }
 }
