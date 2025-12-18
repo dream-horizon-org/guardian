@@ -524,20 +524,4 @@ public class TenantIT {
     assertThat(userConfigExists(testTenantId), equalTo(true));
     assertThat(tokenConfigExists(testTenantId), equalTo(true));
   }
-
-  @Test
-  @DisplayName("Should create tenant, user_config, and token_config atomically")
-  public void testTransactionAtomicity() {
-    Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("id", testTenantId);
-    requestBody.put("name", testTenantName);
-
-    Response response = createTenant(requestBody);
-
-    response.then().statusCode(SC_CREATED);
-
-    assertThat(tenantExists(testTenantId), equalTo(true));
-    assertThat(userConfigExists(testTenantId), equalTo(true));
-    assertThat(tokenConfigExists(testTenantId), equalTo(true));
-  }
 }

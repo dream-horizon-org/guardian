@@ -615,6 +615,9 @@ public class Constants {
   public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_NOT_FOUND = "email_config_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
+  public static final String ERROR_CODE_GOOGLE_CONFIG_NOT_FOUND = "google_config_not_found";
+  public static final String ERROR_CODE_GOOGLE_CONFIG_ALREADY_EXISTS =
+      "google_config_already_exists";
 
   // Error Messages
   public static final String ERROR_MSG_ID_REQUIRED = "id is required";
@@ -634,6 +637,13 @@ public class Constants {
       "template_name cannot be blank";
   public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256 =
       "template_name cannot exceed 256 characters";
+  public static final String ERROR_MSG_CLIENT_ID_CANNOT_BE_BLANK = "client_id cannot be blank";
+  public static final String ERROR_MSG_CLIENT_ID_CANNOT_EXCEED_256 =
+      "client_id cannot exceed 256 characters";
+  public static final String ERROR_MSG_CLIENT_SECRET_CANNOT_BE_BLANK =
+      "client_secret cannot be blank";
+  public static final String ERROR_MSG_CLIENT_SECRET_CANNOT_EXCEED_256 =
+      "client_secret cannot exceed 256 characters";
 
   // Request Body Field Names
   public static final String REQUEST_FIELD_ID = "id";
@@ -649,6 +659,8 @@ public class Constants {
   public static final String REQUEST_FIELD_SEND_EMAIL_PATH = "send_email_path";
   public static final String REQUEST_FIELD_TEMPLATE_NAME = "template_name";
   public static final String REQUEST_FIELD_TEMPLATE_PARAMS = "template_params";
+  public static final String REQUEST_FIELD_CLIENT_ID = "client_id";
+  public static final String REQUEST_FIELD_CLIENT_SECRET = "client_secret";
 
   // Response Field Names
   public static final String RESPONSE_FIELD_TENANT_ID = "tenant_id";

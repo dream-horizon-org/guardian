@@ -2,8 +2,21 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_GOOGLE_CONFIG_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_GOOGLE_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_ID_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_ID_CANNOT_EXCEED_256;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_SECRET_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_SECRET_CANNOT_EXCEED_256;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_CLIENT_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_CLIENT_SECRET;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createGoogleConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteGoogleConfig;
@@ -56,17 +69,20 @@ public class GoogleConfigIT {
     Response response = createGoogleConfig(testTenantId, createGoogleConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(
-        response.jsonPath().getString("client_id"),
+        response.jsonPath().getString(REQUEST_FIELD_CLIENT_ID),
         equalTo("123456789.apps.googleusercontent.com"));
-    assertThat(response.jsonPath().getString("client_secret"), equalTo("GOCSPX-secret123"));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_CLIENT_SECRET), equalTo("GOCSPX-secret123"));
 
     JsonObject dbConfig = DbUtils.getGoogleConfig(testTenantId);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getString("client_id"), equalTo("123456789.apps.googleusercontent.com"));
-    assertThat(dbConfig.getString("client_secret"), equalTo("GOCSPX-secret123"));
+    assertThat(dbConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(
+        dbConfig.getString(REQUEST_FIELD_CLIENT_ID),
+        equalTo("123456789.apps.googleusercontent.com"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_CLIENT_SECRET), equalTo("GOCSPX-secret123"));
   }
 
   @Test
@@ -75,13 +91,14 @@ public class GoogleConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createGoogleConfigBody();
-    requestBody.put("client_id", "");
+    requestBody.put(REQUEST_FIELD_CLIENT_ID, "");
 
     Response response = createGoogleConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("client_id cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_CLIENT_ID_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -91,14 +108,14 @@ public class GoogleConfigIT {
 
     String longClientId = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> requestBody = createGoogleConfigBody();
-    requestBody.put("client_id", longClientId);
+    requestBody.put(REQUEST_FIELD_CLIENT_ID, longClientId);
 
     Response response = createGoogleConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_id cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_CLIENT_ID_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -107,14 +124,14 @@ public class GoogleConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createGoogleConfigBody();
-    requestBody.put("client_secret", "");
+    requestBody.put(REQUEST_FIELD_CLIENT_SECRET, "");
 
     Response response = createGoogleConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_secret cannot be blank"));
+        equalTo(ERROR_MSG_CLIENT_SECRET_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -124,14 +141,14 @@ public class GoogleConfigIT {
 
     String longClientSecret = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> requestBody = createGoogleConfigBody();
-    requestBody.put("client_secret", longClientSecret);
+    requestBody.put(REQUEST_FIELD_CLIENT_SECRET, longClientSecret);
 
     Response response = createGoogleConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_secret cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_CLIENT_SECRET_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -141,7 +158,7 @@ public class GoogleConfigIT {
 
     Map<String, Object> requestBody = createGoogleConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createGoogleConfig(testTenantId, requestBody);
 
@@ -161,7 +178,8 @@ public class GoogleConfigIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("google_config_already_exists"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_GOOGLE_CONFIG_ALREADY_EXISTS));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
         equalTo("Google config already exists: " + testTenantId));
@@ -176,11 +194,12 @@ public class GoogleConfigIT {
     Response response = getGoogleConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(
-        response.jsonPath().getString("client_id"),
+        response.jsonPath().getString(REQUEST_FIELD_CLIENT_ID),
         equalTo("123456789.apps.googleusercontent.com"));
-    assertThat(response.jsonPath().getString("client_secret"), equalTo("GOCSPX-secret123"));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_CLIENT_SECRET), equalTo("GOCSPX-secret123"));
   }
 
   @Test
@@ -192,7 +211,8 @@ public class GoogleConfigIT {
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("google_config_not_found"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_GOOGLE_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -202,18 +222,20 @@ public class GoogleConfigIT {
     createGoogleConfig(testTenantId, createGoogleConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("client_id", "987654321.apps.googleusercontent.com");
+    updateBody.put(REQUEST_FIELD_CLIENT_ID, "987654321.apps.googleusercontent.com");
 
     Response response = updateGoogleConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(
-        response.jsonPath().getString("client_id"),
+        response.jsonPath().getString(REQUEST_FIELD_CLIENT_ID),
         equalTo("987654321.apps.googleusercontent.com"));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
 
     JsonObject dbConfig = DbUtils.getGoogleConfig(testTenantId);
-    assertThat(dbConfig.getString("client_id"), equalTo("987654321.apps.googleusercontent.com"));
+    assertThat(
+        dbConfig.getString(REQUEST_FIELD_CLIENT_ID),
+        equalTo("987654321.apps.googleusercontent.com"));
   }
 
   @Test
@@ -223,20 +245,23 @@ public class GoogleConfigIT {
     createGoogleConfig(testTenantId, createGoogleConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("client_id", "987654321.apps.googleusercontent.com");
-    updateBody.put("client_secret", "GOCSPX-newsecret456");
+    updateBody.put(REQUEST_FIELD_CLIENT_ID, "987654321.apps.googleusercontent.com");
+    updateBody.put(REQUEST_FIELD_CLIENT_SECRET, "GOCSPX-newsecret456");
 
     Response response = updateGoogleConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(
-        response.jsonPath().getString("client_id"),
+        response.jsonPath().getString(REQUEST_FIELD_CLIENT_ID),
         equalTo("987654321.apps.googleusercontent.com"));
-    assertThat(response.jsonPath().getString("client_secret"), equalTo("GOCSPX-newsecret456"));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_CLIENT_SECRET), equalTo("GOCSPX-newsecret456"));
 
     JsonObject dbConfig = DbUtils.getGoogleConfig(testTenantId);
-    assertThat(dbConfig.getString("client_id"), equalTo("987654321.apps.googleusercontent.com"));
-    assertThat(dbConfig.getString("client_secret"), equalTo("GOCSPX-newsecret456"));
+    assertThat(
+        dbConfig.getString(REQUEST_FIELD_CLIENT_ID),
+        equalTo("987654321.apps.googleusercontent.com"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_CLIENT_SECRET), equalTo("GOCSPX-newsecret456"));
   }
 
   @Test
@@ -246,14 +271,16 @@ public class GoogleConfigIT {
     createGoogleConfig(testTenantId, createGoogleConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("client_secret", "GOCSPX-updatedsecret");
+    updateBody.put(REQUEST_FIELD_CLIENT_SECRET, "GOCSPX-updatedsecret");
 
     Response response = updateGoogleConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("client_secret"), equalTo("GOCSPX-updatedsecret"));
     assertThat(
-        response.jsonPath().getString("client_id"),
+        response.jsonPath().getString(REQUEST_FIELD_CLIENT_SECRET),
+        equalTo("GOCSPX-updatedsecret"));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_CLIENT_ID),
         equalTo("123456789.apps.googleusercontent.com"));
   }
 
@@ -271,7 +298,7 @@ public class GoogleConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -281,13 +308,14 @@ public class GoogleConfigIT {
     createGoogleConfig(testTenantId, createGoogleConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("client_id", "");
+    updateBody.put(REQUEST_FIELD_CLIENT_ID, "");
 
     Response response = updateGoogleConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("client_id cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_CLIENT_ID_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -298,14 +326,14 @@ public class GoogleConfigIT {
 
     String longClientId = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("client_id", longClientId);
+    updateBody.put(REQUEST_FIELD_CLIENT_ID, longClientId);
 
     Response response = updateGoogleConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_id cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_CLIENT_ID_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -315,14 +343,14 @@ public class GoogleConfigIT {
     createGoogleConfig(testTenantId, createGoogleConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("client_secret", "");
+    updateBody.put(REQUEST_FIELD_CLIENT_SECRET, "");
 
     Response response = updateGoogleConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_secret cannot be blank"));
+        equalTo(ERROR_MSG_CLIENT_SECRET_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -333,14 +361,14 @@ public class GoogleConfigIT {
 
     String longClientSecret = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("client_secret", longClientSecret);
+    updateBody.put(REQUEST_FIELD_CLIENT_SECRET, longClientSecret);
 
     Response response = updateGoogleConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("client_secret cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_CLIENT_SECRET_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -349,13 +377,14 @@ public class GoogleConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("client_id", "987654321.apps.googleusercontent.com");
+    updateBody.put(REQUEST_FIELD_CLIENT_ID, "987654321.apps.googleusercontent.com");
 
     Response response = updateGoogleConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("google_config_not_found"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_GOOGLE_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -381,21 +410,22 @@ public class GoogleConfigIT {
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("google_config_not_found"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_GOOGLE_CONFIG_NOT_FOUND));
   }
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createGoogleConfigBody() {
     Map<String, Object> googleConfigBody = new HashMap<>();
-    googleConfigBody.put("tenant_id", testTenantId);
-    googleConfigBody.put("client_id", "123456789.apps.googleusercontent.com");
-    googleConfigBody.put("client_secret", "GOCSPX-secret123");
+    googleConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    googleConfigBody.put(REQUEST_FIELD_CLIENT_ID, "123456789.apps.googleusercontent.com");
+    googleConfigBody.put(REQUEST_FIELD_CLIENT_SECRET, "GOCSPX-secret123");
     return googleConfigBody;
   }
 }
