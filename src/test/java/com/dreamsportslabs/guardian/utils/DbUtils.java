@@ -282,6 +282,18 @@ public class DbUtils {
     }
   }
 
+  public static void clearUserBlockedTable(String environment) {
+    if ("test".equalsIgnoreCase(environment)) {
+      String sql = "TRUNCATE TABLE user_flow_block";
+      try (var connection = mysqlConnectionPool.getConnection();
+          var statement = connection.prepareStatement(sql)) {
+        statement.executeUpdate();
+      } catch (Exception e) {
+        throw new RuntimeException("Error clearing user flow block", e);
+      }
+    }
+  }
+
   public static void createUserFlowBlockWithImmediateExpiry(
       String tenantId, String userIdentifier, String flowName, String reason) {
     String sql =

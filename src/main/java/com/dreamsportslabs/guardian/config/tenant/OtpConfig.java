@@ -12,4 +12,7 @@ public class OtpConfig {
   private Integer otpResendInterval;
   private Integer otpValidity;
   private HashMap<String, String> whitelistedInputs;
+  private Integer otpSendBlockSeconds;
+  private Integer otpSendWindowSeconds;
+  private Integer otpSendWindowMaxCount;
 }
