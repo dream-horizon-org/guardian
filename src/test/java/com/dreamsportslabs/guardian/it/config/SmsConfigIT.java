@@ -2,8 +2,28 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_SMS_CONFIG_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_SMS_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_HOST_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_HOST_CANNOT_EXCEED_256;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_SEND_SMS_PATH_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_SEND_SMS_PATH_CANNOT_EXCEED_256;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TEMPLATE_NAME_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_HOST;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_IS_SSL_ENABLED;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_PORT;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_SEND_SMS_PATH;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TEMPLATE_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TEMPLATE_PARAMS;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createSmsConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteSmsConfig;
@@ -58,19 +78,19 @@ public class SmsConfigIT {
     Response response = createSmsConfig(testTenantId, createSmsConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(response.jsonPath().getString("host"), equalTo("sms.example.com"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_HOST), equalTo("sms.example.com"));
     assertThat(response.jsonPath().getInt("port"), equalTo(443));
-    assertThat(response.jsonPath().getString("send_sms_path"), equalTo("/send"));
-    assertThat(response.jsonPath().getString("template_name"), equalTo("welcome"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_SEND_SMS_PATH), equalTo("/send"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_TEMPLATE_NAME), equalTo("welcome"));
 
     JsonObject dbConfig = DbUtils.getSmsConfig(testTenantId);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(dbConfig.getString("host"), equalTo("sms.example.com"));
-    assertThat(dbConfig.getInteger("port"), equalTo(443));
+    assertThat(dbConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
+    assertThat(dbConfig.getString(REQUEST_FIELD_HOST), equalTo("sms.example.com"));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_PORT), equalTo(443));
   }
 
   @Test
@@ -79,7 +99,7 @@ public class SmsConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("tenant_id", "");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, "");
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
@@ -94,7 +114,7 @@ public class SmsConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("tenant_id", RandomStringUtils.randomAlphanumeric(11));
+    requestBody.put(REQUEST_FIELD_TENANT_ID, RandomStringUtils.randomAlphanumeric(11));
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
@@ -110,13 +130,14 @@ public class SmsConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("host", "");
+    requestBody.put(REQUEST_FIELD_HOST, "");
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("host cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_HOST_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -126,14 +147,14 @@ public class SmsConfigIT {
 
     String longHost = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("host", longHost);
+    requestBody.put(REQUEST_FIELD_HOST, longHost);
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("host cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_HOST_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -142,14 +163,14 @@ public class SmsConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("port", 0);
+    requestBody.put(REQUEST_FIELD_PORT, 0);
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
   }
 
   @Test
@@ -158,14 +179,14 @@ public class SmsConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("port", 65536);
+    requestBody.put(REQUEST_FIELD_PORT, 65536);
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
   }
 
   @Test
@@ -174,14 +195,14 @@ public class SmsConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("send_sms_path", "");
+    requestBody.put(REQUEST_FIELD_SEND_SMS_PATH, "");
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("send_sms_path cannot be blank"));
+        equalTo(ERROR_MSG_SEND_SMS_PATH_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -191,14 +212,14 @@ public class SmsConfigIT {
 
     String longPath = "/" + RandomStringUtils.randomAlphanumeric(256);
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("send_sms_path", longPath);
+    requestBody.put(REQUEST_FIELD_SEND_SMS_PATH, longPath);
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("send_sms_path cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_SEND_SMS_PATH_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -207,14 +228,14 @@ public class SmsConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("template_name", "");
+    requestBody.put(REQUEST_FIELD_TEMPLATE_NAME, "");
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("template_name cannot be blank"));
+        equalTo(ERROR_MSG_TEMPLATE_NAME_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -224,14 +245,14 @@ public class SmsConfigIT {
 
     String longTemplateName = RandomStringUtils.randomAlphanumeric(257);
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("template_name", longTemplateName);
+    requestBody.put(REQUEST_FIELD_TEMPLATE_NAME, longTemplateName);
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("template_name cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -240,7 +261,7 @@ public class SmsConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createSmsConfigBody();
-    requestBody.put("template_params", null);
+    requestBody.put(REQUEST_FIELD_TEMPLATE_PARAMS, null);
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
@@ -257,7 +278,7 @@ public class SmsConfigIT {
 
     Map<String, Object> requestBody = createSmsConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createSmsConfig(testTenantId, requestBody);
 
@@ -277,7 +298,8 @@ public class SmsConfigIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR);
     assertThat(
-        response.jsonPath().getString(ERROR + "." + CODE), equalTo("sms_config_already_exists"));
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_SMS_CONFIG_ALREADY_EXISTS));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
         equalTo("SMS config already exists: " + testTenantId));
@@ -292,12 +314,12 @@ public class SmsConfigIT {
     Response response = getSmsConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(response.jsonPath().getString("host"), equalTo("sms.example.com"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_HOST), equalTo("sms.example.com"));
     assertThat(response.jsonPath().getInt("port"), equalTo(443));
-    assertThat(response.jsonPath().getString("send_sms_path"), equalTo("/send"));
-    assertThat(response.jsonPath().getString("template_name"), equalTo("welcome"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_SEND_SMS_PATH), equalTo("/send"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_TEMPLATE_NAME), equalTo("welcome"));
   }
 
   @Test
@@ -315,7 +337,9 @@ public class SmsConfigIT {
     Response response = getSmsConfig(testTenantId);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
-    assertThat(response.jsonPath().getString(ERROR + "." + CODE), equalTo("sms_config_not_found"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_SMS_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -325,16 +349,16 @@ public class SmsConfigIT {
     createSmsConfig(testTenantId, createSmsConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", "updated-sms.example.com");
+    updateBody.put(REQUEST_FIELD_HOST, "updated-sms.example.com");
 
     Response response = updateSmsConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getString("host"), equalTo("updated-sms.example.com"));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
 
     JsonObject dbConfig = DbUtils.getSmsConfig(testTenantId);
-    assertThat(dbConfig.getString("host"), equalTo("updated-sms.example.com"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_HOST), equalTo("updated-sms.example.com"));
   }
 
   @Test
@@ -344,27 +368,29 @@ public class SmsConfigIT {
     createSmsConfig(testTenantId, createSmsConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("is_ssl_enabled", true);
-    updateBody.put("host", "secure-sms.example.com");
-    updateBody.put("port", 465);
-    updateBody.put("send_sms_path", "/api/send");
-    updateBody.put("template_name", "updated-welcome");
+    updateBody.put(REQUEST_FIELD_IS_SSL_ENABLED, true);
+    updateBody.put(REQUEST_FIELD_HOST, "secure-sms.example.com");
+    updateBody.put(REQUEST_FIELD_PORT, 465);
+    updateBody.put(REQUEST_FIELD_SEND_SMS_PATH, "/api/send");
+    updateBody.put(REQUEST_FIELD_TEMPLATE_NAME, "updated-welcome");
 
     Response response = updateSmsConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(true));
-    assertThat(response.jsonPath().getString("host"), equalTo("secure-sms.example.com"));
-    assertThat(response.jsonPath().getInt("port"), equalTo(465));
-    assertThat(response.jsonPath().getString("send_sms_path"), equalTo("/api/send"));
-    assertThat(response.jsonPath().getString("template_name"), equalTo("updated-welcome"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(true));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_HOST), equalTo("secure-sms.example.com"));
+    assertThat(response.jsonPath().getInt(REQUEST_FIELD_PORT), equalTo(465));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_SEND_SMS_PATH), equalTo("/api/send"));
+    assertThat(
+        response.jsonPath().getString(REQUEST_FIELD_TEMPLATE_NAME), equalTo("updated-welcome"));
 
     JsonObject dbConfig = DbUtils.getSmsConfig(testTenantId);
-    assertThat(dbConfig.getBoolean("is_ssl_enabled"), equalTo(true));
-    assertThat(dbConfig.getString("host"), equalTo("secure-sms.example.com"));
-    assertThat(dbConfig.getInteger("port"), equalTo(465));
-    assertThat(dbConfig.getString("send_sms_path"), equalTo("/api/send"));
-    assertThat(dbConfig.getString("template_name"), equalTo("updated-welcome"));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(true));
+    assertThat(dbConfig.getString(REQUEST_FIELD_HOST), equalTo("secure-sms.example.com"));
+    assertThat(dbConfig.getInteger(REQUEST_FIELD_PORT), equalTo(465));
+    assertThat(dbConfig.getString(REQUEST_FIELD_SEND_SMS_PATH), equalTo("/api/send"));
+    assertThat(dbConfig.getString(REQUEST_FIELD_TEMPLATE_NAME), equalTo("updated-welcome"));
   }
 
   @Test
@@ -374,21 +400,21 @@ public class SmsConfigIT {
     createSmsConfig(testTenantId, createSmsConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("port", 2525);
+    updateBody.put(REQUEST_FIELD_PORT, 2525);
 
     Response response = updateSmsConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getInt("port"), equalTo(2525));
-    assertThat(response.jsonPath().getString("host"), equalTo("sms.example.com"));
-    assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_HOST), equalTo("sms.example.com"));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_SSL_ENABLED), equalTo(false));
   }
 
   @Test
   @DisplayName("Should return 401 when tenant-id header is missing for update")
   public void testUpdateSmsConfigMissingHeader() {
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", "updated-sms.example.com");
+    updateBody.put(REQUEST_FIELD_HOST, "updated-sms.example.com");
 
     Response response =
         given()
@@ -413,7 +439,7 @@ public class SmsConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -429,7 +455,8 @@ public class SmsConfigIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("host cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_HOST_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -447,7 +474,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("host cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_HOST_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -464,7 +491,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
   }
 
   @Test
@@ -481,7 +508,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
   }
 
   @Test
@@ -498,7 +525,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("send_sms_path cannot be blank"));
+        equalTo(ERROR_MSG_SEND_SMS_PATH_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -516,7 +543,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("send_sms_path cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_SEND_SMS_PATH_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -533,7 +560,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("template_name cannot be blank"));
+        equalTo(ERROR_MSG_TEMPLATE_NAME_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -551,7 +578,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("template_name cannot exceed 256 characters"));
+        equalTo(ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256));
   }
 
   @Test
@@ -565,12 +592,12 @@ public class SmsConfigIT {
     newTemplateParams.put("key2", "value2");
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("template_params", newTemplateParams);
+    updateBody.put(REQUEST_FIELD_TEMPLATE_PARAMS, newTemplateParams);
 
     Response response = updateSmsConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
-    Map<String, String> templateParams = response.jsonPath().getMap("template_params");
+    Map<String, String> templateParams = response.jsonPath().getMap(REQUEST_FIELD_TEMPLATE_PARAMS);
     assertThat(templateParams.get("key1"), equalTo("value1"));
     assertThat(templateParams.get("key2"), equalTo("value2"));
   }
@@ -581,12 +608,14 @@ public class SmsConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("host", "updated-sms.example.com");
+    updateBody.put(REQUEST_FIELD_HOST, "updated-sms.example.com");
 
     Response response = updateSmsConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
-    assertThat(response.jsonPath().getString(ERROR + "." + CODE), equalTo("sms_config_not_found"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_SMS_CONFIG_NOT_FOUND));
   }
 
   @Test
@@ -618,28 +647,30 @@ public class SmsConfigIT {
     Response response = deleteSmsConfig(testTenantId);
 
     response.then().statusCode(SC_NOT_FOUND).rootPath(ERROR);
-    assertThat(response.jsonPath().getString(ERROR + "." + CODE), equalTo("sms_config_not_found"));
+    assertThat(
+        response.jsonPath().getString(ERROR + "." + CODE),
+        equalTo(ERROR_CODE_SMS_CONFIG_NOT_FOUND));
   }
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createSmsConfigBody() {
     Map<String, Object> smsConfigBody = new HashMap<>();
-    smsConfigBody.put("tenant_id", testTenantId);
-    smsConfigBody.put("is_ssl_enabled", false);
-    smsConfigBody.put("host", "sms.example.com");
-    smsConfigBody.put("port", 443);
-    smsConfigBody.put("send_sms_path", "/send");
-    smsConfigBody.put("template_name", "welcome");
+    smsConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    smsConfigBody.put(REQUEST_FIELD_IS_SSL_ENABLED, false);
+    smsConfigBody.put(REQUEST_FIELD_HOST, "sms.example.com");
+    smsConfigBody.put(REQUEST_FIELD_PORT, 443);
+    smsConfigBody.put(REQUEST_FIELD_SEND_SMS_PATH, "/send");
+    smsConfigBody.put(REQUEST_FIELD_TEMPLATE_NAME, "welcome");
     Map<String, String> templateParams = new HashMap<>();
     templateParams.put("name", "John");
     templateParams.put("phone", "+1234567890");
-    smsConfigBody.put("template_params", templateParams);
+    smsConfigBody.put(REQUEST_FIELD_TEMPLATE_PARAMS, templateParams);
     return smsConfigBody;
   }
 }

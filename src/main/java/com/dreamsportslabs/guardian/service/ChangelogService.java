@@ -72,17 +72,4 @@ public class ChangelogService {
         .changedAt(model.getChangedAt())
         .build();
   }
-
-  public Completable logConfigChange(
-      String tenantId,
-      String configType,
-      String operation,
-      Object oldConfig,
-      Object newConfig,
-      String changedBy) {
-    JsonObject oldValues = oldConfig != null ? JsonObject.mapFrom(oldConfig) : null;
-    JsonObject newValues = newConfig != null ? JsonObject.mapFrom(newConfig) : null;
-    return changelogDao.logConfigChange(
-        tenantId, configType, operation, oldValues, newValues, changedBy);
-  }
 }
