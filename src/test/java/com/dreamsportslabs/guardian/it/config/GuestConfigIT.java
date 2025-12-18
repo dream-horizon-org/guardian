@@ -2,8 +2,17 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_SECRET_KEY_CANNOT_EXCEED_16;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
+import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ALLOWED_SCOPES;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_IS_ENCRYPTED;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_SECRET_KEY;
+import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createGuestConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteGuestConfig;
@@ -58,16 +67,16 @@ public class GuestConfigIT {
     Response response = createGuestConfig(testTenantId, createGuestConfigBody());
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getBoolean("is_encrypted"), equalTo(true));
-    assertThat(response.jsonPath().getString("secret_key"), equalTo("secret123456"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_ENCRYPTED), equalTo(true));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_SECRET_KEY), equalTo("secret123456"));
     assertThat(response.jsonPath().getList("allowed_scopes").size(), equalTo(2));
 
     JsonObject dbConfig = DbUtils.getGuestConfig(testTenantId);
     assertThat(dbConfig, org.hamcrest.Matchers.notNullValue());
-    assertThat(dbConfig.getString("tenant_id"), equalTo(testTenantId));
-    assertThat(dbConfig.getBoolean("is_encrypted"), equalTo(true));
-    assertThat(dbConfig.getString("secret_key"), equalTo("secret123456"));
+    assertThat(dbConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_IS_ENCRYPTED), equalTo(true));
+    assertThat(dbConfig.getString(REQUEST_FIELD_SECRET_KEY), equalTo("secret123456"));
   }
 
   @Test
@@ -76,16 +85,16 @@ public class GuestConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("tenant_id", testTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
     List<String> allowedScopes = new ArrayList<>();
     allowedScopes.add("read");
     allowedScopes.add("write");
-    requestBody.put("allowed_scopes", allowedScopes);
+    requestBody.put(REQUEST_FIELD_ALLOWED_SCOPES, allowedScopes);
 
     Response response = createGuestConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_CREATED);
-    assertThat(response.jsonPath().getBoolean("is_encrypted"), equalTo(true));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_ENCRYPTED), equalTo(true));
     assertThat(response.jsonPath().getList("allowed_scopes").size(), equalTo(2));
   }
 
@@ -95,8 +104,8 @@ public class GuestConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("tenant_id", testTenantId);
-    requestBody.put("allowed_scopes", null);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_ALLOWED_SCOPES, null);
 
     Response response = createGuestConfig(testTenantId, requestBody);
 
@@ -110,7 +119,7 @@ public class GuestConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createGuestConfigBody();
-    requestBody.put("tenant_id", "");
+    requestBody.put(REQUEST_FIELD_TENANT_ID, "");
 
     Response response = createGuestConfig(testTenantId, requestBody);
 
@@ -125,7 +134,7 @@ public class GuestConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createGuestConfigBody();
-    requestBody.put("tenant_id", RandomStringUtils.randomAlphanumeric(11));
+    requestBody.put(REQUEST_FIELD_TENANT_ID, RandomStringUtils.randomAlphanumeric(11));
 
     Response response = createGuestConfig(testTenantId, requestBody);
 
@@ -141,14 +150,14 @@ public class GuestConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createGuestConfigBody();
-    requestBody.put("secret_key", RandomStringUtils.randomAlphanumeric(17));
+    requestBody.put(REQUEST_FIELD_SECRET_KEY, RandomStringUtils.randomAlphanumeric(17));
 
     Response response = createGuestConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("secret_key cannot exceed 16 characters"));
+        equalTo(ERROR_MSG_SECRET_KEY_CANNOT_EXCEED_16));
   }
 
   @Test
@@ -158,7 +167,7 @@ public class GuestConfigIT {
 
     Map<String, Object> requestBody = createGuestConfigBody();
     String differentTenantId = "diff" + RandomStringUtils.randomAlphanumeric(6);
-    requestBody.put("tenant_id", differentTenantId);
+    requestBody.put(REQUEST_FIELD_TENANT_ID, differentTenantId);
 
     Response response = createGuestConfig(testTenantId, requestBody);
 
@@ -193,9 +202,9 @@ public class GuestConfigIT {
     Response response = getGuestConfig(testTenantId);
 
     response.then().statusCode(SC_OK);
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getBoolean("is_encrypted"), equalTo(true));
-    assertThat(response.jsonPath().getString("secret_key"), equalTo("secret123456"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getBoolean(REQUEST_FIELD_IS_ENCRYPTED), equalTo(true));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_SECRET_KEY), equalTo("secret123456"));
     assertThat(response.jsonPath().getList("allowed_scopes").size(), equalTo(2));
   }
 
@@ -218,17 +227,17 @@ public class GuestConfigIT {
     createGuestConfig(testTenantId, createGuestConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("is_encrypted", false);
+    updateBody.put(REQUEST_FIELD_IS_ENCRYPTED, false);
 
     Response response = updateGuestConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getBoolean("is_encrypted"), equalTo(false));
-    assertThat(response.jsonPath().getString("tenant_id"), equalTo(testTenantId));
-    assertThat(response.jsonPath().getString("secret_key"), equalTo("secret123456"));
+    assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_SECRET_KEY), equalTo("secret123456"));
 
     JsonObject dbConfig = DbUtils.getGuestConfig(testTenantId);
-    assertThat(dbConfig.getBoolean("is_encrypted"), equalTo(false));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_IS_ENCRYPTED), equalTo(false));
   }
 
   @Test
@@ -238,13 +247,13 @@ public class GuestConfigIT {
     createGuestConfig(testTenantId, createGuestConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("is_encrypted", false);
-    updateBody.put("secret_key", "newsecret123");
+    updateBody.put(REQUEST_FIELD_IS_ENCRYPTED, false);
+    updateBody.put(REQUEST_FIELD_SECRET_KEY, "newsecret123");
     List<String> newScopes = new ArrayList<>();
     newScopes.add("read");
     newScopes.add("write");
     newScopes.add("admin");
-    updateBody.put("allowed_scopes", newScopes);
+    updateBody.put(REQUEST_FIELD_ALLOWED_SCOPES, newScopes);
 
     Response response = updateGuestConfig(testTenantId, updateBody);
 
@@ -254,8 +263,8 @@ public class GuestConfigIT {
     assertThat(response.jsonPath().getList("allowed_scopes").size(), equalTo(3));
 
     JsonObject dbConfig = DbUtils.getGuestConfig(testTenantId);
-    assertThat(dbConfig.getBoolean("is_encrypted"), equalTo(false));
-    assertThat(dbConfig.getString("secret_key"), equalTo("newsecret123"));
+    assertThat(dbConfig.getBoolean(REQUEST_FIELD_IS_ENCRYPTED), equalTo(false));
+    assertThat(dbConfig.getString(REQUEST_FIELD_SECRET_KEY), equalTo("newsecret123"));
   }
 
   @Test
@@ -265,13 +274,13 @@ public class GuestConfigIT {
     createGuestConfig(testTenantId, createGuestConfigBody()).then().statusCode(SC_CREATED);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("is_encrypted", false);
+    updateBody.put(REQUEST_FIELD_IS_ENCRYPTED, false);
 
     Response response = updateGuestConfig(testTenantId, updateBody);
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getBoolean("is_encrypted"), equalTo(false));
-    assertThat(response.jsonPath().getString("secret_key"), equalTo("secret123456"));
+    assertThat(response.jsonPath().getString(REQUEST_FIELD_SECRET_KEY), equalTo("secret123456"));
   }
 
   @Test
@@ -288,7 +297,7 @@ public class GuestConfigIT {
         .then()
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("no_fields_to_update"));
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
   }
 
   @Test
@@ -305,7 +314,7 @@ public class GuestConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("secret_key cannot exceed 16 characters"));
+        equalTo(ERROR_MSG_SECRET_KEY_CANNOT_EXCEED_16));
   }
 
   @Test
@@ -314,7 +323,7 @@ public class GuestConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> updateBody = new HashMap<>();
-    updateBody.put("is_encrypted", false);
+    updateBody.put(REQUEST_FIELD_IS_ENCRYPTED, false);
 
     Response response = updateGuestConfig(testTenantId, updateBody);
 
@@ -351,20 +360,20 @@ public class GuestConfigIT {
 
   private Map<String, Object> createTenantBody() {
     Map<String, Object> tenantBody = new HashMap<>();
-    tenantBody.put("id", testTenantId);
-    tenantBody.put("name", testTenantName);
+    tenantBody.put(REQUEST_FIELD_ID, testTenantId);
+    tenantBody.put(REQUEST_FIELD_NAME, testTenantName);
     return tenantBody;
   }
 
   private Map<String, Object> createGuestConfigBody() {
     Map<String, Object> guestConfigBody = new HashMap<>();
-    guestConfigBody.put("tenant_id", testTenantId);
-    guestConfigBody.put("is_encrypted", true);
-    guestConfigBody.put("secret_key", "secret123456");
+    guestConfigBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    guestConfigBody.put(REQUEST_FIELD_IS_ENCRYPTED, true);
+    guestConfigBody.put(REQUEST_FIELD_SECRET_KEY, "secret123456");
     List<String> allowedScopes = new ArrayList<>();
     allowedScopes.add("read");
     allowedScopes.add("write");
-    guestConfigBody.put("allowed_scopes", allowedScopes);
+    guestConfigBody.put(REQUEST_FIELD_ALLOWED_SCOPES, allowedScopes);
     return guestConfigBody;
   }
 }
