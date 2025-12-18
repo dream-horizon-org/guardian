@@ -592,4 +592,67 @@ public class ApplicationIoUtils {
     return execute(
         null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/changelog/" + id));
   }
+
+  public static Response createTenant(Map<String, Object> body) {
+    return execute(
+        body, new HashMap<>(), new HashMap<>(), spec -> spec.post("/v1/admin/config/tenant"));
+  }
+
+  public static Response getTenant(String tenantId) {
+    return execute(
+        null,
+        new HashMap<>(),
+        new HashMap<>(),
+        spec -> spec.get("/v1/admin/config/tenant/" + tenantId));
+  }
+
+  public static Response getTenantByName(String name) {
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("name", name);
+    return execute(null, new HashMap<>(), queryParams, spec -> spec.get("/v1/admin/config/tenant"));
+  }
+
+  public static Response updateTenant(String tenantId, Map<String, Object> body) {
+    return execute(
+        body,
+        new HashMap<>(),
+        new HashMap<>(),
+        spec -> spec.patch("/v1/admin/config/tenant/" + tenantId));
+  }
+
+  public static Response deleteTenant(String tenantId) {
+    return execute(
+        null,
+        new HashMap<>(),
+        new HashMap<>(),
+        spec -> spec.delete("/v1/admin/config/tenant/" + tenantId));
+  }
+
+  public static Response getUserConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/user-config"));
+  }
+
+  public static Response updateUserConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/user-config"));
+  }
+
+  public static Response getTokenConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/token-config"));
+  }
+
+  public static Response updateTokenConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/token-config"));
+  }
 }

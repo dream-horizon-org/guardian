@@ -10,11 +10,20 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.UNAUTHORIZED;
 import static com.dreamsportslabs.guardian.exception.OidcErrorEnum.INVALID_TOKEN;
 
 import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
+import com.dreamsportslabs.guardian.dto.request.GenerateRsaKeyRequestDto;
+import com.dreamsportslabs.guardian.dto.response.RsaKeyResponseDto;
 import com.dreamsportslabs.guardian.exception.ErrorEnum;
+import com.dreamsportslabs.guardian.service.RsaKeyPairGeneratorService;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
 import jakarta.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -189,6 +198,77 @@ public final class Utils {
     if (!headerTenantId.equals(bodyTenantId)) {
       throw ErrorEnum.INVALID_REQUEST.getCustomException(
           "tenant-id header must match tenant_id in request body");
+    }
+  }
+
+  public static <T> T coalesce(T newValue, T oldValue) {
+    return newValue != null ? newValue : oldValue;
+  }
+
+  public static GenerateRsaKeyRequestDto buildRsaKeyRequest(int keySize, String format) {
+    GenerateRsaKeyRequestDto keyRequest = new GenerateRsaKeyRequestDto();
+    keyRequest.setKeySize(keySize);
+    keyRequest.setFormat(format);
+    return keyRequest;
+  }
+
+  public static JsonObject buildRsaKeyObject(
+      RsaKeyResponseDto rsaKey,
+      boolean isCurrent,
+      String kidField,
+      String publicKeyField,
+      String privateKeyField,
+      String currentField) {
+    JsonObject rsaKeyObject = new JsonObject();
+    rsaKeyObject.put(kidField, rsaKey.getKid());
+    rsaKeyObject.put(publicKeyField, rsaKey.getPublicKey().toString());
+    rsaKeyObject.put(privateKeyField, rsaKey.getPrivateKey().toString());
+    if (isCurrent) {
+      rsaKeyObject.put(currentField, true);
+    }
+    return rsaKeyObject;
+  }
+
+  public static JsonArray generateRsaKeysArray(
+      RsaKeyPairGeneratorService rsaKeyPairGeneratorService,
+      int defaultRsaKeyCount,
+      int firstRsaKeyIndex,
+      int defaultRsaKeySize,
+      String formatPem,
+      String kidField,
+      String publicKeyField,
+      String privateKeyField,
+      String currentField) {
+    GenerateRsaKeyRequestDto keyRequest = buildRsaKeyRequest(defaultRsaKeySize, formatPem);
+    JsonArray rsaKeysArray = new JsonArray();
+
+    for (int i = 0; i < defaultRsaKeyCount; i++) {
+      RsaKeyResponseDto rsaKey = rsaKeyPairGeneratorService.generateKey(keyRequest);
+      JsonObject rsaKeyObject =
+          buildRsaKeyObject(
+              rsaKey,
+              i == firstRsaKeyIndex,
+              kidField,
+              publicKeyField,
+              privateKeyField,
+              currentField);
+      rsaKeysArray.add(rsaKeyObject);
+    }
+
+    return rsaKeysArray;
+  }
+
+  public static class JsonToStringDeserializer extends JsonDeserializer<String> {
+    @Override
+    public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+      JsonNode node = p.getCodec().readTree(p);
+      if (node.isNull()) {
+        return null;
+      }
+      if (node.isTextual()) {
+        return node.asText();
+      }
+      return node.toString();
     }
   }
 }

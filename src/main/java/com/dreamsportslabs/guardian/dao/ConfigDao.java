@@ -33,6 +33,7 @@ import com.dreamsportslabs.guardian.config.tenant.UserConfig;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import java.util.List;
@@ -168,18 +169,17 @@ public class ConfigDao {
         .map(rows -> JsonUtils.rowSetToList(rows, configType).get(0));
   }
 
-  private <T> Single<T> getOptionalConfigFromDb(
-      String tenantId, Class<T> configType, String query) {
+  private <T> Maybe<T> getOptionalConfigFromDb(String tenantId, Class<T> configType, String query) {
     return mysqlClient
         .getReaderPool()
         .preparedQuery(query)
         .execute(Tuple.of(tenantId))
-        .flatMap(
+        .flatMapMaybe(
             rows -> {
               if (rows.size() > 0) {
-                return Single.just(JsonUtils.rowSetToList(rows, configType).get(0));
+                return Maybe.just(JsonUtils.rowSetToList(rows, configType).get(0));
               }
-              return Single.never();
+              return Maybe.empty();
             });
   }
 

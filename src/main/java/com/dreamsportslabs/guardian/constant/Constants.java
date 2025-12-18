@@ -209,4 +209,61 @@ public final class Constants {
 
   // Changelog Column Names
   public static final String CHANGELOG_COLUMN_TOTAL = "total";
+
+  // Config Changelog Operation Types
+  public static final String OPERATION_INSERT = "INSERT";
+  public static final String OPERATION_UPDATE = "UPDATE";
+  public static final String OPERATION_DELETE = "DELETE";
+
+  // Config Types
+  public static final String CONFIG_TYPE_TENANT = "tenant";
+  public static final String CONFIG_TYPE_USER_CONFIG = "user_config";
+  public static final String CONFIG_TYPE_TOKEN_CONFIG = "token_config";
+
+  // MySQL Error Codes
+  public static final int MYSQL_ERROR_CODE_DUPLICATE_ENTRY = 1062;
+
+  // Database Constraint Names
+  public static final String TENANT_NAME = "tenant_name";
+
+  // JSON Field Names
+  public static final String JSON_FIELD_KID = "kid";
+  public static final String JSON_FIELD_PUBLIC_KEY = "public_key";
+  public static final String JSON_FIELD_PRIVATE_KEY = "private_key";
+  public static final String JSON_FIELD_CURRENT = "current";
+
+  // Default User Config Values
+  public static final String DEFAULT_USER_CONFIG_HOST = "control-tower.dream11.local";
+  public static final int DEFAULT_USER_CONFIG_PORT = 80;
+  public static final String DEFAULT_USER_CONFIG_GET_USER_PATH = "/users/validate";
+  public static final String DEFAULT_USER_CONFIG_CREATE_USER_PATH = "/users";
+  public static final String DEFAULT_USER_CONFIG_AUTHENTICATE_USER_PATH = "/api/user/validate";
+  public static final String DEFAULT_USER_CONFIG_ADD_PROVIDER_PATH = "";
+  public static final boolean DEFAULT_USER_CONFIG_IS_SSL_ENABLED = false;
+  public static final boolean DEFAULT_USER_CONFIG_SEND_PROVIDER_DETAILS = false;
+
+  // Default Token Config Values
+  public static final String DEFAULT_TOKEN_CONFIG_ALGORITHM = "RS512";
+  public static final String DEFAULT_TOKEN_CONFIG_ISSUER = "https://dream11.local";
+  public static final int DEFAULT_TOKEN_CONFIG_ACCESS_TOKEN_EXPIRY = 900;
+  public static final int DEFAULT_TOKEN_CONFIG_REFRESH_TOKEN_EXPIRY = 2592000;
+  public static final int DEFAULT_TOKEN_CONFIG_ID_TOKEN_EXPIRY = 36000;
+  public static final String DEFAULT_TOKEN_CONFIG_COOKIE_SAME_SITE = "NONE";
+  public static final String DEFAULT_TOKEN_CONFIG_COOKIE_DOMAIN = "";
+  public static final String DEFAULT_TOKEN_CONFIG_COOKIE_PATH = "/";
+  public static final boolean DEFAULT_TOKEN_CONFIG_COOKIE_SECURE = false;
+  public static final boolean DEFAULT_TOKEN_CONFIG_COOKIE_HTTP_ONLY = true;
+  public static final String DEFAULT_ID_TOKEN_CLAIM_USER_ID = "userId";
+  public static final String DEFAULT_ID_TOKEN_CLAIM_EMAIL_ID = "emailId";
+
+  // RSA Key Generation Constants
+  public static final int DEFAULT_RSA_KEY_SIZE = 2048;
+  public static final int DEFAULT_RSA_KEY_COUNT = 3;
+  public static final int FIRST_RSA_KEY_INDEX = 0;
+
+  // Default Boolean Values for Config Updates
+  public static final boolean DEFAULT_IS_SSL_ENABLED = false;
+  public static final boolean DEFAULT_SEND_PROVIDER_DETAILS = false;
+  public static final boolean DEFAULT_COOKIE_SECURE = false;
+  public static final boolean DEFAULT_COOKIE_HTTP_ONLY = true;
 }
