@@ -1,10 +1,8 @@
 package com.dreamsportslabs.guardian.service;
 
 import static com.dreamsportslabs.guardian.constant.Constants.EMAIL;
-import static com.dreamsportslabs.guardian.constant.Constants.PASSWORD;
 import static com.dreamsportslabs.guardian.constant.Constants.PASSWORD_SET;
 import static com.dreamsportslabs.guardian.constant.Constants.PHONE_NUMBER;
-import static com.dreamsportslabs.guardian.constant.Constants.PIN;
 import static com.dreamsportslabs.guardian.constant.Constants.PIN_SET;
 import static com.dreamsportslabs.guardian.constant.Constants.USERID;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
