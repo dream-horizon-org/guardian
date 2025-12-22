@@ -16,10 +16,9 @@ import static com.dreamsportslabs.guardian.constant.Constants.USERID;
 import static com.dreamsportslabs.guardian.constant.Constants.USER_FILTERS_EMAIL;
 import static com.dreamsportslabs.guardian.constant.Constants.USER_FILTERS_PROVIDER_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.USER_FILTERS_PROVIDER_USER_ID;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.FACEBOOK_AUTH_NOT_CONFIGURED;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.GOOGLE_AUTH_NOT_CONFIGURED;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_EXISTS;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_NOT_EXISTS;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.GOOGLE_AUTH_NOT_CONFIGURED;
 
 import com.dreamsportslabs.guardian.cache.DefaultClientScopesCache;
 import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
@@ -95,11 +94,8 @@ public class SocialAuthService {
 
   private Single<Object> authFb(
       V2AuthFbRequestDto dto, MultivaluedMap<String, String> headers, String tenantId) {
-    FacebookIdProvider facebookIdProvider = registry.get(tenantId, FacebookIdProvider.class);
-    if (facebookIdProvider == null) {
-      return Single.error(FACEBOOK_AUTH_NOT_CONFIGURED.getException());
-    }
-    return facebookIdProvider
+    return registry
+        .get(tenantId, FacebookIdProvider.class)
         .getUserIdentity(dto.getAccessToken())
         .flatMap(
             fbUserData -> {

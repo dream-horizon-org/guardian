@@ -99,7 +99,10 @@ public enum ErrorEnum {
       "credential_revoked",
       "The biometric credential has been revoked and is no longer active",
       403),
-  INVALID_ENCODING("invalid_encoding", "Invalid signature encoding", 400);
+  INVALID_ENCODING("invalid_encoding", "Invalid signature encoding", 400),
+  ADMIN_NOT_CONFIGURED(
+      "admin_not_configured", "Admin feature is not configured for this tenant", 400);
+
   private final String code;
   private final String message;
   private final int httpStatusCode;

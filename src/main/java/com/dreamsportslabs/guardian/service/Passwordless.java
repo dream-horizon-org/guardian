@@ -10,7 +10,6 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INCORRECT_OTP;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_CONTACT_FOR_SIGNUP;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_STATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.MAX_RESEND_LIMIT_EXCEEDED;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.OTP_NOT_CONFIGURED;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.RESENDS_EXHAUSTED;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.RESEND_NOT_ALLOWED;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.RETRIES_EXHAUSTED;
@@ -169,9 +168,6 @@ public class Passwordless {
                 throw INVALID_CONTACT_FOR_SIGNUP.getException();
               }
               OtpConfig config = registry.get(tenantId, TenantConfig.class).getOtpConfig();
-              if (config == null) {
-                throw OTP_NOT_CONFIGURED.getException();
-              }
               Map<String, String> h = new HashMap<>();
               headers.forEach((key, val) -> h.put(key, val.get(0)));
               return PasswordlessModel.builder()
