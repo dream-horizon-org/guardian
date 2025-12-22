@@ -26,15 +26,14 @@ import com.dreamsportslabs.guardian.dto.response.BiometricChallengeResponseDto;
 import com.dreamsportslabs.guardian.dto.response.BiometricTokenResponseDto;
 import com.dreamsportslabs.guardian.utils.BiometricCryptoUtils;
 import com.google.inject.Inject;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -239,13 +238,10 @@ public class BiometricService {
 
   private Single<String> getCredentialId(
       String tenantId, String clientId, String userId, String deviceId) {
-    Maybe<String> credentialIdMaybe =
-        credentialsDao
-            .getCredential(tenantId, clientId, userId, deviceId)
-            .map(CredentialsModel::getCredentialId);
-    return credentialIdMaybe
-        .isEmpty()
-        .flatMap(isEmpty -> isEmpty ? Single.just("") : credentialIdMaybe.toSingle());
+    return credentialsDao
+        .getCredential(tenantId, clientId, userId, deviceId)
+        .map(CredentialsModel::getCredentialId)
+        .defaultIfEmpty("");
   }
 
   private void verifySignature(
@@ -284,10 +280,7 @@ public class BiometricService {
       return List.copyOf(existingAuthMethods);
     }
 
-    var result = new ArrayList<AuthMethod>(existingAuthMethods.size() + 1);
-    result.addAll(existingAuthMethods);
-    result.add(newAuthMethod);
-    return List.copyOf(result);
+    return Stream.concat(existingAuthMethods.stream(), Stream.of(newAuthMethod)).toList();
   }
 
   private Single<BiometricTokenResponseDto> generateTokensForUser(

@@ -27,10 +27,9 @@ public class CredentialsDao {
         .preparedQuery(GET_CREDENTIAL_BY_DEVICE_ID)
         .rxExecute(Tuple.of(tenantId, clientId, userId, deviceId))
         .map(rs -> JsonUtils.rowSetToList(rs, CredentialsModel.class))
-        // take first row if present
-        .flatMapMaybe(list -> list.isEmpty() ? Maybe.empty() : Maybe.just(list.get(0)))
-        // keep only active
-        .filter(c -> Boolean.TRUE.equals(c.getIsActive()))
+        .filter(list -> !list.isEmpty())
+        .switchIfEmpty(Maybe.empty())
+        .map(list -> list.get(0))
         .onErrorResumeNext(
             err -> {
               log.error("Failed to get credential", err);

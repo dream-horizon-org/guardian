@@ -10,7 +10,6 @@ import com.google.inject.Inject;
 import io.vertx.core.json.JsonObject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -34,9 +33,8 @@ public class BiometricComplete {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> completeBiometric(
-      @Context HttpHeaders headers,
-      @HeaderParam(TENANT_ID) String tenantId,
-      @Valid BiometricCompleteRequestDto requestDto) {
+      @Context HttpHeaders headers, @Valid BiometricCompleteRequestDto requestDto) {
+    String tenantId = headers.getHeaderString(TENANT_ID);
     return biometricService
         .completeBiometric(requestDto, headers.getRequestHeaders(), tenantId)
         .map(
