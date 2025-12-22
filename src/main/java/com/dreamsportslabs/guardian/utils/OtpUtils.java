@@ -1,8 +1,5 @@
 package com.dreamsportslabs.guardian.utils;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.EMAIL_NOT_CONFIGURED;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.SMS_NOT_CONFIGURED;
-
 import com.dreamsportslabs.guardian.config.tenant.EmailConfig;
 import com.dreamsportslabs.guardian.config.tenant.SmsConfig;
 import com.dreamsportslabs.guardian.constant.Channel;
@@ -27,17 +24,11 @@ public final class OtpUtils {
     }
 
     if (contact.getChannel() == Channel.EMAIL) {
-      if (emailConfig == null) {
-        throw EMAIL_NOT_CONFIGURED.getException();
-      }
       contact.setTemplate(
           new Template(emailConfig.getTemplateName(), emailConfig.getTemplateParams()));
     }
 
     if (contact.getChannel() == Channel.SMS) {
-      if (smsConfig == null) {
-        throw SMS_NOT_CONFIGURED.getException();
-      }
       contact.setTemplate(new Template(smsConfig.getTemplateName(), smsConfig.getTemplateParams()));
     }
   }

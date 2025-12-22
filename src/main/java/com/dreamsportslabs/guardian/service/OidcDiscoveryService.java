@@ -1,7 +1,5 @@
 package com.dreamsportslabs.guardian.service;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.OIDC_CONFIG_NOT_EXISTS;
-
 import com.dreamsportslabs.guardian.config.tenant.OidcConfig;
 import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
 import com.dreamsportslabs.guardian.dao.ScopeDao;
@@ -22,11 +20,6 @@ public class OidcDiscoveryService {
 
   public Single<OidcDiscoveryResponseDto> getOidcDiscovery(String tenantId) {
     OidcConfig oidcConfig = registry.get(tenantId, TenantConfig.class).getOidcConfig();
-    if (oidcConfig == null) {
-      return Single.error(
-          OIDC_CONFIG_NOT_EXISTS.getCustomException(
-              "oidc Config not found for the tenant: " + tenantId));
-    }
 
     return scopeDao
         .oidcScopes(tenantId)

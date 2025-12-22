@@ -18,11 +18,12 @@ public class RegistryInit {
     registry.put(tenantId, getTokenSigner(tenantConfig.getTokenConfig()));
 
     // Initialize optional providers only if their configs exist
-    if (tenantConfig.getFbConfig() != null) {
-      registry.put(tenantId, new FacebookIdProvider(tenantConfig.getFbConfig()));
+
+    if (tenantConfig.findFbConfig().isPresent()) {
+      registry.put(tenantId, new FacebookIdProvider(tenantConfig.findFbConfig().get()));
     }
-    if (tenantConfig.getGoogleConfig() != null) {
-      registry.put(tenantId, new GoogleIdProvider(tenantConfig.getGoogleConfig()));
+    if (tenantConfig.findGoogleConfig().isPresent()) {
+      registry.put(tenantId, new GoogleIdProvider(tenantConfig.findGoogleConfig().get()));
     }
 
     return tenantConfig;

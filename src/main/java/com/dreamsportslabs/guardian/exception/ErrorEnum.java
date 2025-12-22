@@ -76,7 +76,9 @@ public enum ErrorEnum {
   AUTH_CODE_NOT_CONFIGURED(
       "auth_code_not_configured",
       "Authorization code feature is not configured for this tenant",
-      400);
+      400),
+  ADMIN_NOT_CONFIGURED(
+      "admin_not_configured", "Admin feature is not configured for this tenant", 400);
 
   private final String code;
   private final String message;
