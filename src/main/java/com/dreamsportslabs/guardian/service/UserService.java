@@ -81,7 +81,11 @@ public class UserService {
                 } catch (Exception e) {
                   resBody = new JsonObject();
                 }
-                throw USER_SERVICE_ERROR_400.getCustomException(resBody.getMap());
+                resBody.put(RESPONSE_BODY_STATUS_CODE, statusCode);
+                if (statusCode / 100 == 4) {
+                  throw USER_SERVICE_ERROR_400.getCustomException(resBody.getMap());
+                }
+                throw USER_SERVICE_ERROR.getCustomException(resBody.getMap());
               } else {
                 resBody = res.bodyAsJsonObject();
                 if (!resBody.containsKey(USERID)) {
@@ -207,7 +211,11 @@ public class UserService {
     }
 
     if (response.statusCode() / 100 != 2) {
-      throw USER_SERVICE_ERROR.getCustomException(String.valueOf(statusCode), resBody.getMap());
+      resBody.put(RESPONSE_BODY_STATUS_CODE, statusCode);
+      if (statusCode / 100 == 4) {
+        throw USER_SERVICE_ERROR_400.getCustomException(resBody.getMap());
+      }
+      throw USER_SERVICE_ERROR.getCustomException(resBody.getMap());
     }
     return resBody;
   }

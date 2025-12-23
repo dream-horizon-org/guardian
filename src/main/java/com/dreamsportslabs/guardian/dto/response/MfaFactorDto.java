@@ -1,6 +1,7 @@
 package com.dreamsportslabs.guardian.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,10 +9,8 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class MfaFactorDto {
-  @JsonProperty("factor")
-  private String factor;
-
-  @JsonProperty("is_enabled")
-  private Boolean isEnabled;
+  private final String factor;
+  private final Boolean isEnabled;
 }

@@ -1,13 +1,11 @@
-package com.dreamsportslabs.guardian.rest;
+package com.dreamsportslabs.guardian.rest.v2;
 
 import static com.dreamsportslabs.guardian.constant.Constants.TENANT_ID;
 
 import com.dreamsportslabs.guardian.dto.request.BiometricCompleteRequestDto;
 import com.dreamsportslabs.guardian.service.AuthorizationService;
 import com.dreamsportslabs.guardian.service.BiometricService;
-import com.dreamsportslabs.guardian.utils.Utils;
 import com.google.inject.Inject;
-import io.vertx.core.json.JsonObject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -23,9 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Path("/biometric/complete")
+@Path("/v2/biometric/complete")
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class BiometricComplete {
+public class V2BiometricComplete {
   private final BiometricService biometricService;
   private final AuthorizationService authorizationService;
 
@@ -45,7 +43,7 @@ public class BiometricComplete {
               NewCookie refreshTokenCookie =
                   authorizationService.getRefreshTokenCookie(
                       tokenResponse.getRefreshToken(), tenantId);
-              return Response.ok(Utils.convertKeysToSnakeCase(JsonObject.mapFrom(tokenResponse)))
+              return Response.ok(tokenResponse)
                   .cookie(accessTokenCookie, refreshTokenCookie)
                   .build();
             })

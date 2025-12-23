@@ -1,4 +1,4 @@
-package com.dreamsportslabs.guardian.rest;
+package com.dreamsportslabs.guardian.rest.v2;
 
 import static com.dreamsportslabs.guardian.constant.Constants.TENANT_ID;
 
@@ -19,9 +19,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Path("/biometric/challenge")
+@Path("/v2/biometric/challenge")
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class BiometricChallenge {
+public class V2BiometricChallenge {
   private final BiometricService biometricService;
 
   @POST
