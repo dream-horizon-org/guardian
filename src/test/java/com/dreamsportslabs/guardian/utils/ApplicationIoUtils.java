@@ -19,6 +19,7 @@ import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_SCOPES;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_STATE;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_USERNAME;
 import static com.dreamsportslabs.guardian.Constants.CLIENT_ID;
+import static com.dreamsportslabs.guardian.Constants.CONTENT_TYPE_APPLICATION_JSON;
 import static com.dreamsportslabs.guardian.Constants.HEADER_TENANT_ID;
 import static com.dreamsportslabs.guardian.Constants.OIDC_BODY_PARAM_REFRESH_TOKEN;
 import static com.dreamsportslabs.guardian.Constants.QUERY_PARAM_NAME;
@@ -761,5 +762,13 @@ public class ApplicationIoUtils {
     }
 
     return execute(body, headers, new HashMap<>(), spec -> spec.post("/v2/mfa/enroll"));
+  }
+
+  public static Response clearCache(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    headers.put(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON);
+
+    return execute(null, headers, new HashMap<>(), spec -> spec.post("/cache/clear"));
   }
 }

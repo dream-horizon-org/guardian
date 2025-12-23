@@ -22,6 +22,7 @@ insert into client_scope (tenant_id, client_id, scope) values ('tenant1', 'clien
 insert into client_scope (tenant_id, client_id, scope, is_default) values ('tenant1', 'client1', 'default', TRUE);
 insert into client_scope (tenant_id, client_id, scope, is_default) values ('tenant1', 'client2', 'default', TRUE);
 insert into guest_config(tenant_id, is_encrypted, secret_key, allowed_scopes) values ('tenant1', true, '2CmxIQJd8UJWAdm8',JSON_ARRAY('profile', 'email', 'phone'));
+insert into credentials (tenant_id, client_id, user_id, device_id, platform, credential_id, public_key, binding_type, alg, sign_count, aaguid, revoked_at, first_use_complete) values ('tenant1', 'client1', '1', 'device-abc123xyz', 'iOS', 'test-credential-1', '-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE4f5wI+6/VD5N8U9e8nyTzJYMUK2B\nQgvB7xBlQx6XZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3ZxJ3\n-----END PUBLIC KEY-----', 'appkey', -7, 0, NULL, NULL, FALSE);
 
 UPDATE client SET mfa_policy = 'not_required', allowed_mfa_methods = JSON_ARRAY() WHERE tenant_id = 'tenant1' AND client_id = 'client-id';
 UPDATE client SET mfa_policy = 'mandatory', allowed_mfa_methods = JSON_ARRAY('password', 'pin', 'sms-otp', 'email-otp') WHERE tenant_id = 'tenant1' AND client_id = 'client1';

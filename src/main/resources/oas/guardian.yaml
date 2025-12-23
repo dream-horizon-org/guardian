@@ -3099,6 +3099,244 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /biometric/challenge:
+    post:
+      tags:
+        - Device-Bound Authentication
+      summary: Request authentication challenge
+      description: |
+        Generate a random challenge (nonce) for biometric authentication.
+        
+        ## Process
+        1. Client requests a challenge
+        2. Server generates a cryptographically secure 32-byte random nonce
+        3. Server stores the challenge with a 5-minute expiry and generates a state
+        4. Client receives the challenge and state
+        5. Client uses the state for subsequent complete operations
+        
+        ## Challenge Properties
+        - **Size**: 32 bytes (256 bits)
+        - **Encoding**: Base64
+        - **Expiry**: 5 minutes (300 seconds)
+        - **Single-use**: Can only be used once for authentication
+        
+        ## State Properties
+        - **Single-use**: State can only be used once
+        - **Expiry**: State expires with the challenge (5 minutes)
+        - **Required**: State must be provided in complete requests
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BiometricChallengeRequest'
+            examples:
+              default:
+                summary: Request challenge
+                value:
+                  refresh_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  client_id: "mobile-app"
+                  device_metadata:
+                    platform: "iOS"
+                    device_id: "device-abc123xyz"
+                    device_model: "iPhone 14 Pro"
+                    os_version: "iOS 17.0"
+                    app_version: "1.2.3"
+                    device_name: "John's iPhone"
+      responses:
+        '200':
+          description: Challenge generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BiometricChallengeResponse'
+              example:
+                state: "biometric_challenge_a1b2c3d4e5f6"
+                challenge: "xJ8k2nM9pQ3vT7wY1cF6hL4mN8qR5sV0zX3bG7jK9tW2yP6uA4dH1eI5oU8rE3c="
+                expires_in: 300
+        '400':
+          description: Bad Request - Invalid input parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "invalid_request"
+                  message: "client_id and device_metadata are required"
+        '401':
+          description: Unauthorized - Invalid/expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "unauthorized"
+                  message: "Invalid or expired refresh token"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /biometric/complete:
+    post:
+      tags:
+        - Device-Bound Authentication
+      summary: Complete biometric authentication
+      description: |
+        Complete biometric authentication flow for MFA.
+        
+        ## Login Flow
+        1. Client must first call `/biometric/challenge` to get a challenge and state
+        2. Client prompts for biometric authentication (Face ID / Touch ID / Fingerprint)
+        3. Client signs the challenge with the private key from secure storage
+        4. Client sends the signature, credential_id, device_metadata, and state to this endpoint
+        5. Server verifies the signature using the stored public key
+        6. If valid, server issues access and refresh tokens
+        
+        ## Signature Format
+        - **Algorithm**: ECDSA with SHA-256
+        - **Encoding**: DER-encoded ASN.1
+        - **iOS**: Output of `SecKeyCreateSignature` with `.ecdsaSignatureMessageX962SHA256`
+        - **Android**: Output of `Signature.getInstance("SHA256withECDSA")`
+        - **Purpose**: Authenticates the user by verifying ownership of the registered credential
+        
+        ## State Requirement
+        - The `state` from `/biometric/challenge` is required
+        - State must be valid and not expired
+        - State can only be used once
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BiometricCompleteRequest'
+            examples:
+              login:
+                summary: Login with biometric signature
+                value:
+                  refresh_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  state: "biometric_challenge_a1b2c3d4e5f6"
+                  client_id: "mobile-app"
+                  signature: "MEUCIQDxT7wY1cF6hL4mN8qR5sV0zX3bG7jK9tW2yP6uA4dH1eAiEA5oU8rE3cD9fG2hJ5kM8nQ1rT4vW7xZ0aB3c"
+                  credential_id: "cred-a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                  device_metadata:
+                    platform: "iOS"
+                    device_id: "device-abc123xyz"
+                    device_model: "iPhone 14 Pro"
+                    os_version: "iOS 17.0"
+                    app_version: "1.2.3"
+                    device_name: "John's iPhone"
+              registration:
+                summary: Register new biometric credential
+                value:
+                  refresh_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  state: "biometric_challenge_a1b2c3d4e5f6"
+                  client_id: "mobile-app"
+                  credential_id: "new-credential-12345"
+                  public_key: "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE...\n-----END PUBLIC KEY-----"
+                  signature: "MEUCIQDxT7wY1cF6hL4mN8qR5sV0zX3bG7jK9tW2yP6uA4dH1eAiEA5oU8rE3cD9fG2hJ5kM8nQ1rT4vW7xZ0aB3c"
+                  device_metadata:
+                    platform: "iOS"
+                    device_id: "device-abc123xyz"
+                    device_model: "iPhone 14 Pro"
+                    os_version: "iOS 17.0"
+                    app_version: "1.2.3"
+                    device_name: "John's iPhone"
+      responses:
+        '200':
+          description: Biometric authentication completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+              example:
+                access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                refresh_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                token_type: "Bearer"
+          headers:
+            Set-Cookie:
+              description: Sets authentication cookies (access token, refresh token, SSO token)
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request - Invalid input parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingFields:
+                  summary: Missing required fields
+                  value:
+                    error:
+                      code: "invalid_request"
+                      message: "state, client_id, credential_id, device_metadata, and signature are required"
+                invalidState:
+                  summary: Invalid state
+                  value:
+                    error:
+                      code: "invalid_state"
+                      message: "State is invalid, expired, or already used"
+                noChallenge:
+                  summary: No active challenge (login)
+                  value:
+                    error:
+                      code: "challenge_not_found"
+                      message: "No active challenge found or challenge expired. Please request a new challenge."
+                invalidEncoding:
+                  summary: Invalid signature encoding
+                  value:
+                    error:
+                      code: "invalid_encoding"
+                      message: "Invalid signature encoding. Expected Base64 DER-encoded signature."
+        '401':
+          description: Unauthorized - Invalid/expired refresh token or signature verification failed
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: '#/components/schemas/BiometricLoginErrorResponse'
+              examples:
+                invalidToken:
+                  summary: Invalid or expired refresh token
+                  value:
+                    error:
+                      code: "unauthorized"
+                      message: "Invalid or expired refresh token"
+                invalidSignature:
+                  summary: Signature verification failed
+                  value:
+                    success: false
+                    message: "Authentication failed"
+                    error: "invalid_signature"
+        '404':
+          description: Not Found - Credential not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "credential_not_found"
+                  message: "No biometric credentials found for the provided credential_id"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   parameters:
     TenantIdHeader:
@@ -3108,6 +3346,15 @@ components:
       required: true
       schema:
         type: string
+    AuthorizationHeader:
+      name: Authorization
+      in: header
+      required: true
+      description: |
+        refresh token for authentication. Format: "refresh_token"
+      schema:
+        type: string
+      example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
   schemas:
     ErrorResponse:
       type: object
@@ -3788,6 +4035,125 @@ components:
           type: boolean
           description: Indicates if the user is new
           example: false
+    BiometricChallengeRequest:
+      type: object
+      required:
+        - refresh_token
+        - client_id
+        - device_metadata
+      properties:
+        refresh_token:
+          type: string
+          description: Refresh token for authentication context
+          example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        client_id:
+          type: string
+          description: Client application identifier
+          example: "mobile-app"
+        device_metadata:
+          $ref: '#/components/schemas/DeviceMetadata'
+          description: Device metadata including device_id (required)
+    DeviceMetadata:
+      type: object
+      required:
+        - device_id
+      properties:
+        platform:
+          type: string
+          description: Device platform (e.g., iOS, Android)
+          example: "iOS"
+        device_id:
+          type: string
+          description: Unique identifier for the device
+          example: "device-abc123xyz"
+        device_model:
+          type: string
+          description: Device model name
+          example: "iPhone 14 Pro"
+        os_version:
+          type: string
+          description: Operating system version
+          example: "iOS 17.0"
+        app_version:
+          type: string
+          description: Application version
+          example: "1.2.3"
+        device_name:
+          type: string
+          description: User-friendly device name
+          example: "John's iPhone"
+    BiometricChallengeResponse:
+      type: object
+      properties:
+        state:
+          type: string
+          description: Single-use state token for register/login operations. Must be used within expires_in seconds.
+          example: "biometric_challenge_a1b2c3d4e5f6"
+        challenge:
+          type: string
+          description: Base64-encoded challenge (32-byte nonce)
+          example: "xJ8k2nM9pQ3vT7wY1cF6hL4mN8qR5sV0zX3bG7jK9tW2yP6uA4dH1eI5oU8rE3c="
+        expires_in:
+          type: integer
+          description: Challenge expiry time in seconds (default 300 = 5 minutes)
+          example: 300
+    BiometricCompleteRequest:
+      type: object
+      required:
+        - refresh_token
+        - state
+        - client_id
+        - credential_id
+        - device_metadata
+        - signature
+      properties:
+        refresh_token:
+          type: string
+          description: Refresh token for authentication context
+          example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        state:
+          type: string
+          description: Single-use state token from /biometric/challenge endpoint
+          example: "biometric_challenge_a1b2c3d4e5f6"
+        client_id:
+          type: string
+          description: Client application identifier
+          example: "mobile-app"
+        credential_id:
+          type: string
+          description: Unique identifier for the credential
+          example: "cred-a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        signature:
+          type: string
+          description: |
+            Base64-encoded DER signature (required for authentication).
+            - **iOS**: Output of `SecKeyCreateSignature` with `.ecdsaSignatureMessageX962SHA256`
+            - **Android**: Output of `Signature.getInstance("SHA256withECDSA")`
+          example: "MEUCIQDxT7wY1cF6hL4mN8qR5sV0zX3bG7jK9tW2yP6uA4dH1eAiEA5oU8rE3cD9fG2hJ5kM8nQ1rT4vW7xZ0aB3c"
+        device_metadata:
+          $ref: '#/components/schemas/DeviceMetadata'
+          description: Device metadata including device_id, platform, and other device information (required)
+    BiometricLoginErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if authentication was successful
+          example: false
+        message:
+          type: string
+          description: Error message
+          example: "Authentication failed"
+        error:
+          type: string
+          description: Error code
+          enum:
+            - invalid_signature
+            - challenge_not_found
+            - challenge_expired
+            - credential_not_found
+            - invalid_state
+          example: "invalid_signature"
     RefreshToken:
       type: object
       properties:

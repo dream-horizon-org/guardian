@@ -44,6 +44,18 @@ public final class Utils {
     return Pattern.compile("^\\+?[0-9]{7,15}$").matcher(mobile).matches();
   }
 
+  public static boolean isValidBase64(String base64String) {
+    if (StringUtils.isBlank(base64String)) {
+      return false;
+    }
+    try {
+      Base64.getDecoder().decode(base64String);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+  }
+
   public static MultiMap getForwardingHeaders(MultivaluedMap<String, String> headers) {
     MultiMap forwardingHeaders = MultiMap.caseInsensitiveMultiMap();
     for (String key : headers.keySet()) {

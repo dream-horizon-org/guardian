@@ -609,4 +609,28 @@ public class Constants {
   public static final String TEST_ISSUER_URL = "https://auth.example.com";
   public static final String TENANT3_PUBLIC_KEY_PATH =
       "src/test/resources/test-data/tenant3-public-key.pem";
+
+  // V2RefreshToken Test Constants
+  public static final String TEST_CLIENT_ID = "test-client";
+  public static final String TEST_USER_ID_1234 = "1234";
+  public static final String TEST_SCOPES_OPENID_PROFILE = "[\"openid\", \"profile\"]";
+  public static final String TEST_APPLICATION_TYPE = "app";
+  public static final String TEST_AUTH_METHOD_PASSWORD = "[\"PASSWORD\"]";
+  public static final String TEST_AUTH_METHOD_OTP = "[\"ONE_TIME_PASSWORD\"]";
+  public static final String TEST_INVALID_REFRESH_TOKEN = "invalid-refresh-token";
+  public static final String TEST_WRONG_CLIENT_ID = "wrong-client";
+  public static final String TEST_COMPLETELY_INVALID_TOKEN = "completely-invalid-token-12345";
+  public static final String TEST_ADDITIONAL_CLAIM_VALUE_A = "a";
+  public static final String TEST_ADDITIONAL_CLAIM_VALUE_B = "b";
+  public static final String TEST_FIRST_NAME = "firstName";
+  public static final String TEST_LAST_NAME = "lastName";
+  public static final String TEST_FIRST_NAME_VALUE = "John";
+  public static final String TEST_LAST_NAME_VALUE = "Doe";
+  public static final String TEST_VALUE = "value";
+  public static final String TEST_VALUE_1 = "test1";
+  public static final String TEST_VALUE_2 = "test2";
+  public static final String TEST_SAMPLE_ADDRESS = "sampleAddress";
+  public static final String TEST_MIDDLE_NAME = "middleName";
+  public static final String TEST_CITY = "city";
+  public static final String TEST_TENANT_2 = "tenant2";
 }

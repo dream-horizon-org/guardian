@@ -24,6 +24,9 @@ import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
 import com.dreamsportslabs.guardian.constant.AuthMethod;
 import com.dreamsportslabs.guardian.registry.Registry;
 import com.google.inject.Inject;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import io.fusionauth.jwt.JWTEncoder;
 import io.fusionauth.jwt.domain.JWT;
 import io.fusionauth.jwt.rsa.RSASigner;
@@ -93,10 +96,8 @@ public class TokenIssuer {
     jwt.addClaim(JWT_CLAIMS_SCOPE, scope);
     jwt.addClaim(JWT_CLAIMS_AMR, authMethods.stream().map(AuthMethod::getValue).toList());
     if (shouldSetAccessTokenAdditionalClaims(config)) {
-      config.getTokenConfig().getAccessTokenClaims().stream()
-          .filter(userResponse::containsKey)
-          .toList()
-          .forEach(claim -> jwt.addClaim(claim, userResponse.getValue(claim)));
+      addAdditionalClaimsFromJsonPath(
+          jwt, userResponse, config.getTokenConfig().getAccessTokenClaims());
     }
 
     Map<String, String> tokenHeaders = new HashMap<>();
@@ -136,5 +137,46 @@ public class TokenIssuer {
         .switchIfEmpty(Single.error(INTERNAL_SERVER_ERROR.getException()))
         .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)))
         .map(String.class::cast);
+  }
+
+  private void addAdditionalClaimsFromJsonPath(
+      JWT jwt, JsonObject userResponse, List<String> claimPaths) {
+    if (claimPaths == null || claimPaths.isEmpty()) return;
+
+    DocumentContext jsonContext = JsonPath.parse(userResponse.encode());
+
+    for (String claimPath : claimPaths) {
+      String path = claimPath != null ? claimPath.trim() : "";
+      if (path.isEmpty()) continue;
+
+      try {
+        String jsonPathExpr = path.startsWith("$") ? path : "$." + path;
+        Object value = jsonContext.read(jsonPathExpr);
+
+        if (value instanceof List<?> list && !list.isEmpty()) {
+          value = list.get(0);
+        }
+
+        if (value != null) {
+          String claimName = extractClaimName(path);
+          jwt.addClaim(claimName, value);
+        }
+      } catch (PathNotFoundException e) {
+        log.debug("Path not found: {}", path);
+      } catch (Exception e) {
+        log.warn("Error reading path '{}': {}", path, e.getMessage());
+      }
+    }
+  }
+
+  private String extractClaimName(String path) {
+    String cleanPath =
+        path.startsWith("$.") ? path.substring(2) : path.startsWith("$") ? path.substring(1) : path;
+
+    int lastDot = cleanPath.lastIndexOf('.');
+    String claimName = lastDot >= 0 ? cleanPath.substring(lastDot + 1) : cleanPath;
+
+    int bracketIndex = claimName.indexOf('[');
+    return bracketIndex > 0 ? claimName.substring(0, bracketIndex) : claimName;
   }
 }
