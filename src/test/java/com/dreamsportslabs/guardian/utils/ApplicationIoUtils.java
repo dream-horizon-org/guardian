@@ -771,4 +771,22 @@ public class ApplicationIoUtils {
 
     return execute(null, headers, new HashMap<>(), spec -> spec.post("/cache/clear"));
   }
+
+  public static Response v2BiometricChallenge(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    if (tenantId != null) {
+      headers.put(HEADER_TENANT_ID, tenantId);
+    }
+
+    return execute(body, headers, new HashMap<>(), spec -> spec.post("/v2/biometric/challenge"));
+  }
+
+  public static Response v2BiometricComplete(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    if (tenantId != null) {
+      headers.put(HEADER_TENANT_ID, tenantId);
+    }
+
+    return execute(body, headers, new HashMap<>(), spec -> spec.post("/v2/biometric/complete"));
+  }
 }

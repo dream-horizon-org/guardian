@@ -633,4 +633,58 @@ public class Constants {
   public static final String TEST_MIDDLE_NAME = "middleName";
   public static final String TEST_CITY = "city";
   public static final String TEST_TENANT_2 = "tenant2";
+
+  // Biometric Test Constants
+  public static final String BIOMETRIC_BODY_PARAM_REFRESH_TOKEN = "refresh_token";
+  public static final String BIOMETRIC_BODY_PARAM_CLIENT_ID = "client_id";
+  public static final String BODY_PARAM_DEVICE_METADATA = "device_metadata";
+  public static final String BODY_PARAM_PLATFORM = "platform";
+  public static final String BODY_PARAM_DEVICE_ID = "device_id";
+  public static final String BODY_PARAM_DEVICE_MODEL = "device_model";
+  public static final String BODY_PARAM_OS_VERSION = "os_version";
+  public static final String BODY_PARAM_APP_VERSION = "app_version";
+  public static final String BODY_PARAM_CREDENTIAL_ID = "credential_id";
+  public static final String BODY_PARAM_PUBLIC_KEY = "public_key";
+  public static final String BODY_PARAM_SIGNATURE = "signature";
+  public static final String BODY_PARAM_CHALLENGE = "challenge";
+  public static final String BODY_PARAM_EXPIRES_IN = "expires_in";
+  public static final String PLATFORM_IOS = "ios";
+  public static final String PLATFORM_ANDROID = "android";
+  public static final String PLATFORM_INVALID = "windows";
+  public static final String ERROR_CHALLENGE_NOT_FOUND = "challenge_not_found";
+  public static final String ERROR_CREDENTIAL_NOT_FOUND = "credential_not_found";
+  public static final String ERROR_INVALID_SIGNATURE = "invalid_signature";
+  public static final String ERROR_INVALID_PUBLIC_KEY = "invalid_public_key";
+  public static final String ERROR_INVALID_ENCODING = "invalid_encoding";
+
+  // Biometric validation error messages
+  public static final String ERROR_MSG_REFRESH_TOKEN_REQUIRED = "refresh_token is required";
+  public static final String ERROR_MSG_CLIENT_ID_REQUIRED = "client_id is required";
+  public static final String ERROR_MSG_DEVICE_METADATA_REQUIRED = "device_metadata is required";
+  public static final String ERROR_MSG_PLATFORM_REQUIRED = "platform is required";
+  public static final String ERROR_MSG_PLATFORM_INVALID =
+      "Invalid platform. Must be 'ios' or 'android'";
+  public static final String ERROR_MSG_DEVICE_ID_REQUIRED = "device_id is required";
+  public static final String ERROR_MSG_INVALID_REFRESH_TOKEN = "Invalid refresh token";
+  public static final String ERROR_MSG_UNAUTHORIZED = "Unauthorized";
+  public static final String ERROR_MSG_STATE_REQUIRED = "state is required";
+  public static final String ERROR_MSG_CREDENTIAL_ID_REQUIRED = "credential_id is required";
+  public static final String ERROR_MSG_SIGNATURE_REQUIRED = "signature is required";
+  public static final String ERROR_MSG_INVALID_PUBLIC_KEY_FORMAT =
+      "Invalid public key format: HTTP 400 Bad Request";
+  public static final String ERROR_MSG_SIGNATURE_VERIFICATION_FAILED =
+      "Signature verification failed";
+  public static final String ERROR_MSG_CHALLENGE_NOT_FOUND =
+      "No active challenge found or challenge expired";
+  public static final String ERROR_MSG_CREDENTIAL_NOT_FOUND =
+      "No biometric credentials found for the provided credential_id";
+  public static final String ERROR_MSG_INVALID_SIGNATURE_ENCODING =
+      "Invalid signature encoding. Expected Base64 DER-encoded signature.";
+  public static final String ERROR_MSG_INVALID_STATE = "Invalid state";
+  public static final String ERROR_MSG_STATE_INVALID_CLIENT_ID_MISMATCH =
+      "State is invalid as clientId is not matching";
+  public static final String ERROR_MSG_STATE_INVALID_REFRESH_TOKEN_MISMATCH =
+      "State is invalid as refresh token is not matching";
+  public static final String JWT_AMR_HARDWARE_KEY = "hwk";
+  public static final int BIOMETRIC_CHALLENGE_EXPIRY_SECONDS = 300;
 }
