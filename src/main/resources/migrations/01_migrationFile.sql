@@ -26,6 +26,7 @@ CREATE TABLE user_config
     create_user_path       VARCHAR(256) NOT NULL,
     authenticate_user_path VARCHAR(256) NOT NULL,
     add_provider_path      VARCHAR(256) NOT NULL,
+    update_user_path       VARCHAR(256) NOT NULL,
     send_provider_details  BOOLEAN      NOT NULL DEFAULT FALSE,
     created_at             TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at             TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -343,21 +344,23 @@ CREATE TABLE oidc_config
 
 CREATE TABLE client
 (
-    tenant_id      CHAR(10)     NOT NULL,
-    client_id      VARCHAR(100) NOT NULL,
-    client_name    VARCHAR(100) NOT NULL,
-    client_secret  VARCHAR(100) NOT NULL,
-    client_uri     VARCHAR(2083),
-    contacts       JSON,
-    grant_types    JSON         NOT NULL,
-    logo_uri       VARCHAR(2083),
-    policy_uri     VARCHAR(2083),
-    redirect_uris  JSON         NOT NULL,
-    response_types JSON         NOT NULL,
-    client_type    CHAR(11)     NOT NULL DEFAULT "third_party",
-    is_default     BOOLEAN      NOT NULL DEFAULT FALSE,
-    updated_at     TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_at     TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    tenant_id          CHAR(10)     NOT NULL,
+    client_id          VARCHAR(100) NOT NULL,
+    client_name        VARCHAR(100) NOT NULL,
+    client_secret      VARCHAR(100) NOT NULL,
+    client_uri         VARCHAR(2083),
+    contacts           JSON,
+    grant_types        JSON         NOT NULL,
+    logo_uri           VARCHAR(2083),
+    policy_uri         VARCHAR(2083),
+    redirect_uris      JSON         NOT NULL,
+    response_types     JSON         NOT NULL,
+    client_type        CHAR(11)     NOT NULL DEFAULT "third_party",
+    is_default         BOOLEAN      NOT NULL DEFAULT FALSE,
+    mfa_policy         ENUM('not_required', 'mandatory') NOT NULL DEFAULT 'not_required',
+    allowed_mfa_methods JSON NOT NULL DEFAULT (JSON_ARRAY()),
+    updated_at         TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at         TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id, client_id),
     UNIQUE KEY unique_tenant_client_name (tenant_id, client_name)
 ) ENGINE=InnoDB
@@ -472,6 +475,34 @@ CREATE TABLE sso_token
     KEY                 `idx_sso_token_client_user` (`tenant_id`, `client_id_issues_to`, `user_id`, `sso_token`),
     CONSTRAINT `fk_sso_token_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenant` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_sso_token_client` FOREIGN KEY (`tenant_id`, `client_id_issues_to`) REFERENCES `client` (`tenant_id`, `client_id`) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE TABLE credentials
+(
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    tenant_id         CHAR(10)        NOT NULL,
+    client_id         VARCHAR(100)    NOT NULL,
+    user_id           CHAR(64)        NOT NULL,
+    device_id         VARCHAR(100)    NOT NULL,
+    platform          VARCHAR(50)     NOT NULL,
+    credential_id     VARCHAR(255)    NOT NULL,
+    public_key        TEXT            NOT NULL,
+    binding_type      ENUM('webauthn', 'appkey') NOT NULL,
+    alg               INT             NOT NULL,
+    sign_count        BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    aaguid            VARCHAR(128)    NULL,
+    revoked_at        TIMESTAMP       NULL DEFAULT NULL,
+    is_active         TINYINT(1)         GENERATED ALWAYS AS (revoked_at IS NULL) STORED,
+    first_use_complete TINYINT(1)        NOT NULL DEFAULT 0,
+    created_at        TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+    KEY `idx_user_device` (`tenant_id`, `client_id`, `user_id`, `device_id`),
+    CONSTRAINT `fk_credentials_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenant` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_credentials_client` FOREIGN KEY (`tenant_id`, `client_id`) REFERENCES `client` (`tenant_id`, `client_id`) ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;

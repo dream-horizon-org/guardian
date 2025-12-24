@@ -11,9 +11,12 @@ public final class Constants {
   public static final String PROVIDER = "provider";
   public static final String IS_NEW_USER = "isNewUser";
   public static final String SCOPE = "scope";
+  public static final String SCOPE_DELIMITER = " ";
   public static final String AES_ALGORITHM = "AES";
   public static final String AES_CBC_NO_PADDING = "AES/CBC/NoPadding";
   public static final String SHUTDOWN_STATUS = "__shutdown__";
+  public static final String MFA_POLICY_NOT_REQUIRED = "not_required";
+  public static final String MFA_POLICY_MANDATORY = "mandatory";
 
   // HTTP Request Headers
   public static final String AUTHORIZATION = "Authorization";
@@ -127,12 +130,25 @@ public final class Constants {
   public static final String USER_FILTERS_PROVIDER_NAME = "providerName";
   public static final String USER_FILTERS_PROVIDER_USER_ID = "providerUserId";
 
+  // User field names
+  public static final String EMAIL = "email";
+  public static final String PHONE_NUMBER = "phoneNumber";
+  public static final String PASSWORD_SET = "isPasswordSet";
+  public static final String PIN_SET = "isPinSet";
+
+  // Factor names
+  public static final String PASSWORD = "password";
+  public static final String PIN = "pin";
+
+  public static final String RESPONSE_BODY_STATUS_CODE = "http_status_code";
+
   public static final String USER_RESPONSE_ADDITIONAL_CLAIMS = "additionalClaims";
   public static final String USER_RESPONSE_OIDC_ADDITIONAL_CLAIMS = "additional_claims";
 
   public static final String CACHE_KEY_CODE = "CODE";
   public static final String CACHE_KEY_STATE = "STATE";
   public static final String CACHE_KEY_AUTH_SESSION = "AUTH_SESSION";
+  public static final String CACHE_KEY_BIOMETRIC_CHALLENGE = "BIOMETRIC_CHALLENGE";
 
   public static final String TOKEN_TYPE = "Bearer";
 
@@ -206,4 +222,14 @@ public final class Constants {
   public static final String OIDC_PARAM_CONSENT_CHALLENGE = "consent_challenge";
   public static final String OIDC_PARAM_LOGIN_HINT = "login_hint";
   public static final String OIDC_PARAM_PROMPT = "prompt";
+
+  // MFA Response fields
+  public static final String MFA_FACTORS = "mfaFactors";
+  public static final String MFA_FACTOR = "factor";
+  public static final String MFA_IS_ENABLED = "isEnabled";
+
+  // Biometric Constants
+  public static final String BIOMETRIC_BINDING_TYPE_APPKEY = "appkey";
+  public static final Integer BIOMETRIC_ALG_ES256 =
+      -7; // COSE algorithm identifier for ES256 (ECDSA with SHA-256)
 }

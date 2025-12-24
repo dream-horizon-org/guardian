@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dao;
 
+import static com.dreamsportslabs.guardian.constant.Constants.MFA_POLICY_NOT_REQUIRED;
 import static com.dreamsportslabs.guardian.dao.query.ClientQuery.CREATE_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.ClientQuery.DELETE_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.ClientQuery.GET_CLIENT;
@@ -26,6 +27,7 @@ import io.vertx.rxjava3.sqlclient.Tuple;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
@@ -49,7 +51,9 @@ public class ClientDao {
         .addString(serializeToJsonString(client.getRedirectUris(), objectMapper))
         .addString(serializeToJsonString(client.getResponseTypes(), objectMapper))
         .addString(client.getClientType())
-        .addBoolean(client.getIsDefault());
+        .addBoolean(client.getIsDefault())
+        .addString(client.getMfaPolicy() != null ? client.getMfaPolicy() : MFA_POLICY_NOT_REQUIRED)
+        .addString(serializeAllowedMfaMethods(client.getAllowedMfaMethods()));
     return mysqlClient
         .getWriterPool()
         .preparedQuery(CREATE_CLIENT)
@@ -138,5 +142,11 @@ public class ClientDao {
         .rxExecute(Tuple.of(tenantId, clientId))
         .map(result -> result.rowCount() > 0)
         .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)));
+  }
+
+  private String serializeAllowedMfaMethods(List<String> allowedMfaMethods) {
+    return CollectionUtils.isNotEmpty(allowedMfaMethods)
+        ? serializeToJsonString(allowedMfaMethods, objectMapper)
+        : "[]";
   }
 }

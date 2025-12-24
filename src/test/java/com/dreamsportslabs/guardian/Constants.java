@@ -6,7 +6,9 @@ public class Constants {
 
   // Request Body Params
   public static final String BODY_PARAM_USERNAME = "username";
+  public static final String BODY_PARAM_PHONE_NUMBER_V2 = "phone_number";
   public static final String BODY_PARAM_PASSWORD = "password";
+  public static final String BODY_PARAM_PIN = "pin";
   public static final String OIDC_BODY_PARAM_REFRESH_TOKEN = "refresh_token";
   public static final String BODY_PARAM_REFRESH_TOKEN = "refreshToken";
   public static final String BODY_PARAM_RESPONSE_TYPE = "responseType";
@@ -47,6 +49,13 @@ public class Constants {
   public static final String BODY_PARAM_CLIENT_ID = "client_id";
   public static final String BODY_PARAM_GUEST_IDENTIFIER = "guest_identifier";
   public static final String BODY_PARAM_SCOPES = "scopes";
+  public static final String MFA_POLICY_NOT_REQUIRED = "not_required";
+  public static final String MFA_POLICY_MANDATORY = "mandatory";
+  public static final String MFA_FACTOR_PASSWORD = "password";
+  public static final String MFA_FACTOR_PIN = "pin";
+  public static final String MFA_FACTOR_SMS_OTP = "sms-otp";
+  public static final String MFA_FACTOR_EMAIL_OTP = "email-otp";
+  public static final String MFA_FACTORS = "mfa_factors";
 
   public static final String RESPONSE_BODY_PARAM_ACCESS_TOKEN = "access_token";
   public static final String RESPONSE_BODY_PARAM_TOKEN_TYPE = "token_type";
@@ -71,6 +80,7 @@ public class Constants {
   public static final String BODY_PARAM_ICON_URL = "icon_url";
   public static final String BODY_PARAM_IS_OIDC = "is_oidc";
   public static final String BODY_PARAM_OTP = "otp";
+  public static final String BODY_PARAM_FACTOR = "factor";
 
   public static final String BODY_CHANNEL_EMAIL = "EMAIL";
   public static final String BODY_CHANNEL_SMS = "SMS";
@@ -173,6 +183,7 @@ public class Constants {
   public static final String JWT_CLAIM_RFT_ID = "rft_id";
   public static final String JWT_CLAIM_TENANT_ID = "tid";
   public static final String JWT_CLAIMS_AMR = "amr";
+  public static final String HTTP_STATUS_CODE = "http_status_code";
 
   // Test Constants for OIDC Client Management
   public static final String TENANT_ID_HEADER = "tenant-id";
@@ -184,6 +195,7 @@ public class Constants {
   public static final String METADATA = "metadata";
   public static final String ERROR_INCORRECT_OTP = "incorrect_otp";
   public static final String ERROR_INVALID_REQUEST = "invalid_request";
+  public static final String ERROR_MFA_FACTOR_ALREADY_ENROLLED = "mfa_factor_already_enrolled";
   public static final String INVALID_GUEST_IDENTIFIER = "invalid_guest_identifier";
   public static final String INVALID_SCOPE = "invalid_scope";
   public static final String ERROR_USER_NOT_EXISTS = "user_not_exists";
@@ -544,6 +556,24 @@ public class Constants {
   public static final String CHECK_CLIENT_TYPE = "client.clientType";
   public static final String CHECK_IS_DEFAULT = "client.isDefault";
 
+  // V2SignIn Test Constants
+  public static final String V2_SIGNIN_TEST_USERNAME_1 = "user1";
+  public static final String V2_SIGNIN_TEST_USERNAME_2 = "user2";
+  public static final String V2_SIGNIN_TEST_EMAIL_1 = "john.doe@test.com";
+  public static final String V2_SIGNIN_TEST_EMAIL_2 = "jane.doe@test.com";
+  public static final String V2_SIGNIN_TEST_PHONE_1 = "777777777";
+  public static final String V2_SIGNIN_TEST_PHONE_2 = "888888888";
+  public static final String V2_SIGNIN_TEST_PASSWORD_1 = "pass1";
+  public static final String V2_SIGNIN_TEST_PIN_2 = "4321";
+  public static final String V2_SIGNIN_TEST_NONEXISTENT_USER = "nonexistent";
+  public static final String V2_SIGNIN_TEST_NONEXISTENT_EMAIL = "nonexistent@example.com";
+  public static final String V2_SIGNIN_TEST_INVALID_SCOPE_1 = "invalid_scope";
+  public static final String V2_SIGNIN_CREDENTIAL_TYPE_PASSWORD = "password";
+  public static final String V2_SIGNIN_CREDENTIAL_TYPE_PIN = "pin";
+  public static final String V2_SIGNIN_ERROR_USER_NOT_EXIST = "User does not exist";
+  public static final String V2_SIGNIN_ERROR_UNAUTHORIZED = "Unauthorized";
+  public static final String V2_SIGNIN_INCORRECT_CREDENTIAL = "Your credentials are incorrect";
+
   // Mock user data constants
   public static final String MOCK_USER_NAME = "John Doe";
   public static final String MOCK_USER_ID = "testuser";
@@ -579,4 +609,82 @@ public class Constants {
   public static final String TEST_ISSUER_URL = "https://auth.example.com";
   public static final String TENANT3_PUBLIC_KEY_PATH =
       "src/test/resources/test-data/tenant3-public-key.pem";
+
+  // V2RefreshToken Test Constants
+  public static final String TEST_CLIENT_ID = "test-client";
+  public static final String TEST_USER_ID_1234 = "1234";
+  public static final String TEST_SCOPES_OPENID_PROFILE = "[\"openid\", \"profile\"]";
+  public static final String TEST_APPLICATION_TYPE = "app";
+  public static final String TEST_AUTH_METHOD_PASSWORD = "[\"PASSWORD\"]";
+  public static final String TEST_AUTH_METHOD_OTP = "[\"ONE_TIME_PASSWORD\"]";
+  public static final String TEST_INVALID_REFRESH_TOKEN = "invalid-refresh-token";
+  public static final String TEST_WRONG_CLIENT_ID = "wrong-client";
+  public static final String TEST_COMPLETELY_INVALID_TOKEN = "completely-invalid-token-12345";
+  public static final String TEST_ADDITIONAL_CLAIM_VALUE_A = "a";
+  public static final String TEST_ADDITIONAL_CLAIM_VALUE_B = "b";
+  public static final String TEST_FIRST_NAME = "firstName";
+  public static final String TEST_LAST_NAME = "lastName";
+  public static final String TEST_FIRST_NAME_VALUE = "John";
+  public static final String TEST_LAST_NAME_VALUE = "Doe";
+  public static final String TEST_VALUE = "value";
+  public static final String TEST_VALUE_1 = "test1";
+  public static final String TEST_VALUE_2 = "test2";
+  public static final String TEST_SAMPLE_ADDRESS = "sampleAddress";
+  public static final String TEST_MIDDLE_NAME = "middleName";
+  public static final String TEST_CITY = "city";
+  public static final String TEST_TENANT_2 = "tenant2";
+
+  // Biometric Test Constants
+  public static final String BIOMETRIC_BODY_PARAM_REFRESH_TOKEN = "refresh_token";
+  public static final String BIOMETRIC_BODY_PARAM_CLIENT_ID = "client_id";
+  public static final String BODY_PARAM_DEVICE_METADATA = "device_metadata";
+  public static final String BODY_PARAM_PLATFORM = "platform";
+  public static final String BODY_PARAM_DEVICE_ID = "device_id";
+  public static final String BODY_PARAM_DEVICE_MODEL = "device_model";
+  public static final String BODY_PARAM_OS_VERSION = "os_version";
+  public static final String BODY_PARAM_APP_VERSION = "app_version";
+  public static final String BODY_PARAM_CREDENTIAL_ID = "credential_id";
+  public static final String BODY_PARAM_PUBLIC_KEY = "public_key";
+  public static final String BODY_PARAM_SIGNATURE = "signature";
+  public static final String BODY_PARAM_CHALLENGE = "challenge";
+  public static final String BODY_PARAM_EXPIRES_IN = "expires_in";
+  public static final String PLATFORM_IOS = "ios";
+  public static final String PLATFORM_ANDROID = "android";
+  public static final String PLATFORM_INVALID = "windows";
+  public static final String ERROR_CHALLENGE_NOT_FOUND = "challenge_not_found";
+  public static final String ERROR_CREDENTIAL_NOT_FOUND = "credential_not_found";
+  public static final String ERROR_INVALID_SIGNATURE = "invalid_signature";
+  public static final String ERROR_INVALID_PUBLIC_KEY = "invalid_public_key";
+  public static final String ERROR_INVALID_ENCODING = "invalid_encoding";
+
+  // Biometric validation error messages
+  public static final String ERROR_MSG_REFRESH_TOKEN_REQUIRED = "refresh_token is required";
+  public static final String ERROR_MSG_CLIENT_ID_REQUIRED = "client_id is required";
+  public static final String ERROR_MSG_DEVICE_METADATA_REQUIRED = "device_metadata is required";
+  public static final String ERROR_MSG_PLATFORM_REQUIRED = "platform is required";
+  public static final String ERROR_MSG_PLATFORM_INVALID =
+      "Invalid platform. Must be 'ios' or 'android'";
+  public static final String ERROR_MSG_DEVICE_ID_REQUIRED = "device_id is required";
+  public static final String ERROR_MSG_INVALID_REFRESH_TOKEN = "Invalid refresh token";
+  public static final String ERROR_MSG_UNAUTHORIZED = "Unauthorized";
+  public static final String ERROR_MSG_STATE_REQUIRED = "state is required";
+  public static final String ERROR_MSG_CREDENTIAL_ID_REQUIRED = "credential_id is required";
+  public static final String ERROR_MSG_SIGNATURE_REQUIRED = "signature is required";
+  public static final String ERROR_MSG_INVALID_PUBLIC_KEY_FORMAT =
+      "Invalid public key format: HTTP 400 Bad Request";
+  public static final String ERROR_MSG_SIGNATURE_VERIFICATION_FAILED =
+      "Signature verification failed";
+  public static final String ERROR_MSG_CHALLENGE_NOT_FOUND =
+      "No active challenge found or challenge expired";
+  public static final String ERROR_MSG_CREDENTIAL_NOT_FOUND =
+      "No biometric credentials found for the provided credential_id";
+  public static final String ERROR_MSG_INVALID_SIGNATURE_ENCODING =
+      "Invalid signature encoding. Expected Base64 DER-encoded signature.";
+  public static final String ERROR_MSG_INVALID_STATE = "Invalid state";
+  public static final String ERROR_MSG_STATE_INVALID_CLIENT_ID_MISMATCH =
+      "State is invalid as clientId is not matching";
+  public static final String ERROR_MSG_STATE_INVALID_REFRESH_TOKEN_MISMATCH =
+      "State is invalid as refresh token is not matching";
+  public static final String JWT_AMR_HARDWARE_KEY = "hwk";
+  public static final int BIOMETRIC_CHALLENGE_EXPIRY_SECONDS = 300;
 }

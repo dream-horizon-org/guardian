@@ -14,7 +14,9 @@ public enum ErrorEnum {
   INTERNAL_SERVER_ERROR("internal_server_error", "Something went wrong", 500),
   USER_SERVICE_ERROR_400("user_service_error", "User service error", 400),
   USER_SERVICE_ERROR("user_service_error", "User service error", 500),
+  SMS_SERVICE_ERROR_400("sms_service_error", "SMS service error", 400),
   SMS_SERVICE_ERROR("sms_service_error", "SMS service error", 500),
+  EMAIL_SERVICE_ERROR_400("email_service_error", "Email service error", 400),
   EMAIL_SERVICE_ERROR("email_service_error", "Email service error", 500),
   INVALID_QUERY_PARAM("invalid_query_param", "Invalid query param", 400),
   DECRYPTION_FAILED("invalid_guest_identifier", "Invalid guest identifier", 400),
@@ -52,8 +54,23 @@ public enum ErrorEnum {
 
   OIDC_CONFIG_NOT_EXISTS(
       "oidc_config_not_exists", "OIDC config does not exist for this tenant", 400),
-  SCOPE_NOT_FOUND("scope_not_found", "Scope not found", 400);
+  SCOPE_NOT_FOUND("scope_not_found", "Scope not found", 400),
+  MFA_FACTOR_NOT_SUPPORTED("unsupported_mfa_factor", "MFA factor is not supported", 400),
+  MFA_FACTOR_ALREADY_ENROLLED(
+      "mfa_factor_already_enrolled",
+      "MFA factor cannot be enrolled as it is already set for the user",
+      400),
 
+  INVALID_PUBLIC_KEY("invalid_public_key", "Invalid public key format", 400),
+  INVALID_SIGNATURE("invalid_signature", "Signature verification failed", 401),
+  CHALLENGE_NOT_FOUND("challenge_not_found", "No active challenge found or challenge expired", 400),
+  CREDENTIAL_NOT_FOUND(
+      "credential_not_found", "No biometric credentials found for the provided credential_id", 404),
+  CREDENTIAL_REVOKED(
+      "credential_revoked",
+      "The biometric credential has been revoked and is no longer active",
+      403),
+  INVALID_ENCODING("invalid_encoding", "Invalid signature encoding", 400);
   private final String code;
   private final String message;
   private final int httpStatusCode;
