@@ -192,7 +192,7 @@ public class UserService {
     JsonObject requestBody = JsonObject.mapFrom(dto);
     requestBody.put(USERID, userId);
     return webClient
-        .post(userConfig.getPort(), userConfig.getHost(), userConfig.getUpdateUserPath())
+        .patch(userConfig.getPort(), userConfig.getHost(), userConfig.getUpdateUserPath())
         .ssl(userConfig.getIsSslEnabled())
         .putHeaders(Utils.getForwardingHeaders(headers))
         .rxSendJson(requestBody)
