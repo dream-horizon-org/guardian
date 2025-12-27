@@ -190,7 +190,7 @@ public class UserService {
       String userId, UserDto dto, MultivaluedMap<String, String> headers, String tenantId) {
     UserConfig userConfig = registry.get(tenantId, TenantConfig.class).getUserConfig();
     JsonObject requestBody = JsonObject.mapFrom(dto);
-    requestBody.put(USERID, userId);
+    headers.add(USERID, userId);
     return webClient
         .patch(userConfig.getPort(), userConfig.getHost(), userConfig.getUpdateUserPath())
         .ssl(userConfig.getIsSslEnabled())
