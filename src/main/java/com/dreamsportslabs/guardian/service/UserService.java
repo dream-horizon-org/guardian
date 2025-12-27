@@ -23,6 +23,7 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.ext.web.client.HttpRequest;
 import io.vertx.rxjava3.ext.web.client.HttpResponse;
 import io.vertx.rxjava3.ext.web.client.WebClient;
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -190,11 +191,20 @@ public class UserService {
       String userId, UserDto dto, MultivaluedMap<String, String> headers, String tenantId) {
     UserConfig userConfig = registry.get(tenantId, TenantConfig.class).getUserConfig();
     JsonObject requestBody = JsonObject.mapFrom(dto);
-    requestBody.put(USERID, userId);
+
+    MultivaluedMap<String, String> modifiableHeaders = new MultivaluedHashMap<>();
+    // Copy existing values (if any)
+    if (headers != null) {
+      modifiableHeaders.putAll(headers);
+    }
+
+    // Now it’s safe to add your header
+    modifiableHeaders.add(USERID, userId);
+
     return webClient
-        .post(userConfig.getPort(), userConfig.getHost(), userConfig.getUpdateUserPath())
+        .patch(userConfig.getPort(), userConfig.getHost(), userConfig.getUpdateUserPath())
         .ssl(userConfig.getIsSslEnabled())
-        .putHeaders(Utils.getForwardingHeaders(headers))
+        .putHeaders(Utils.getForwardingHeaders(modifiableHeaders))
         .rxSendJson(requestBody)
         .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)))
         .map(this::errorHandling)
