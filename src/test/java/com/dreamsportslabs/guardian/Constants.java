@@ -608,4 +608,32 @@ public class Constants {
   public static final String COLUMN_TENANT_ID = "tenant_id";
   public static final String COLUMN_TOTAL = "total";
   public static final String COLUMN_ID = "id";
+
+  // Error Codes
+  public static final String ERROR_CODE_TENANT_NOT_FOUND = "tenant_not_found";
+  public static final String ERROR_CODE_TENANT_NAME_ALREADY_EXISTS = "tenant_name_already_exists";
+  public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
+
+  // Error Messages
+  public static final String ERROR_MSG_ID_REQUIRED = "id is required";
+  public static final String ERROR_MSG_NAME_REQUIRED = "name is required";
+  public static final String ERROR_MSG_NAME_CANNOT_EXCEED_256 = "name cannot exceed 256 characters";
+  public static final String ERROR_MSG_TENANT_NAME_ALREADY_EXISTS_PREFIX =
+      "Tenant name already exists: ";
+
+  // Request Body Field Names
+  public static final String REQUEST_FIELD_ID = "id";
+  public static final String REQUEST_FIELD_NAME = "name";
+  public static final String REQUEST_FIELD_HOST = "host";
+  public static final String REQUEST_FIELD_PORT = "port";
+  public static final String REQUEST_FIELD_ALGORITHM = "algorithm";
+  public static final String REQUEST_FIELD_ISSUER = "issuer";
+  public static final String REQUEST_FIELD_ID_TOKEN_CLAIMS = "id_token_claims";
+  public static final String REQUEST_FIELD_ACCESS_TOKEN_CLAIMS = "access_token_claims";
+
+  // Response Field Names
+  public static final String RESPONSE_FIELD_TENANT_ID = "tenant_id";
+  public static final String RESPONSE_FIELD_RSA_KEYS = "rsa_keys";
+  public static final String RESPONSE_FIELD_ID_TOKEN_CLAIMS = "id_token_claims";
+  public static final String RESPONSE_FIELD_ACCESS_TOKEN_CLAIMS = "access_token_claims";
 }

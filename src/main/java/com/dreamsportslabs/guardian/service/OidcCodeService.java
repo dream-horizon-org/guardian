@@ -1,6 +1,5 @@
 package com.dreamsportslabs.guardian.service;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.OIDC_CONFIG_NOT_EXISTS;
 import static com.dreamsportslabs.guardian.exception.OidcErrorEnum.INTERNAL_SERVER_ERROR;
 
 import com.dreamsportslabs.guardian.config.tenant.OidcConfig;
@@ -23,9 +22,6 @@ public class OidcCodeService {
 
   public Completable saveOidcCode(String code, OidcCodeModel oidcCodeModel, String tenantId) {
     OidcConfig oidcConfig = registry.get(tenantId, TenantConfig.class).getOidcConfig();
-    if (oidcConfig == null) {
-      return Completable.error(OIDC_CONFIG_NOT_EXISTS.getException());
-    }
     return oidcCodeDao.saveOidcCode(code, oidcCodeModel, tenantId, oidcConfig.getAuthorizeTtl());
   }
 

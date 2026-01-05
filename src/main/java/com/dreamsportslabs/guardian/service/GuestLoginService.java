@@ -2,7 +2,6 @@ package com.dreamsportslabs.guardian.service;
 
 import static com.dreamsportslabs.guardian.constant.Constants.TOKEN_TYPE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.CLIENT_NOT_FOUND;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.GUEST_LOGIN_NOT_CONFIGURED;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_SCOPE;
 import static com.dreamsportslabs.guardian.utils.Utils.decryptUsingAESCBCAlgo;
 
@@ -33,9 +32,6 @@ public class GuestLoginService {
   public Single<GuestLoginResponseDto> login(V1GuestLoginRequestDto requestDto, String tenantId) {
     TenantConfig config = registry.get(tenantId, TenantConfig.class);
     GuestConfig guestConfig = config.getGuestConfig();
-    if (guestConfig == null) {
-      return Single.error(GUEST_LOGIN_NOT_CONFIGURED.getException());
-    }
 
     Boolean isEncrypted = guestConfig.getIsEncrypted();
     String sharedSecretKey = guestConfig.getSecretKey();

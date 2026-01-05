@@ -1,7 +1,6 @@
 package com.dreamsportslabs.guardian.service;
 
 import static com.dreamsportslabs.guardian.constant.Constants.SCOPE_OPENID;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.OIDC_CONFIG_NOT_EXISTS;
 import static com.dreamsportslabs.guardian.exception.OidcErrorEnum.INVALID_CLIENT;
 import static com.dreamsportslabs.guardian.exception.OidcErrorEnum.INVALID_REDIRECT_URI;
 import static com.dreamsportslabs.guardian.exception.OidcErrorEnum.INVALID_SCOPE;
@@ -54,9 +53,6 @@ public class AuthorizeService {
                   .flatMap(
                       sessionModel -> {
                         TenantConfig tenantConfig = registry.get(tenantId, TenantConfig.class);
-                        if (tenantConfig.getOidcConfig() == null) {
-                          throw OIDC_CONFIG_NOT_EXISTS.getException();
-                        }
                         int authorizeTtl = tenantConfig.getOidcConfig().getAuthorizeTtl();
                         String loginPageUri = tenantConfig.getOidcConfig().getLoginPageUri();
                         return saveSession(loginChallenge, sessionModel, tenantId, authorizeTtl)

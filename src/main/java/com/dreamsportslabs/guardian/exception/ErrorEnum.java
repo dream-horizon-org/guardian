@@ -79,7 +79,12 @@ public enum ErrorEnum {
       400),
   ADMIN_NOT_CONFIGURED(
       "admin_not_configured", "Admin feature is not configured for this tenant", 400),
-  CHANGELOG_NOT_FOUND("changelog_not_found", "Changelog not found", 404);
+  CHANGELOG_NOT_FOUND("changelog_not_found", "Changelog not found", 404),
+  TENANT_NOT_FOUND("tenant_not_found", "Tenant not found", 404),
+  TENANT_ALREADY_EXISTS("tenant_already_exists", "Tenant already exists", 400),
+  TENANT_NAME_ALREADY_EXISTS("tenant_name_already_exists", "Tenant name already exists", 400),
+  USER_CONFIG_NOT_FOUND("user_config_not_found", "User config not found", 404),
+  TOKEN_CONFIG_NOT_FOUND("token_config_not_found", "Token config not found", 404);
 
   private final String code;
   private final String message;

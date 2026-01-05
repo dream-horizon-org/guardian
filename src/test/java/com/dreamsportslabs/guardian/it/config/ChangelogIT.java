@@ -8,6 +8,7 @@ import static com.dreamsportslabs.guardian.Constants.CONFIG_TYPE_SMS_CONFIG;
 import static com.dreamsportslabs.guardian.Constants.DEFAULT_LIMIT;
 import static com.dreamsportslabs.guardian.Constants.DEFAULT_OFFSET;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_CHANGELOG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.JSON_PATH_CHANGED_AT;
 import static com.dreamsportslabs.guardian.Constants.JSON_PATH_CHANGED_BY;
@@ -32,7 +33,6 @@ import static com.dreamsportslabs.guardian.utils.DbUtils.countChangelogByTenant;
 import static com.dreamsportslabs.guardian.utils.DbUtils.deleteTenant;
 import static com.dreamsportslabs.guardian.utils.DbUtils.insertChangelog;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -121,15 +121,15 @@ public class ChangelogIT {
   }
 
   @Test
-  @DisplayName("Should return 404 when changelog not found")
+  @DisplayName("Should return 400 when changelog not found")
   public void testGetChangelogByIdNotFound() {
     Response response = getChangelogById(TENANT_1, 99999L);
 
     response
         .then()
-        .statusCode(SC_NOT_FOUND)
+        .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
-        .body(CODE, equalTo("changelog_not_found"));
+        .body(CODE, equalTo(ERROR_CODE_CHANGELOG_NOT_FOUND));
   }
 
   @Test
