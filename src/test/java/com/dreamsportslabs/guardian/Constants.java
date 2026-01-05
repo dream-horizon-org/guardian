@@ -615,6 +615,9 @@ public class Constants {
   public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_NOT_FOUND = "email_config_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
+  public static final String ERROR_CODE_AUTH_CODE_CONFIG_NOT_FOUND = "auth_code_config_not_found";
+  public static final String ERROR_CODE_AUTH_CODE_CONFIG_ALREADY_EXISTS =
+      "auth_code_config_already_exists";
   public static final String ERROR_CODE_CONTACT_VERIFY_CONFIG_NOT_FOUND =
       "contact_verify_config_not_found";
   public static final String ERROR_CODE_CONTACT_VERIFY_CONFIG_ALREADY_EXISTS =
@@ -650,6 +653,11 @@ public class Constants {
       "template_name cannot be blank";
   public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256 =
       "template_name cannot exceed 256 characters";
+  public static final String ERROR_MSG_TTL_CANNOT_BE_NULL = "ttl cannot be null";
+  public static final String ERROR_MSG_TTL_MUST_BE_GREATER_THAN_0 = "ttl must be greater than 0";
+  public static final String ERROR_MSG_LENGTH_CANNOT_BE_NULL = "length cannot be null";
+  public static final String ERROR_MSG_LENGTH_MUST_BE_GREATER_THAN_0 =
+      "length must be greater than 0";
   public static final String ERROR_MSG_OTP_LENGTH_MUST_BE_GREATER_THAN_0 =
       "otp_length must be greater than 0";
   public static final String ERROR_MSG_TRY_LIMIT_MUST_BE_GREATER_THAN_0 =
@@ -708,6 +716,8 @@ public class Constants {
   public static final String REQUEST_FIELD_SEND_EMAIL_PATH = "send_email_path";
   public static final String REQUEST_FIELD_TEMPLATE_NAME = "template_name";
   public static final String REQUEST_FIELD_TEMPLATE_PARAMS = "template_params";
+  public static final String REQUEST_FIELD_TTL = "ttl";
+  public static final String REQUEST_FIELD_LENGTH = "length";
   public static final String REQUEST_FIELD_IS_OTP_MOCKED = "is_otp_mocked";
   public static final String REQUEST_FIELD_OTP_LENGTH = "otp_length";
   public static final String REQUEST_FIELD_TRY_LIMIT = "try_limit";

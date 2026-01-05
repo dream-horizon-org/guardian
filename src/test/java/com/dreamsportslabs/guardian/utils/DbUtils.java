@@ -1006,6 +1006,9 @@ public class DbUtils {
     return null;
   }
 
+  public static JsonObject getAuthCodeConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, ttl, length " + "FROM auth_code_config WHERE tenant_id = ?";
   public static JsonObject getOtpConfig(String tenantId) {
     String selectQuery =
         "SELECT tenant_id, is_otp_mocked, otp_length, try_limit, resend_limit, "
@@ -1031,6 +1034,14 @@ public class DbUtils {
       stmt.setString(1, tenantId);
       ResultSet rs = stmt.executeQuery();
       if (rs.next()) {
+        JsonObject authCodeConfig = new JsonObject();
+        authCodeConfig.put("tenant_id", rs.getString("tenant_id"));
+        authCodeConfig.put("ttl", rs.getInt("ttl"));
+        authCodeConfig.put("length", rs.getInt("length"));
+        return authCodeConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting auth_code_config", e);
         JsonObject otpConfig = new JsonObject();
         otpConfig.put("tenant_id", rs.getString("tenant_id"));
         otpConfig.put("is_otp_mocked", rs.getBoolean("is_otp_mocked"));
