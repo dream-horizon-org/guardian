@@ -1006,6 +1006,11 @@ public class DbUtils {
     return null;
   }
 
+  public static JsonObject getOtpConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_otp_mocked, otp_length, try_limit, resend_limit, "
+            + "otp_resend_interval, otp_validity, whitelisted_inputs "
+            + "FROM otp_config WHERE tenant_id = ?";
   public static JsonObject getOidcProviderConfig(String tenantId, String providerName) {
     String selectQuery =
         "SELECT tenant_id, provider_name, issuer, jwks_url, token_url, client_id, client_secret, redirect_uri, client_auth_method, is_ssl_enabled, user_identifier, audience_claims "
@@ -1026,6 +1031,19 @@ public class DbUtils {
       stmt.setString(1, tenantId);
       ResultSet rs = stmt.executeQuery();
       if (rs.next()) {
+        JsonObject otpConfig = new JsonObject();
+        otpConfig.put("tenant_id", rs.getString("tenant_id"));
+        otpConfig.put("is_otp_mocked", rs.getBoolean("is_otp_mocked"));
+        otpConfig.put("otp_length", rs.getInt("otp_length"));
+        otpConfig.put("try_limit", rs.getInt("try_limit"));
+        otpConfig.put("resend_limit", rs.getInt("resend_limit"));
+        otpConfig.put("otp_resend_interval", rs.getInt("otp_resend_interval"));
+        otpConfig.put("otp_validity", rs.getInt("otp_validity"));
+        otpConfig.put("whitelisted_inputs", rs.getString("whitelisted_inputs"));
+        return otpConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting otp_config", e);
         JsonObject adminConfig = new JsonObject();
         adminConfig.put("tenant_id", rs.getString("tenant_id"));
         adminConfig.put("username", rs.getString("username"));
@@ -1064,6 +1082,11 @@ public class DbUtils {
     return null;
   }
 
+  public static JsonObject getContactVerifyConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_otp_mocked, otp_length, try_limit, resend_limit, "
+            + "otp_resend_interval, otp_validity, whitelisted_inputs "
+            + "FROM contact_verify_config WHERE tenant_id = ?";
   public static JsonObject getGuestConfig(String tenantId) {
     String selectQuery =
         "SELECT tenant_id, is_encrypted, secret_key, allowed_scopes FROM guest_config WHERE tenant_id = ?";
@@ -1071,6 +1094,21 @@ public class DbUtils {
     try (Connection conn = mysqlConnectionPool.getConnection();
         PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
       stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject contactVerifyConfig = new JsonObject();
+        contactVerifyConfig.put("tenant_id", rs.getString("tenant_id"));
+        contactVerifyConfig.put("is_otp_mocked", rs.getBoolean("is_otp_mocked"));
+        contactVerifyConfig.put("otp_length", rs.getInt("otp_length"));
+        contactVerifyConfig.put("try_limit", rs.getInt("try_limit"));
+        contactVerifyConfig.put("resend_limit", rs.getInt("resend_limit"));
+        contactVerifyConfig.put("otp_resend_interval", rs.getInt("otp_resend_interval"));
+        contactVerifyConfig.put("otp_validity", rs.getInt("otp_validity"));
+        contactVerifyConfig.put("whitelisted_inputs", rs.getString("whitelisted_inputs"));
+        return contactVerifyConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting contact_verify_config", e);
       stmt.setString(2, providerName);
       ResultSet rs = stmt.executeQuery();
       if (rs.next()) {

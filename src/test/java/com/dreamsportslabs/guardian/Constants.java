@@ -615,6 +615,12 @@ public class Constants {
   public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_NOT_FOUND = "email_config_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
+  public static final String ERROR_CODE_CONTACT_VERIFY_CONFIG_NOT_FOUND =
+      "contact_verify_config_not_found";
+  public static final String ERROR_CODE_CONTACT_VERIFY_CONFIG_ALREADY_EXISTS =
+      "contact_verify_config_already_exists";
+  public static final String ERROR_CODE_OTP_CONFIG_NOT_FOUND = "otp_config_not_found";
+  public static final String ERROR_CODE_OTP_CONFIG_ALREADY_EXISTS = "otp_config_already_exists";
   public static final String ERROR_CODE_OIDC_PROVIDER_CONFIG_NOT_FOUND =
       "oidc_provider_config_not_found";
   public static final String ERROR_CODE_OIDC_PROVIDER_CONFIG_ALREADY_EXISTS =
@@ -644,6 +650,18 @@ public class Constants {
       "template_name cannot be blank";
   public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256 =
       "template_name cannot exceed 256 characters";
+  public static final String ERROR_MSG_OTP_LENGTH_MUST_BE_GREATER_THAN_0 =
+      "otp_length must be greater than 0";
+  public static final String ERROR_MSG_TRY_LIMIT_MUST_BE_GREATER_THAN_0 =
+      "try_limit must be greater than 0";
+  public static final String ERROR_MSG_RESEND_LIMIT_MUST_BE_GREATER_THAN_0 =
+      "resend_limit must be greater than 0";
+  public static final String ERROR_MSG_OTP_RESEND_INTERVAL_MUST_BE_GREATER_THAN_0 =
+      "otp_resend_interval must be greater than 0";
+  public static final String ERROR_MSG_OTP_VALIDITY_MUST_BE_GREATER_THAN_0 =
+      "otp_validity must be greater than 0";
+  public static final String ERROR_MSG_WHITELISTED_INPUTS_CANNOT_BE_NULL =
+      "whitelisted_inputs cannot be null";
   public static final String ERROR_MSG_PROVIDER_NAME_CANNOT_BE_BLANK =
       "provider_name cannot be blank";
   public static final String ERROR_MSG_PROVIDER_NAME_CANNOT_EXCEED_50 =
@@ -690,6 +708,13 @@ public class Constants {
   public static final String REQUEST_FIELD_SEND_EMAIL_PATH = "send_email_path";
   public static final String REQUEST_FIELD_TEMPLATE_NAME = "template_name";
   public static final String REQUEST_FIELD_TEMPLATE_PARAMS = "template_params";
+  public static final String REQUEST_FIELD_IS_OTP_MOCKED = "is_otp_mocked";
+  public static final String REQUEST_FIELD_OTP_LENGTH = "otp_length";
+  public static final String REQUEST_FIELD_TRY_LIMIT = "try_limit";
+  public static final String REQUEST_FIELD_RESEND_LIMIT = "resend_limit";
+  public static final String REQUEST_FIELD_OTP_RESEND_INTERVAL = "otp_resend_interval";
+  public static final String REQUEST_FIELD_OTP_VALIDITY = "otp_validity";
+  public static final String REQUEST_FIELD_WHITELISTED_INPUTS = "whitelisted_inputs";
   public static final String REQUEST_FIELD_PROVIDER_NAME = "provider_name";
   public static final String REQUEST_FIELD_JWKS_URL = "jwks_url";
   public static final String REQUEST_FIELD_TOKEN_URL = "token_url";
