@@ -979,4 +979,295 @@ public class DbUtils {
     }
     return null;
   }
+
+  public static JsonObject getEmailConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_ssl_enabled, host, port, send_email_path, template_name, template_params "
+            + "FROM email_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject emailConfig = new JsonObject();
+        emailConfig.put("tenant_id", rs.getString("tenant_id"));
+        emailConfig.put("is_ssl_enabled", rs.getBoolean("is_ssl_enabled"));
+        emailConfig.put("host", rs.getString("host"));
+        emailConfig.put("port", rs.getInt("port"));
+        emailConfig.put("send_email_path", rs.getString("send_email_path"));
+        emailConfig.put("template_name", rs.getString("template_name"));
+        emailConfig.put("template_params", rs.getString("template_params"));
+        return emailConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting email_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getSmsConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_ssl_enabled, host, port, send_sms_path, template_name, template_params "
+            + "FROM sms_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject smsConfig = new JsonObject();
+        smsConfig.put("tenant_id", rs.getString("tenant_id"));
+        smsConfig.put("is_ssl_enabled", rs.getBoolean("is_ssl_enabled"));
+        smsConfig.put("host", rs.getString("host"));
+        smsConfig.put("port", rs.getInt("port"));
+        smsConfig.put("send_sms_path", rs.getString("send_sms_path"));
+        smsConfig.put("template_name", rs.getString("template_name"));
+        smsConfig.put("template_params", rs.getString("template_params"));
+        return smsConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting sms_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getFbConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, app_id, app_secret, send_app_secret "
+            + "FROM fb_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject fbConfig = new JsonObject();
+        fbConfig.put("tenant_id", rs.getString("tenant_id"));
+        fbConfig.put("app_id", rs.getString("app_id"));
+        fbConfig.put("app_secret", rs.getString("app_secret"));
+        fbConfig.put("send_app_secret", rs.getBoolean("send_app_secret"));
+        return fbConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting fb_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getGoogleConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, client_id, client_secret " + "FROM google_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject googleConfig = new JsonObject();
+        googleConfig.put("tenant_id", rs.getString("tenant_id"));
+        googleConfig.put("client_id", rs.getString("client_id"));
+        googleConfig.put("client_secret", rs.getString("client_secret"));
+        return googleConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting google_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getAuthCodeConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, ttl, length " + "FROM auth_code_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject authCodeConfig = new JsonObject();
+        authCodeConfig.put("tenant_id", rs.getString("tenant_id"));
+        authCodeConfig.put("ttl", rs.getInt("ttl"));
+        authCodeConfig.put("length", rs.getInt("length"));
+        return authCodeConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting auth_code_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getOtpConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_otp_mocked, otp_length, try_limit, resend_limit, "
+            + "otp_resend_interval, otp_validity, whitelisted_inputs "
+            + "FROM otp_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject otpConfig = new JsonObject();
+        otpConfig.put("tenant_id", rs.getString("tenant_id"));
+        otpConfig.put("is_otp_mocked", rs.getBoolean("is_otp_mocked"));
+        otpConfig.put("otp_length", rs.getInt("otp_length"));
+        otpConfig.put("try_limit", rs.getInt("try_limit"));
+        otpConfig.put("resend_limit", rs.getInt("resend_limit"));
+        otpConfig.put("otp_resend_interval", rs.getInt("otp_resend_interval"));
+        otpConfig.put("otp_validity", rs.getInt("otp_validity"));
+        otpConfig.put("whitelisted_inputs", rs.getString("whitelisted_inputs"));
+        return otpConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting otp_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getOidcProviderConfig(String tenantId, String providerName) {
+    String selectQuery =
+        "SELECT tenant_id, provider_name, issuer, jwks_url, token_url, client_id, client_secret, redirect_uri, client_auth_method, is_ssl_enabled, user_identifier, audience_claims "
+            + "FROM oidc_provider_config WHERE tenant_id = ? AND provider_name = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      stmt.setString(2, providerName);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject oidcProviderConfig = new JsonObject();
+        oidcProviderConfig.put("tenant_id", rs.getString("tenant_id"));
+        oidcProviderConfig.put("provider_name", rs.getString("provider_name"));
+        oidcProviderConfig.put("issuer", rs.getString("issuer"));
+        oidcProviderConfig.put("jwks_url", rs.getString("jwks_url"));
+        oidcProviderConfig.put("token_url", rs.getString("token_url"));
+        oidcProviderConfig.put("client_id", rs.getString("client_id"));
+        oidcProviderConfig.put("client_secret", rs.getString("client_secret"));
+        oidcProviderConfig.put("redirect_uri", rs.getString("redirect_uri"));
+        oidcProviderConfig.put("client_auth_method", rs.getString("client_auth_method"));
+        oidcProviderConfig.put("is_ssl_enabled", rs.getBoolean("is_ssl_enabled"));
+        oidcProviderConfig.put("user_identifier", rs.getString("user_identifier"));
+        oidcProviderConfig.put("audience_claims", rs.getString("audience_claims"));
+        return oidcProviderConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting oidc_provider_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getAdminConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, username, password FROM admin_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject adminConfig = new JsonObject();
+        adminConfig.put("tenant_id", rs.getString("tenant_id"));
+        adminConfig.put("username", rs.getString("username"));
+        adminConfig.put("password", rs.getString("password"));
+        return adminConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting admin_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getOidcConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, issuer, authorization_endpoint, token_endpoint, userinfo_endpoint, "
+            + "revocation_endpoint, jwks_uri, grant_types_supported, response_types_supported, "
+            + "subject_types_supported, id_token_signing_alg_values_supported, "
+            + "token_endpoint_auth_methods_supported, login_page_uri, consent_page_uri, authorize_ttl "
+            + "FROM oidc_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject oidcConfig = new JsonObject();
+        oidcConfig.put("tenant_id", rs.getString("tenant_id"));
+        oidcConfig.put("issuer", rs.getString("issuer"));
+        oidcConfig.put("authorization_endpoint", rs.getString("authorization_endpoint"));
+        oidcConfig.put("token_endpoint", rs.getString("token_endpoint"));
+        oidcConfig.put("userinfo_endpoint", rs.getString("userinfo_endpoint"));
+        oidcConfig.put("revocation_endpoint", rs.getString("revocation_endpoint"));
+        oidcConfig.put("jwks_uri", rs.getString("jwks_uri"));
+        oidcConfig.put("grant_types_supported", rs.getString("grant_types_supported"));
+        oidcConfig.put("response_types_supported", rs.getString("response_types_supported"));
+        oidcConfig.put("subject_types_supported", rs.getString("subject_types_supported"));
+        oidcConfig.put(
+            "id_token_signing_alg_values_supported",
+            rs.getString("id_token_signing_alg_values_supported"));
+        oidcConfig.put(
+            "token_endpoint_auth_methods_supported",
+            rs.getString("token_endpoint_auth_methods_supported"));
+        oidcConfig.put("login_page_uri", rs.getString("login_page_uri"));
+        oidcConfig.put("consent_page_uri", rs.getString("consent_page_uri"));
+        oidcConfig.put(
+            "authorize_ttl",
+            rs.getObject("authorize_ttl") != null ? rs.getInt("authorize_ttl") : null);
+        return oidcConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting oidc_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getContactVerifyConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_otp_mocked, otp_length, try_limit, resend_limit, "
+            + "otp_resend_interval, otp_validity, whitelisted_inputs "
+            + "FROM contact_verify_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject contactVerifyConfig = new JsonObject();
+        contactVerifyConfig.put("tenant_id", rs.getString("tenant_id"));
+        contactVerifyConfig.put("is_otp_mocked", rs.getBoolean("is_otp_mocked"));
+        contactVerifyConfig.put("otp_length", rs.getInt("otp_length"));
+        contactVerifyConfig.put("try_limit", rs.getInt("try_limit"));
+        contactVerifyConfig.put("resend_limit", rs.getInt("resend_limit"));
+        contactVerifyConfig.put("otp_resend_interval", rs.getInt("otp_resend_interval"));
+        contactVerifyConfig.put("otp_validity", rs.getInt("otp_validity"));
+        contactVerifyConfig.put("whitelisted_inputs", rs.getString("whitelisted_inputs"));
+        return contactVerifyConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting contact_verify_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getGuestConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_encrypted, secret_key, allowed_scopes FROM guest_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject guestConfig = new JsonObject();
+        guestConfig.put("tenant_id", rs.getString("tenant_id"));
+        guestConfig.put("is_encrypted", rs.getBoolean("is_encrypted"));
+        guestConfig.put("secret_key", rs.getString("secret_key"));
+        guestConfig.put("allowed_scopes", rs.getString("allowed_scopes"));
+        return guestConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting guest_config", e);
+    }
+    return null;
+  }
 }

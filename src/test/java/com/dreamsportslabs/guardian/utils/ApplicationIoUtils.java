@@ -655,4 +655,324 @@ public class ApplicationIoUtils {
     return execute(
         body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/token-config"));
   }
+
+  public static Response createEmailConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/email-config"));
+  }
+
+  public static Response getEmailConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/email-config"));
+  }
+
+  public static Response updateEmailConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/email-config"));
+  }
+
+  public static Response deleteEmailConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/email-config"));
+  }
+
+  public static Response createSmsConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/sms-config"));
+  }
+
+  public static Response getSmsConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/sms-config"));
+  }
+
+  public static Response updateSmsConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/sms-config"));
+  }
+
+  public static Response deleteSmsConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/sms-config"));
+  }
+
+  public static Response createFbConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/fb-config"));
+  }
+
+  public static Response getFbConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/fb-config"));
+  }
+
+  public static Response updateFbConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/fb-config"));
+  }
+
+  public static Response deleteFbConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/fb-config"));
+  }
+
+  public static Response createGoogleConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/google-config"));
+  }
+
+  public static Response getGoogleConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/google-config"));
+  }
+
+  public static Response updateGoogleConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/google-config"));
+  }
+
+  public static Response deleteGoogleConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/google-config"));
+  }
+
+  public static Response createAuthCodeConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/auth-code-config"));
+  }
+
+  public static Response getAuthCodeConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/auth-code-config"));
+  }
+
+  public static Response updateAuthCodeConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/auth-code-config"));
+  }
+
+  public static Response deleteAuthCodeConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/auth-code-config"));
+  }
+
+  public static Response createOtpConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/otp-config"));
+  }
+
+  public static Response getOtpConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/otp-config"));
+  }
+
+  public static Response updateOtpConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/otp-config"));
+  }
+
+  public static Response deleteOtpConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/otp-config"));
+  }
+
+  public static Response createContactVerifyConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body,
+        headers,
+        new HashMap<>(),
+        spec -> spec.post("/v1/admin/config/contact-verify-config"));
+  }
+
+  public static Response getContactVerifyConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/contact-verify-config"));
+  }
+
+  public static Response updateContactVerifyConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body,
+        headers,
+        new HashMap<>(),
+        spec -> spec.patch("/v1/admin/config/contact-verify-config"));
+  }
+
+  public static Response deleteContactVerifyConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null,
+        headers,
+        new HashMap<>(),
+        spec -> spec.delete("/v1/admin/config/contact-verify-config"));
+  }
+
+  public static Response createOidcProviderConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/oidc-provider-config"));
+  }
+
+  public static Response getOidcProviderConfig(String tenantId, String providerName) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("provider_name", providerName);
+    return execute(
+        null, headers, queryParams, spec -> spec.get("/v1/admin/config/oidc-provider-config"));
+  }
+
+  public static Response updateOidcProviderConfig(
+      String tenantId, String providerName, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("provider_name", providerName);
+    return execute(
+        body, headers, queryParams, spec -> spec.patch("/v1/admin/config/oidc-provider-config"));
+  }
+
+  public static Response deleteOidcProviderConfig(String tenantId, String providerName) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("provider_name", providerName);
+    return execute(
+        null, headers, queryParams, spec -> spec.delete("/v1/admin/config/oidc-provider-config"));
+  }
+
+  public static Response createAdminConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/admin-config"));
+  }
+
+  public static Response getAdminConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/admin-config"));
+  }
+
+  public static Response updateAdminConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/admin-config"));
+  }
+
+  public static Response deleteAdminConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/admin-config"));
+  }
+
+  public static Response createOidcConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/oidc-config"));
+  }
+
+  public static Response getOidcConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/oidc-config"));
+  }
+
+  public static Response updateOidcConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/oidc-config"));
+  }
+
+  public static Response deleteOidcConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/oidc-config"));
+  }
+
+  public static Response createGuestConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.post("/v1/admin/config/guest-config"));
+  }
+
+  public static Response getGuestConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.get("/v1/admin/config/guest-config"));
+  }
+
+  public static Response updateGuestConfig(String tenantId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        body, headers, new HashMap<>(), spec -> spec.patch("/v1/admin/config/guest-config"));
+  }
+
+  public static Response deleteGuestConfig(String tenantId) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    return execute(
+        null, headers, new HashMap<>(), spec -> spec.delete("/v1/admin/config/guest-config"));
+  }
 }

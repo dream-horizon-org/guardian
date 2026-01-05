@@ -1,17 +1,17 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateInteger;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class UpdateTokenConfigRequestDto {
   private String algorithm;
-
   private String issuer;
 
   @JsonProperty("rsa_keys")
@@ -48,98 +48,37 @@ public class UpdateTokenConfigRequestDto {
   private List<String> accessTokenClaims;
 
   public void validate() {
-    boolean hasFields = false;
+    validate(this);
+  }
 
-    if (algorithm != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(algorithm)) {
-        throw INVALID_REQUEST.getCustomException("algorithm cannot be blank");
-      }
-      if (algorithm.length() > 10) {
-        throw INVALID_REQUEST.getCustomException("algorithm cannot exceed 10 characters");
-      }
-    }
-
-    if (issuer != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(issuer)) {
-        throw INVALID_REQUEST.getCustomException("issuer cannot be blank");
-      }
-      if (issuer.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("issuer cannot exceed 256 characters");
-      }
-    }
-
-    if (rsaKeys != null) {
-      hasFields = true;
-    }
-
-    if (accessTokenExpiry != null) {
-      hasFields = true;
-      if (accessTokenExpiry < 1) {
-        throw INVALID_REQUEST.getCustomException("access_token_expiry must be greater than 0");
-      }
-    }
-
-    if (refreshTokenExpiry != null) {
-      hasFields = true;
-      if (refreshTokenExpiry < 1) {
-        throw INVALID_REQUEST.getCustomException("refresh_token_expiry must be greater than 0");
-      }
-    }
-
-    if (idTokenExpiry != null) {
-      hasFields = true;
-      if (idTokenExpiry < 1) {
-        throw INVALID_REQUEST.getCustomException("id_token_expiry must be greater than 0");
-      }
-    }
-
-    if (idTokenClaims != null) {
-      hasFields = true;
-    }
-
-    if (cookieSameSite != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(cookieSameSite)) {
-        throw INVALID_REQUEST.getCustomException("cookie_same_site cannot be blank");
-      }
-      if (cookieSameSite.length() > 20) {
-        throw INVALID_REQUEST.getCustomException("cookie_same_site cannot exceed 20 characters");
-      }
-    }
-
-    if (cookieDomain != null) {
-      hasFields = true;
-      if (cookieDomain.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("cookie_domain cannot exceed 256 characters");
-      }
-    }
-
-    if (cookiePath != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(cookiePath)) {
-        throw INVALID_REQUEST.getCustomException("cookie_path cannot be blank");
-      }
-      if (cookiePath.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("cookie_path cannot exceed 256 characters");
-      }
-    }
-
-    if (cookieSecure != null) {
-      hasFields = true;
-    }
-
-    if (cookieHttpOnly != null) {
-      hasFields = true;
-    }
-
-    if (accessTokenClaims != null) {
-      hasFields = true;
-    }
-
-    if (!hasFields) {
+  public static void validate(UpdateTokenConfigRequestDto req) {
+    if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
+
+    requireAtLeastOneField(
+        req.getAlgorithm(),
+        req.getIssuer(),
+        req.getRsaKeys(),
+        req.getAccessTokenExpiry(),
+        req.getRefreshTokenExpiry(),
+        req.getIdTokenExpiry(),
+        req.getIdTokenClaims(),
+        req.getCookieSameSite(),
+        req.getCookieDomain(),
+        req.getCookiePath(),
+        req.getCookieSecure(),
+        req.getCookieHttpOnly(),
+        req.getAccessTokenClaims());
+
+    validateString(req.getAlgorithm(), "algorithm", 10, true);
+    validateString(req.getIssuer(), "issuer", 256, true);
+    validateString(req.getCookieSameSite(), "cookie_same_site", 20, true);
+    validateString(req.getCookieDomain(), "cookie_domain", 256, false);
+    validateString(req.getCookiePath(), "cookie_path", 256, true);
+
+    validateInteger(req.getAccessTokenExpiry(), "access_token_expiry", 1);
+    validateInteger(req.getRefreshTokenExpiry(), "refresh_token_expiry", 1);
+    validateInteger(req.getIdTokenExpiry(), "id_token_expiry", 1);
   }
 }
