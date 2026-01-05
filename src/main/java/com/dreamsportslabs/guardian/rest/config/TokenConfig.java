@@ -37,7 +37,7 @@ public class TokenConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateTokenConfig(
       @HeaderParam("tenant-id") String tenantId, UpdateTokenConfigRequestDto requestDto) {
-    requestDto.validate();
+    UpdateTokenConfigRequestDto.validate(requestDto);
     return tokenConfigService
         .updateTokenConfig(tenantId, requestDto)
         .map(TokenConfigResponseDto::from)
