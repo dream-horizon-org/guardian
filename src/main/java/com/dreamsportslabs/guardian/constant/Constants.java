@@ -220,6 +220,7 @@ public final class Constants {
   public static final String CONFIG_TYPE_USER_CONFIG = "user_config";
   public static final String CONFIG_TYPE_TOKEN_CONFIG = "token_config";
   public static final String CONFIG_TYPE_EMAIL_CONFIG = "email_config";
+  public static final String CONFIG_TYPE_FB_CONFIG = "fb_config";
   public static final String CONFIG_TYPE_GOOGLE_CONFIG = "google_config";
   public static final String CONFIG_TYPE_AUTH_CODE_CONFIG = "auth_code_config";
   public static final String CONFIG_TYPE_OTP_CONFIG = "otp_config";
@@ -275,6 +276,7 @@ public final class Constants {
   public static final boolean DEFAULT_SEND_PROVIDER_DETAILS = false;
   public static final boolean DEFAULT_COOKIE_SECURE = false;
   public static final boolean DEFAULT_COOKIE_HTTP_ONLY = true;
+  public static final boolean DEFAULT_SEND_APP_SECRET = true;
   public static final boolean DEFAULT_IS_ENCRYPTED = true;
 
   // Default Email Config Values

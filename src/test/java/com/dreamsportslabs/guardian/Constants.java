@@ -615,6 +615,8 @@ public class Constants {
   public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_NOT_FOUND = "email_config_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
+  public static final String ERROR_CODE_FB_CONFIG_NOT_FOUND = "fb_config_not_found";
+  public static final String ERROR_CODE_FB_CONFIG_ALREADY_EXISTS = "fb_config_already_exists";
   public static final String ERROR_CODE_GOOGLE_CONFIG_NOT_FOUND = "google_config_not_found";
   public static final String ERROR_CODE_GOOGLE_CONFIG_ALREADY_EXISTS =
       "google_config_already_exists";
@@ -656,6 +658,12 @@ public class Constants {
       "template_name cannot be blank";
   public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256 =
       "template_name cannot exceed 256 characters";
+  public static final String ERROR_MSG_APP_ID_CANNOT_BE_BLANK = "app_id cannot be blank";
+  public static final String ERROR_MSG_APP_ID_CANNOT_EXCEED_256 =
+      "app_id cannot exceed 256 characters";
+  public static final String ERROR_MSG_APP_SECRET_CANNOT_BE_BLANK = "app_secret cannot be blank";
+  public static final String ERROR_MSG_APP_SECRET_CANNOT_EXCEED_256 =
+      "app_secret cannot exceed 256 characters";
   public static final String ERROR_MSG_TTL_CANNOT_BE_NULL = "ttl cannot be null";
   public static final String ERROR_MSG_TTL_MUST_BE_GREATER_THAN_0 = "ttl must be greater than 0";
   public static final String ERROR_MSG_LENGTH_CANNOT_BE_NULL = "length cannot be null";
@@ -721,6 +729,9 @@ public class Constants {
   public static final String REQUEST_FIELD_SEND_EMAIL_PATH = "send_email_path";
   public static final String REQUEST_FIELD_TEMPLATE_NAME = "template_name";
   public static final String REQUEST_FIELD_TEMPLATE_PARAMS = "template_params";
+  public static final String REQUEST_FIELD_APP_ID = "app_id";
+  public static final String REQUEST_FIELD_APP_SECRET = "app_secret";
+  public static final String REQUEST_FIELD_SEND_APP_SECRET = "send_app_secret";
   public static final String REQUEST_FIELD_CLIENT_ID = "client_id";
   public static final String REQUEST_FIELD_CLIENT_SECRET = "client_secret";
   public static final String REQUEST_FIELD_TTL = "ttl";

@@ -1006,6 +1006,10 @@ public class DbUtils {
     return null;
   }
 
+  public static JsonObject getFbConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, app_id, app_secret, send_app_secret "
+            + "FROM fb_config WHERE tenant_id = ?";
   public static JsonObject getGoogleConfig(String tenantId) {
     String selectQuery =
         "SELECT tenant_id, client_id, client_secret " + "FROM google_config WHERE tenant_id = ?";
@@ -1037,6 +1041,15 @@ public class DbUtils {
       stmt.setString(1, tenantId);
       ResultSet rs = stmt.executeQuery();
       if (rs.next()) {
+        JsonObject fbConfig = new JsonObject();
+        fbConfig.put("tenant_id", rs.getString("tenant_id"));
+        fbConfig.put("app_id", rs.getString("app_id"));
+        fbConfig.put("app_secret", rs.getString("app_secret"));
+        fbConfig.put("send_app_secret", rs.getBoolean("send_app_secret"));
+        return fbConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting fb_config", e);
         JsonObject authCodeConfig = new JsonObject();
         authCodeConfig.put("tenant_id", rs.getString("tenant_id"));
         authCodeConfig.put("ttl", rs.getInt("ttl"));
