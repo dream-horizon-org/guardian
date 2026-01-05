@@ -1010,6 +1010,63 @@ public class DbUtils {
     String selectQuery =
         "SELECT tenant_id, provider_name, issuer, jwks_url, token_url, client_id, client_secret, redirect_uri, client_auth_method, is_ssl_enabled, user_identifier, audience_claims "
             + "FROM oidc_provider_config WHERE tenant_id = ? AND provider_name = ?";
+  public static JsonObject getAdminConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, username, password FROM admin_config WHERE tenant_id = ?";
+  public static JsonObject getOidcConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, issuer, authorization_endpoint, token_endpoint, userinfo_endpoint, "
+            + "revocation_endpoint, jwks_uri, grant_types_supported, response_types_supported, "
+            + "subject_types_supported, id_token_signing_alg_values_supported, "
+            + "token_endpoint_auth_methods_supported, login_page_uri, consent_page_uri, authorize_ttl "
+            + "FROM oidc_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject adminConfig = new JsonObject();
+        adminConfig.put("tenant_id", rs.getString("tenant_id"));
+        adminConfig.put("username", rs.getString("username"));
+        adminConfig.put("password", rs.getString("password"));
+        return adminConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting admin_config", e);
+        JsonObject oidcConfig = new JsonObject();
+        oidcConfig.put("tenant_id", rs.getString("tenant_id"));
+        oidcConfig.put("issuer", rs.getString("issuer"));
+        oidcConfig.put("authorization_endpoint", rs.getString("authorization_endpoint"));
+        oidcConfig.put("token_endpoint", rs.getString("token_endpoint"));
+        oidcConfig.put("userinfo_endpoint", rs.getString("userinfo_endpoint"));
+        oidcConfig.put("revocation_endpoint", rs.getString("revocation_endpoint"));
+        oidcConfig.put("jwks_uri", rs.getString("jwks_uri"));
+        oidcConfig.put("grant_types_supported", rs.getString("grant_types_supported"));
+        oidcConfig.put("response_types_supported", rs.getString("response_types_supported"));
+        oidcConfig.put("subject_types_supported", rs.getString("subject_types_supported"));
+        oidcConfig.put(
+            "id_token_signing_alg_values_supported",
+            rs.getString("id_token_signing_alg_values_supported"));
+        oidcConfig.put(
+            "token_endpoint_auth_methods_supported",
+            rs.getString("token_endpoint_auth_methods_supported"));
+        oidcConfig.put("login_page_uri", rs.getString("login_page_uri"));
+        oidcConfig.put("consent_page_uri", rs.getString("consent_page_uri"));
+        oidcConfig.put(
+            "authorize_ttl",
+            rs.getObject("authorize_ttl") != null ? rs.getInt("authorize_ttl") : null);
+        return oidcConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting oidc_config", e);
+    }
+    return null;
+  }
+
+  public static JsonObject getGuestConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, is_encrypted, secret_key, allowed_scopes FROM guest_config WHERE tenant_id = ?";
 
     try (Connection conn = mysqlConnectionPool.getConnection();
         PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
@@ -1034,6 +1091,17 @@ public class DbUtils {
       }
     } catch (Exception e) {
       log.error("Error while getting oidc_provider_config", e);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject guestConfig = new JsonObject();
+        guestConfig.put("tenant_id", rs.getString("tenant_id"));
+        guestConfig.put("is_encrypted", rs.getBoolean("is_encrypted"));
+        guestConfig.put("secret_key", rs.getString("secret_key"));
+        guestConfig.put("allowed_scopes", rs.getString("allowed_scopes"));
+        return guestConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting guest_config", e);
     }
     return null;
   }
