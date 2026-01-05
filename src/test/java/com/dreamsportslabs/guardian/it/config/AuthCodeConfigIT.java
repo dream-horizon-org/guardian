@@ -6,7 +6,9 @@ import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_AUTH_CODE_CONFIG
 import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_AUTH_CODE_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_LENGTH_CANNOT_BE_NULL;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_LENGTH_MUST_BE_GREATER_THAN_0;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_LENGTH_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TTL_MUST_BE_GREATER_THAN_0;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TTL_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
 import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
@@ -137,7 +139,7 @@ public class AuthCodeConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_TTL_MUST_BE_GREATER_THAN_0));
+        equalTo(ERROR_MSG_TTL_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1));
   }
 
   @Test
@@ -169,7 +171,7 @@ public class AuthCodeConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_LENGTH_MUST_BE_GREATER_THAN_0));
+        equalTo(ERROR_MSG_LENGTH_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1));
   }
 
   @Test

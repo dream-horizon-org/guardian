@@ -1,7 +1,8 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
@@ -19,25 +20,16 @@ public class UpdateGuestConfigRequestDto {
   private List<String> allowedScopes;
 
   public void validate() {
-    boolean hasFields = false;
+    validate(this);
+  }
 
-    if (isEncrypted != null) {
-      hasFields = true;
-    }
-
-    if (secretKey != null) {
-      hasFields = true;
-      if (secretKey.length() > 16) {
-        throw INVALID_REQUEST.getCustomException("secret_key cannot exceed 16 characters");
-      }
-    }
-
-    if (allowedScopes != null) {
-      hasFields = true;
-    }
-
-    if (!hasFields) {
+  public static void validate(UpdateGuestConfigRequestDto req) {
+    if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
+
+    requireAtLeastOneField(req.getIsEncrypted(), req.getSecretKey(), req.getAllowedScopes());
+
+    validateString(req.getSecretKey(), "secret_key", 16, false);
   }
 }

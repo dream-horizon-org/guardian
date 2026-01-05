@@ -1,42 +1,28 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class UpdateAdminConfigRequestDto {
   private String username;
-
   private String password;
 
   public void validate() {
-    boolean hasFields = false;
+    validate(this);
+  }
 
-    if (username != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(username)) {
-        throw INVALID_REQUEST.getCustomException("username cannot be blank");
-      }
-      if (username.length() > 50) {
-        throw INVALID_REQUEST.getCustomException("username cannot exceed 50 characters");
-      }
-    }
-
-    if (password != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(password)) {
-        throw INVALID_REQUEST.getCustomException("password cannot be blank");
-      }
-      if (password.length() > 50) {
-        throw INVALID_REQUEST.getCustomException("password cannot exceed 50 characters");
-      }
-    }
-
-    if (!hasFields) {
+  public static void validate(UpdateAdminConfigRequestDto req) {
+    if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
+
+    requireAtLeastOneField(req.getUsername(), req.getPassword());
+
+    validateString(req.getUsername(), "username", 50, true);
+    validateString(req.getPassword(), "password", 50, true);
   }
 }

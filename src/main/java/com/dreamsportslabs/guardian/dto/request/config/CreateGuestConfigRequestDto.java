@@ -1,11 +1,11 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateRequiredString;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class CreateGuestConfigRequestDto {
@@ -22,15 +22,7 @@ public class CreateGuestConfigRequestDto {
   private List<String> allowedScopes;
 
   public void validate() {
-    if (StringUtils.isBlank(tenantId)) {
-      throw INVALID_REQUEST.getCustomException("tenant_id cannot be blank");
-    }
-    if (tenantId.length() > 10) {
-      throw INVALID_REQUEST.getCustomException("tenant_id cannot exceed 10 characters");
-    }
-
-    if (secretKey != null && secretKey.length() > 16) {
-      throw INVALID_REQUEST.getCustomException("secret_key cannot exceed 16 characters");
-    }
+    validateRequiredString(tenantId, "tenant_id", 10);
+    validateString(secretKey, "secret_key", 16, false);
   }
 }

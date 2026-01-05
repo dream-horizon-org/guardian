@@ -1,11 +1,11 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class UpdateFbConfigRequestDto {
@@ -19,34 +19,17 @@ public class UpdateFbConfigRequestDto {
   private Boolean sendAppSecret;
 
   public void validate() {
-    boolean hasFields = false;
+    validate(this);
+  }
 
-    if (appId != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(appId)) {
-        throw INVALID_REQUEST.getCustomException("app_id cannot be blank");
-      }
-      if (appId.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("app_id cannot exceed 256 characters");
-      }
-    }
-
-    if (appSecret != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(appSecret)) {
-        throw INVALID_REQUEST.getCustomException("app_secret cannot be blank");
-      }
-      if (appSecret.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("app_secret cannot exceed 256 characters");
-      }
-    }
-
-    if (sendAppSecret != null) {
-      hasFields = true;
-    }
-
-    if (!hasFields) {
+  public static void validate(UpdateFbConfigRequestDto req) {
+    if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
+
+    requireAtLeastOneField(req.getAppId(), req.getAppSecret(), req.getSendAppSecret());
+
+    validateString(req.getAppId(), "app_id", 256, true);
+    validateString(req.getAppSecret(), "app_secret", 256, true);
   }
 }

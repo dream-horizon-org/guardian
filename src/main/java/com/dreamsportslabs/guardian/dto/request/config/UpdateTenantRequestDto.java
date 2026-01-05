@@ -1,26 +1,26 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class UpdateTenantRequestDto {
   private String name;
 
   public void validate() {
+    validate(this);
+  }
 
-    if (name == null) {
+  public static void validate(UpdateTenantRequestDto req) {
+    if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
-    if (StringUtils.isBlank(name)) {
-      throw INVALID_REQUEST.getCustomException("name cannot be blank");
-    }
 
-    if (name.length() > 256) {
-      throw INVALID_REQUEST.getCustomException("name cannot exceed 256 characters");
-    }
+    requireAtLeastOneField(req.getName());
+
+    validateString(req.getName(), "name", 256, true);
   }
 }

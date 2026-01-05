@@ -1,11 +1,11 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class UpdateGoogleConfigRequestDto {
@@ -16,30 +16,17 @@ public class UpdateGoogleConfigRequestDto {
   private String clientSecret;
 
   public void validate() {
-    boolean hasFields = false;
+    validate(this);
+  }
 
-    if (clientId != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(clientId)) {
-        throw INVALID_REQUEST.getCustomException("client_id cannot be blank");
-      }
-      if (clientId.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("client_id cannot exceed 256 characters");
-      }
-    }
-
-    if (clientSecret != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(clientSecret)) {
-        throw INVALID_REQUEST.getCustomException("client_secret cannot be blank");
-      }
-      if (clientSecret.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("client_secret cannot exceed 256 characters");
-      }
-    }
-
-    if (!hasFields) {
+  public static void validate(UpdateGoogleConfigRequestDto req) {
+    if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
+
+    requireAtLeastOneField(req.getClientId(), req.getClientSecret());
+
+    validateString(req.getClientId(), "client_id", 256, true);
+    validateString(req.getClientSecret(), "client_secret", 256, true);
   }
 }

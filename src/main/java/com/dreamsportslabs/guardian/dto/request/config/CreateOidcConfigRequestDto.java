@@ -1,11 +1,11 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateRequiredString;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class CreateOidcConfigRequestDto {
@@ -54,62 +54,14 @@ public class CreateOidcConfigRequestDto {
   private Integer authorizeTtl;
 
   public void validate() {
-    if (StringUtils.isBlank(tenantId)) {
-      throw INVALID_REQUEST.getCustomException("tenant_id cannot be blank");
-    }
-    if (tenantId.length() > 10) {
-      throw INVALID_REQUEST.getCustomException("tenant_id cannot exceed 10 characters");
-    }
-
-    if (StringUtils.isBlank(issuer)) {
-      throw INVALID_REQUEST.getCustomException("issuer cannot be blank");
-    }
-    if (issuer.length() > 255) {
-      throw INVALID_REQUEST.getCustomException("issuer cannot exceed 255 characters");
-    }
-
-    if (StringUtils.isBlank(authorizationEndpoint)) {
-      throw INVALID_REQUEST.getCustomException("authorization_endpoint cannot be blank");
-    }
-    if (authorizationEndpoint.length() > 255) {
-      throw INVALID_REQUEST.getCustomException(
-          "authorization_endpoint cannot exceed 255 characters");
-    }
-
-    if (StringUtils.isBlank(tokenEndpoint)) {
-      throw INVALID_REQUEST.getCustomException("token_endpoint cannot be blank");
-    }
-    if (tokenEndpoint.length() > 255) {
-      throw INVALID_REQUEST.getCustomException("token_endpoint cannot exceed 255 characters");
-    }
-
-    if (StringUtils.isBlank(userinfoEndpoint)) {
-      throw INVALID_REQUEST.getCustomException("userinfo_endpoint cannot be blank");
-    }
-    if (userinfoEndpoint.length() > 255) {
-      throw INVALID_REQUEST.getCustomException("userinfo_endpoint cannot exceed 255 characters");
-    }
-
-    if (StringUtils.isBlank(revocationEndpoint)) {
-      throw INVALID_REQUEST.getCustomException("revocation_endpoint cannot be blank");
-    }
-    if (revocationEndpoint.length() > 255) {
-      throw INVALID_REQUEST.getCustomException("revocation_endpoint cannot exceed 255 characters");
-    }
-
-    if (StringUtils.isBlank(jwksUri)) {
-      throw INVALID_REQUEST.getCustomException("jwks_uri cannot be blank");
-    }
-    if (jwksUri.length() > 255) {
-      throw INVALID_REQUEST.getCustomException("jwks_uri cannot exceed 255 characters");
-    }
-
-    if (loginPageUri != null && loginPageUri.length() > 512) {
-      throw INVALID_REQUEST.getCustomException("login_page_uri cannot exceed 512 characters");
-    }
-
-    if (consentPageUri != null && consentPageUri.length() > 512) {
-      throw INVALID_REQUEST.getCustomException("consent_page_uri cannot exceed 512 characters");
-    }
+    validateRequiredString(tenantId, "tenant_id", 10);
+    validateRequiredString(issuer, "issuer", 255);
+    validateRequiredString(authorizationEndpoint, "authorization_endpoint", 255);
+    validateRequiredString(tokenEndpoint, "token_endpoint", 255);
+    validateRequiredString(userinfoEndpoint, "userinfo_endpoint", 255);
+    validateRequiredString(revocationEndpoint, "revocation_endpoint", 255);
+    validateRequiredString(jwksUri, "jwks_uri", 255);
+    validateString(loginPageUri, "login_page_uri", 512, false);
+    validateString(consentPageUri, "consent_page_uri", 512, false);
   }
 }

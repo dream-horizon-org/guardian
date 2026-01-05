@@ -1,11 +1,12 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class UpdateOidcProviderConfigRequestDto {
@@ -36,83 +37,36 @@ public class UpdateOidcProviderConfigRequestDto {
   private String userIdentifier;
 
   @JsonProperty("audience_claims")
-  private java.util.List<String> audienceClaims;
+  private List<String> audienceClaims;
 
   public void validate() {
-    boolean hasFields = false;
+    validate(this);
+  }
 
-    if (issuer != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(issuer)) {
-        throw INVALID_REQUEST.getCustomException("issuer cannot be blank");
-      }
-    }
-
-    if (jwksUrl != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(jwksUrl)) {
-        throw INVALID_REQUEST.getCustomException("jwks_url cannot be blank");
-      }
-    }
-
-    if (tokenUrl != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(tokenUrl)) {
-        throw INVALID_REQUEST.getCustomException("token_url cannot be blank");
-      }
-    }
-
-    if (clientId != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(clientId)) {
-        throw INVALID_REQUEST.getCustomException("client_id cannot be blank");
-      }
-      if (clientId.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("client_id cannot exceed 256 characters");
-      }
-    }
-
-    if (clientSecret != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(clientSecret)) {
-        throw INVALID_REQUEST.getCustomException("client_secret cannot be blank");
-      }
-    }
-
-    if (redirectUri != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(redirectUri)) {
-        throw INVALID_REQUEST.getCustomException("redirect_uri cannot be blank");
-      }
-    }
-
-    if (clientAuthMethod != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(clientAuthMethod)) {
-        throw INVALID_REQUEST.getCustomException("client_auth_method cannot be blank");
-      }
-      if (clientAuthMethod.length() > 256) {
-        throw INVALID_REQUEST.getCustomException("client_auth_method cannot exceed 256 characters");
-      }
-    }
-
-    if (isSslEnabled != null) {
-      hasFields = true;
-    }
-
-    if (userIdentifier != null) {
-      hasFields = true;
-      if (userIdentifier.length() > 20) {
-        throw INVALID_REQUEST.getCustomException("user_identifier cannot exceed 20 characters");
-      }
-    }
-
-    if (audienceClaims != null) {
-      hasFields = true;
-    }
-
-    if (!hasFields) {
+  public static void validate(UpdateOidcProviderConfigRequestDto req) {
+    if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
+
+    requireAtLeastOneField(
+        req.getIssuer(),
+        req.getJwksUrl(),
+        req.getTokenUrl(),
+        req.getClientId(),
+        req.getClientSecret(),
+        req.getRedirectUri(),
+        req.getClientAuthMethod(),
+        req.getIsSslEnabled(),
+        req.getUserIdentifier(),
+        req.getAudienceClaims());
+
+    validateString(req.getIssuer(), "issuer", Integer.MAX_VALUE, true);
+    validateString(req.getJwksUrl(), "jwks_url", Integer.MAX_VALUE, true);
+    validateString(req.getTokenUrl(), "token_url", Integer.MAX_VALUE, true);
+    validateString(req.getClientId(), "client_id", 256, true);
+    validateString(req.getClientSecret(), "client_secret", Integer.MAX_VALUE, true);
+    validateString(req.getRedirectUri(), "redirect_uri", Integer.MAX_VALUE, true);
+    validateString(req.getClientAuthMethod(), "client_auth_method", 256, true);
+    validateString(req.getUserIdentifier(), "user_identifier", 20, false);
   }
 }

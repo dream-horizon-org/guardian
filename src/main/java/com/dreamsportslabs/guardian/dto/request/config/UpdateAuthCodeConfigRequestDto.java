@@ -1,35 +1,28 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateInteger;
 
 import lombok.Data;
 
 @Data
 public class UpdateAuthCodeConfigRequestDto {
   private Integer ttl;
-
   private Integer length;
 
   public void validate() {
-    boolean hasFields = false;
+    validate(this);
+  }
 
-    if (ttl != null) {
-      hasFields = true;
-      if (ttl < 1) {
-        throw INVALID_REQUEST.getCustomException("ttl must be greater than 0");
-      }
-    }
-
-    if (length != null) {
-      hasFields = true;
-      if (length < 1) {
-        throw INVALID_REQUEST.getCustomException("length must be greater than 0");
-      }
-    }
-
-    if (!hasFields) {
+  public static void validate(UpdateAuthCodeConfigRequestDto req) {
+    if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
+
+    requireAtLeastOneField(req.getTtl(), req.getLength());
+
+    validateInteger(req.getTtl(), "ttl", 1);
+    validateInteger(req.getLength(), "length", 1);
   }
 }

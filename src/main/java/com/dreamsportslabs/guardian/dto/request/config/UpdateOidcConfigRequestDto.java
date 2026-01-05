@@ -1,12 +1,12 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class UpdateOidcConfigRequestDto {
@@ -52,110 +52,37 @@ public class UpdateOidcConfigRequestDto {
   private Integer authorizeTtl;
 
   public void validate() {
-    boolean hasFields = false;
+    validate(this);
+  }
 
-    if (issuer != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(issuer)) {
-        throw INVALID_REQUEST.getCustomException("issuer cannot be blank");
-      }
-      if (issuer.length() > 255) {
-        throw INVALID_REQUEST.getCustomException("issuer cannot exceed 255 characters");
-      }
-    }
-
-    if (authorizationEndpoint != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(authorizationEndpoint)) {
-        throw INVALID_REQUEST.getCustomException("authorization_endpoint cannot be blank");
-      }
-      if (authorizationEndpoint.length() > 255) {
-        throw INVALID_REQUEST.getCustomException(
-            "authorization_endpoint cannot exceed 255 characters");
-      }
-    }
-
-    if (tokenEndpoint != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(tokenEndpoint)) {
-        throw INVALID_REQUEST.getCustomException("token_endpoint cannot be blank");
-      }
-      if (tokenEndpoint.length() > 255) {
-        throw INVALID_REQUEST.getCustomException("token_endpoint cannot exceed 255 characters");
-      }
-    }
-
-    if (userinfoEndpoint != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(userinfoEndpoint)) {
-        throw INVALID_REQUEST.getCustomException("userinfo_endpoint cannot be blank");
-      }
-      if (userinfoEndpoint.length() > 255) {
-        throw INVALID_REQUEST.getCustomException("userinfo_endpoint cannot exceed 255 characters");
-      }
-    }
-
-    if (revocationEndpoint != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(revocationEndpoint)) {
-        throw INVALID_REQUEST.getCustomException("revocation_endpoint cannot be blank");
-      }
-      if (revocationEndpoint.length() > 255) {
-        throw INVALID_REQUEST.getCustomException(
-            "revocation_endpoint cannot exceed 255 characters");
-      }
-    }
-
-    if (jwksUri != null) {
-      hasFields = true;
-      if (StringUtils.isBlank(jwksUri)) {
-        throw INVALID_REQUEST.getCustomException("jwks_uri cannot be blank");
-      }
-      if (jwksUri.length() > 255) {
-        throw INVALID_REQUEST.getCustomException("jwks_uri cannot exceed 255 characters");
-      }
-    }
-
-    if (grantTypesSupported != null) {
-      hasFields = true;
-    }
-
-    if (responseTypesSupported != null) {
-      hasFields = true;
-    }
-
-    if (subjectTypesSupported != null) {
-      hasFields = true;
-    }
-
-    if (idTokenSigningAlgValuesSupported != null) {
-      hasFields = true;
-    }
-
-    if (tokenEndpointAuthMethodsSupported != null) {
-      hasFields = true;
-    }
-
-    if (loginPageUri != null) {
-      hasFields = true;
-      if (loginPageUri.length() > 512) {
-        throw INVALID_REQUEST.getCustomException("login_page_uri cannot exceed 512 characters");
-      }
-    }
-
-    if (consentPageUri != null) {
-      hasFields = true;
-      if (consentPageUri.length() > 512) {
-        throw INVALID_REQUEST.getCustomException("consent_page_uri cannot exceed 512 characters");
-      }
-    }
-
-    if (authorizeTtl != null) {
-      hasFields = true;
-    }
-
-    if (!hasFields) {
+  public static void validate(UpdateOidcConfigRequestDto req) {
+    if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
+
+    requireAtLeastOneField(
+        req.getIssuer(),
+        req.getAuthorizationEndpoint(),
+        req.getTokenEndpoint(),
+        req.getUserinfoEndpoint(),
+        req.getRevocationEndpoint(),
+        req.getJwksUri(),
+        req.getGrantTypesSupported(),
+        req.getResponseTypesSupported(),
+        req.getSubjectTypesSupported(),
+        req.getIdTokenSigningAlgValuesSupported(),
+        req.getTokenEndpointAuthMethodsSupported(),
+        req.getLoginPageUri(),
+        req.getConsentPageUri(),
+        req.getAuthorizeTtl());
+
+    validateString(req.getIssuer(), "issuer", 255, true);
+    validateString(req.getAuthorizationEndpoint(), "authorization_endpoint", 255, true);
+    validateString(req.getTokenEndpoint(), "token_endpoint", 255, true);
+    validateString(req.getUserinfoEndpoint(), "userinfo_endpoint", 255, true);
+    validateString(req.getRevocationEndpoint(), "revocation_endpoint", 255, true);
+    validateString(req.getJwksUri(), "jwks_uri", 255, true);
+    validateString(req.getLoginPageUri(), "login_page_uri", 512, false);
+    validateString(req.getConsentPageUri(), "consent_page_uri", 512, false);
   }
 }
