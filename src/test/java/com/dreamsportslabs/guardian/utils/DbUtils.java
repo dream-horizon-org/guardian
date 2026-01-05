@@ -1006,6 +1006,9 @@ public class DbUtils {
     return null;
   }
 
+  public static JsonObject getAdminConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, username, password FROM admin_config WHERE tenant_id = ?";
   public static JsonObject getOidcConfig(String tenantId) {
     String selectQuery =
         "SELECT tenant_id, issuer, authorization_endpoint, token_endpoint, userinfo_endpoint, "
@@ -1019,6 +1022,14 @@ public class DbUtils {
       stmt.setString(1, tenantId);
       ResultSet rs = stmt.executeQuery();
       if (rs.next()) {
+        JsonObject adminConfig = new JsonObject();
+        adminConfig.put("tenant_id", rs.getString("tenant_id"));
+        adminConfig.put("username", rs.getString("username"));
+        adminConfig.put("password", rs.getString("password"));
+        return adminConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting admin_config", e);
         JsonObject oidcConfig = new JsonObject();
         oidcConfig.put("tenant_id", rs.getString("tenant_id"));
         oidcConfig.put("issuer", rs.getString("issuer"));
