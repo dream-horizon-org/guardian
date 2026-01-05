@@ -221,6 +221,13 @@ public final class Constants {
   public static final String CONFIG_TYPE_TOKEN_CONFIG = "token_config";
   public static final String CONFIG_TYPE_EMAIL_CONFIG = "email_config";
   public static final String CONFIG_TYPE_GOOGLE_CONFIG = "google_config";
+  public static final String CONFIG_TYPE_AUTH_CODE_CONFIG = "auth_code_config";
+  public static final String CONFIG_TYPE_OTP_CONFIG = "otp_config";
+  public static final String CONFIG_TYPE_CONTACT_VERIFY_CONFIG = "contact_verify_config";
+  public static final String CONFIG_TYPE_OIDC_PROVIDER_CONFIG = "oidc_provider_config";
+  public static final String CONFIG_TYPE_ADMIN_CONFIG = "admin_config";
+  public static final String CONFIG_TYPE_OIDC_CONFIG = "oidc_config";
+  public static final String CONFIG_TYPE_GUEST_CONFIG = "guest_config";
 
   // MySQL Error Codes
   public static final int MYSQL_ERROR_CODE_DUPLICATE_ENTRY = 1062;
@@ -268,7 +275,19 @@ public final class Constants {
   public static final boolean DEFAULT_SEND_PROVIDER_DETAILS = false;
   public static final boolean DEFAULT_COOKIE_SECURE = false;
   public static final boolean DEFAULT_COOKIE_HTTP_ONLY = true;
+  public static final boolean DEFAULT_IS_ENCRYPTED = true;
 
   // Default Email Config Values
   public static final int DEFAULT_EMAIL_CONFIG_PORT = 80;
+
+  // Default OTP Config Values (used by otp_config and contact_verify_config)
+  public static final boolean DEFAULT_IS_OTP_MOCKED = false;
+  public static final int DEFAULT_OTP_LENGTH = 6;
+  public static final int DEFAULT_TRY_LIMIT = 5;
+  public static final int DEFAULT_RESEND_LIMIT = 5;
+  public static final int DEFAULT_OTP_RESEND_INTERVAL = 30;
+  public static final int DEFAULT_OTP_VALIDITY = 900;
+  public static final String DEFAULT_WHITELISTED_INPUTS = "{}";
+  // Default OIDC Provider Config Values
+  public static final String DEFAULT_USER_IDENTIFIER = "email";
 }
