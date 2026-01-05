@@ -91,6 +91,16 @@ public enum ErrorEnum {
       "contact_verify_config_not_found", "Contact verify config not found", 404),
   CONTACT_VERIFY_CONFIG_ALREADY_EXISTS(
       "contact_verify_config_already_exists", "Contact verify config already exists", 400);
+  OIDC_PROVIDER_CONFIG_NOT_FOUND(
+      "oidc_provider_config_not_found", "OIDC provider config not found", 404),
+  OIDC_PROVIDER_CONFIG_ALREADY_EXISTS(
+      "oidc_provider_config_already_exists", "OIDC provider config already exists", 400);
+  ADMIN_CONFIG_NOT_FOUND("admin_config_not_found", "Admin config not found", 404),
+  ADMIN_CONFIG_ALREADY_EXISTS("admin_config_already_exists", "Admin config already exists", 400);
+  OIDC_CONFIG_NOT_FOUND("oidc_config_not_found", "OIDC config not found", 404),
+  OIDC_CONFIG_ALREADY_EXISTS("oidc_config_already_exists", "OIDC config already exists", 400),
+  GUEST_CONFIG_NOT_FOUND("guest_config_not_found", "Guest config not found", 404),
+  GUEST_CONFIG_ALREADY_EXISTS("guest_config_already_exists", "Guest config already exists", 400);
 
   private final String code;
   private final String message;
