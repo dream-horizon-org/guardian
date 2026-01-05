@@ -615,6 +615,9 @@ public class Constants {
   public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_NOT_FOUND = "email_config_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
+  public static final String ERROR_CODE_GOOGLE_CONFIG_NOT_FOUND = "google_config_not_found";
+  public static final String ERROR_CODE_GOOGLE_CONFIG_ALREADY_EXISTS =
+      "google_config_already_exists";
   public static final String ERROR_CODE_AUTH_CODE_CONFIG_NOT_FOUND = "auth_code_config_not_found";
   public static final String ERROR_CODE_AUTH_CODE_CONFIG_ALREADY_EXISTS =
       "auth_code_config_already_exists";
@@ -692,6 +695,8 @@ public class Constants {
       "client_id cannot exceed 256 characters";
   public static final String ERROR_MSG_CLIENT_SECRET_CANNOT_BE_BLANK =
       "client_secret cannot be blank";
+  public static final String ERROR_MSG_CLIENT_SECRET_CANNOT_EXCEED_256 =
+      "client_secret cannot exceed 256 characters";
   public static final String ERROR_MSG_USERNAME_CANNOT_BE_BLANK = "username cannot be blank";
   public static final String ERROR_MSG_USERNAME_CANNOT_EXCEED_50 =
       "username cannot exceed 50 characters";
@@ -716,6 +721,8 @@ public class Constants {
   public static final String REQUEST_FIELD_SEND_EMAIL_PATH = "send_email_path";
   public static final String REQUEST_FIELD_TEMPLATE_NAME = "template_name";
   public static final String REQUEST_FIELD_TEMPLATE_PARAMS = "template_params";
+  public static final String REQUEST_FIELD_CLIENT_ID = "client_id";
+  public static final String REQUEST_FIELD_CLIENT_SECRET = "client_secret";
   public static final String REQUEST_FIELD_TTL = "ttl";
   public static final String REQUEST_FIELD_LENGTH = "length";
   public static final String REQUEST_FIELD_IS_OTP_MOCKED = "is_otp_mocked";

@@ -1006,6 +1006,9 @@ public class DbUtils {
     return null;
   }
 
+  public static JsonObject getGoogleConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, client_id, client_secret " + "FROM google_config WHERE tenant_id = ?";
   public static JsonObject getAuthCodeConfig(String tenantId) {
     String selectQuery =
         "SELECT tenant_id, ttl, length " + "FROM auth_code_config WHERE tenant_id = ?";
@@ -1107,6 +1110,14 @@ public class DbUtils {
       stmt.setString(1, tenantId);
       ResultSet rs = stmt.executeQuery();
       if (rs.next()) {
+        JsonObject googleConfig = new JsonObject();
+        googleConfig.put("tenant_id", rs.getString("tenant_id"));
+        googleConfig.put("client_id", rs.getString("client_id"));
+        googleConfig.put("client_secret", rs.getString("client_secret"));
+        return googleConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting google_config", e);
         JsonObject contactVerifyConfig = new JsonObject();
         contactVerifyConfig.put("tenant_id", rs.getString("tenant_id"));
         contactVerifyConfig.put("is_otp_mocked", rs.getBoolean("is_otp_mocked"));
