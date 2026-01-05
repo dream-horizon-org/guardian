@@ -672,7 +672,8 @@ public class Constants {
       "app_secret cannot exceed 256 characters";
   public static final String ERROR_MSG_TTL_CANNOT_BE_NULL = "ttl cannot be null";
   public static final String ERROR_MSG_TTL_MUST_BE_GREATER_THAN_0 = "ttl must be greater than 0";
-  public static final String ERROR_MSG_TTL_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1 = "ttl must be greater than or equal to 1";
+  public static final String ERROR_MSG_TTL_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1 =
+      "ttl must be greater than or equal to 1";
   public static final String ERROR_MSG_LENGTH_CANNOT_BE_NULL = "length cannot be null";
   public static final String ERROR_MSG_LENGTH_MUST_BE_GREATER_THAN_0 =
       "length must be greater than 0";
