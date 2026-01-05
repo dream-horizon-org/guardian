@@ -1006,6 +1006,10 @@ public class DbUtils {
     return null;
   }
 
+  public static JsonObject getOidcProviderConfig(String tenantId, String providerName) {
+    String selectQuery =
+        "SELECT tenant_id, provider_name, issuer, jwks_url, token_url, client_id, client_secret, redirect_uri, client_auth_method, is_ssl_enabled, user_identifier, audience_claims "
+            + "FROM oidc_provider_config WHERE tenant_id = ? AND provider_name = ?";
   public static JsonObject getAdminConfig(String tenantId) {
     String selectQuery =
         "SELECT tenant_id, username, password FROM admin_config WHERE tenant_id = ?";
@@ -1067,6 +1071,26 @@ public class DbUtils {
     try (Connection conn = mysqlConnectionPool.getConnection();
         PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
       stmt.setString(1, tenantId);
+      stmt.setString(2, providerName);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject oidcProviderConfig = new JsonObject();
+        oidcProviderConfig.put("tenant_id", rs.getString("tenant_id"));
+        oidcProviderConfig.put("provider_name", rs.getString("provider_name"));
+        oidcProviderConfig.put("issuer", rs.getString("issuer"));
+        oidcProviderConfig.put("jwks_url", rs.getString("jwks_url"));
+        oidcProviderConfig.put("token_url", rs.getString("token_url"));
+        oidcProviderConfig.put("client_id", rs.getString("client_id"));
+        oidcProviderConfig.put("client_secret", rs.getString("client_secret"));
+        oidcProviderConfig.put("redirect_uri", rs.getString("redirect_uri"));
+        oidcProviderConfig.put("client_auth_method", rs.getString("client_auth_method"));
+        oidcProviderConfig.put("is_ssl_enabled", rs.getBoolean("is_ssl_enabled"));
+        oidcProviderConfig.put("user_identifier", rs.getString("user_identifier"));
+        oidcProviderConfig.put("audience_claims", rs.getString("audience_claims"));
+        return oidcProviderConfig;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting oidc_provider_config", e);
       ResultSet rs = stmt.executeQuery();
       if (rs.next()) {
         JsonObject guestConfig = new JsonObject();

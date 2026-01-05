@@ -615,6 +615,10 @@ public class Constants {
   public static final String ERROR_CODE_CHANGELOG_NOT_FOUND = "changelog_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_NOT_FOUND = "email_config_not_found";
   public static final String ERROR_CODE_EMAIL_CONFIG_ALREADY_EXISTS = "email_config_already_exists";
+  public static final String ERROR_CODE_OIDC_PROVIDER_CONFIG_NOT_FOUND =
+      "oidc_provider_config_not_found";
+  public static final String ERROR_CODE_OIDC_PROVIDER_CONFIG_ALREADY_EXISTS =
+      "oidc_provider_config_already_exists";
   public static final String ERROR_CODE_ADMIN_CONFIG_NOT_FOUND = "admin_config_not_found";
   public static final String ERROR_CODE_ADMIN_CONFIG_ALREADY_EXISTS = "admin_config_already_exists";
   public static final String ERROR_CODE_OIDC_CONFIG_NOT_FOUND = "oidc_config_not_found";
@@ -640,6 +644,28 @@ public class Constants {
       "template_name cannot be blank";
   public static final String ERROR_MSG_TEMPLATE_NAME_CANNOT_EXCEED_256 =
       "template_name cannot exceed 256 characters";
+  public static final String ERROR_MSG_PROVIDER_NAME_CANNOT_BE_BLANK =
+      "provider_name cannot be blank";
+  public static final String ERROR_MSG_PROVIDER_NAME_CANNOT_EXCEED_50 =
+      "provider_name cannot exceed 50 characters";
+  public static final String ERROR_MSG_ISSUER_CANNOT_BE_BLANK = "issuer cannot be blank";
+  public static final String ERROR_MSG_JWKS_URL_CANNOT_BE_BLANK = "jwks_url cannot be blank";
+  public static final String ERROR_MSG_TOKEN_URL_CANNOT_BE_BLANK = "token_url cannot be blank";
+  public static final String ERROR_MSG_REDIRECT_URI_CANNOT_BE_BLANK =
+      "redirect_uri cannot be blank";
+  public static final String ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_BE_BLANK =
+      "client_auth_method cannot be blank";
+  public static final String ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_EXCEED_256 =
+      "client_auth_method cannot exceed 256 characters";
+  public static final String ERROR_MSG_USER_IDENTIFIER_CANNOT_EXCEED_20 =
+      "user_identifier cannot exceed 20 characters";
+  public static final String ERROR_MSG_AUDIENCE_CLAIMS_CANNOT_BE_NULL =
+      "audience_claims cannot be null";
+  public static final String ERROR_MSG_CLIENT_ID_CANNOT_BE_BLANK = "client_id cannot be blank";
+  public static final String ERROR_MSG_CLIENT_ID_CANNOT_EXCEED_256 =
+      "client_id cannot exceed 256 characters";
+  public static final String ERROR_MSG_CLIENT_SECRET_CANNOT_BE_BLANK =
+      "client_secret cannot be blank";
   public static final String ERROR_MSG_USERNAME_CANNOT_BE_BLANK = "username cannot be blank";
   public static final String ERROR_MSG_USERNAME_CANNOT_EXCEED_50 =
       "username cannot exceed 50 characters";
@@ -664,6 +690,15 @@ public class Constants {
   public static final String REQUEST_FIELD_SEND_EMAIL_PATH = "send_email_path";
   public static final String REQUEST_FIELD_TEMPLATE_NAME = "template_name";
   public static final String REQUEST_FIELD_TEMPLATE_PARAMS = "template_params";
+  public static final String REQUEST_FIELD_PROVIDER_NAME = "provider_name";
+  public static final String REQUEST_FIELD_JWKS_URL = "jwks_url";
+  public static final String REQUEST_FIELD_TOKEN_URL = "token_url";
+  public static final String REQUEST_FIELD_CLIENT_ID = "client_id";
+  public static final String REQUEST_FIELD_CLIENT_SECRET = "client_secret";
+  public static final String REQUEST_FIELD_REDIRECT_URI = "redirect_uri";
+  public static final String REQUEST_FIELD_CLIENT_AUTH_METHOD = "client_auth_method";
+  public static final String REQUEST_FIELD_USER_IDENTIFIER = "user_identifier";
+  public static final String REQUEST_FIELD_AUDIENCE_CLAIMS = "audience_claims";
   public static final String REQUEST_FIELD_USERNAME = "username";
   public static final String REQUEST_FIELD_PASSWORD = "password";
   public static final String REQUEST_FIELD_IS_ENCRYPTED = "is_encrypted";

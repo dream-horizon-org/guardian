@@ -220,6 +220,7 @@ public final class Constants {
   public static final String CONFIG_TYPE_USER_CONFIG = "user_config";
   public static final String CONFIG_TYPE_TOKEN_CONFIG = "token_config";
   public static final String CONFIG_TYPE_EMAIL_CONFIG = "email_config";
+  public static final String CONFIG_TYPE_OIDC_PROVIDER_CONFIG = "oidc_provider_config";
   public static final String CONFIG_TYPE_ADMIN_CONFIG = "admin_config";
   public static final String CONFIG_TYPE_OIDC_CONFIG = "oidc_config";
   public static final String CONFIG_TYPE_GUEST_CONFIG = "guest_config";
@@ -274,4 +275,7 @@ public final class Constants {
 
   // Default Email Config Values
   public static final int DEFAULT_EMAIL_CONFIG_PORT = 80;
+
+  // Default OIDC Provider Config Values
+  public static final String DEFAULT_USER_IDENTIFIER = "email";
 }
