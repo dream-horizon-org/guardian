@@ -7,20 +7,22 @@ import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateStrin
 import lombok.Data;
 
 @Data
-public class UpdateTenantRequestDto {
-  private String name;
+public class UpdateAdminConfigRequestDto {
+  private String username;
+  private String password;
 
   public void validate() {
     validate(this);
   }
 
-  public static void validate(UpdateTenantRequestDto req) {
+  public static void validate(UpdateAdminConfigRequestDto req) {
     if (req == null) {
       throw NO_FIELDS_TO_UPDATE.getException();
     }
 
-    requireAtLeastOneField(req.getName());
+    requireAtLeastOneField(req.getUsername(), req.getPassword());
 
-    validateString(req.getName(), "name", 256, true);
+    validateString(req.getUsername(), "username", 50, true);
+    validateString(req.getPassword(), "password", 50, true);
   }
 }

@@ -84,7 +84,34 @@ public enum ErrorEnum {
   TENANT_ALREADY_EXISTS("tenant_already_exists", "Tenant already exists", 400),
   TENANT_NAME_ALREADY_EXISTS("tenant_name_already_exists", "Tenant name already exists", 400),
   USER_CONFIG_NOT_FOUND("user_config_not_found", "User config not found", 404),
-  TOKEN_CONFIG_NOT_FOUND("token_config_not_found", "Token config not found", 404);
+  TOKEN_CONFIG_NOT_FOUND("token_config_not_found", "Token config not found", 404),
+  EMAIL_CONFIG_NOT_FOUND("email_config_not_found", "Email config not found", 404),
+  EMAIL_CONFIG_ALREADY_EXISTS("email_config_already_exists", "Email config already exists", 400),
+  SMS_CONFIG_NOT_FOUND("sms_config_not_found", "SMS config not found", 404),
+  SMS_CONFIG_ALREADY_EXISTS("sms_config_already_exists", "SMS config already exists", 400),
+  FB_CONFIG_NOT_FOUND("fb_config_not_found", "FB config not found", 404),
+  FB_CONFIG_ALREADY_EXISTS("fb_config_already_exists", "FB config already exists", 400),
+  GOOGLE_CONFIG_NOT_FOUND("google_config_not_found", "Google config not found", 404),
+  GOOGLE_CONFIG_ALREADY_EXISTS("google_config_already_exists", "Google config already exists", 400),
+  AUTH_CODE_CONFIG_NOT_FOUND("auth_code_config_not_found", "Auth code config not found", 404),
+  AUTH_CODE_CONFIG_ALREADY_EXISTS(
+      "auth_code_config_already_exists", "Auth code config already exists", 400),
+  OTP_CONFIG_NOT_FOUND("otp_config_not_found", "OTP config not found", 404),
+  OTP_CONFIG_ALREADY_EXISTS("otp_config_already_exists", "OTP config already exists", 400),
+  CONTACT_VERIFY_CONFIG_NOT_FOUND(
+      "contact_verify_config_not_found", "Contact verify config not found", 404),
+  CONTACT_VERIFY_CONFIG_ALREADY_EXISTS(
+      "contact_verify_config_already_exists", "Contact verify config already exists", 400),
+  OIDC_PROVIDER_CONFIG_NOT_FOUND(
+      "oidc_provider_config_not_found", "OIDC provider config not found", 404),
+  OIDC_PROVIDER_CONFIG_ALREADY_EXISTS(
+      "oidc_provider_config_already_exists", "OIDC provider config already exists", 400),
+  ADMIN_CONFIG_NOT_FOUND("admin_config_not_found", "Admin config not found", 404),
+  ADMIN_CONFIG_ALREADY_EXISTS("admin_config_already_exists", "Admin config already exists", 400),
+  OIDC_CONFIG_NOT_FOUND("oidc_config_not_found", "OIDC config not found", 404),
+  OIDC_CONFIG_ALREADY_EXISTS("oidc_config_already_exists", "OIDC config already exists", 400),
+  GUEST_CONFIG_NOT_FOUND("guest_config_not_found", "Guest config not found", 404),
+  GUEST_CONFIG_ALREADY_EXISTS("guest_config_already_exists", "Guest config already exists", 400);
 
   private final String code;
   private final String message;
