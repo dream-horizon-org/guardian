@@ -38,7 +38,7 @@ import static com.dreamsportslabs.guardian.utils.DbUtils.addScope;
 import static com.dreamsportslabs.guardian.utils.DbUtils.addThirdPartyClient;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -493,7 +493,7 @@ public class V2MfaEnrollIT {
             .put("userId", RandomStringUtils.randomAlphanumeric(10));
 
     return wireMockServer.stubFor(
-        post(urlPathMatching("/user"))
+        patch(urlPathMatching("/user"))
             .willReturn(
                 aResponse()
                     .withStatus(SC_OK)
