@@ -3136,7 +3136,7 @@ paths:
               default:
                 summary: Request challenge
                 value:
-                  refresh_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refresh_token: "rt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
                   client_id: "mobile-app"
                   device_metadata:
                     platform: "iOS"
@@ -3222,7 +3222,7 @@ paths:
               login:
                 summary: Login with biometric signature
                 value:
-                  refresh_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refresh_token: "rt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
                   state: "biometric_challenge_a1b2c3d4e5f6"
                   client_id: "mobile-app"
                   signature: "MEUCIQDxT7wY1cF6hL4mN8qR5sV0zX3bG7jK9tW2yP6uA4dH1eAiEA5oU8rE3cD9fG2hJ5kM8nQ1rT4vW7xZ0aB3c"
@@ -3237,7 +3237,7 @@ paths:
               registration:
                 summary: Register new biometric credential
                 value:
-                  refresh_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refresh_token: "rt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
                   state: "biometric_challenge_a1b2c3d4e5f6"
                   client_id: "mobile-app"
                   credential_id: "new-credential-12345"
@@ -3259,7 +3259,7 @@ paths:
                 $ref: '#/components/schemas/TokenResponse'
               example:
                 access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
-                refresh_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                refresh_token: "rt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
                 token_type: "Bearer"
           headers:
             Set-Cookie:
@@ -3330,6 +3330,278 @@ paths:
                 error:
                   code: "credential_not_found"
                   message: "No biometric credentials found for the provided credential_id"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v2/mfa/signin:
+    post:
+      tags:
+        - MFA
+      summary: Complete MFA sign-in with a second factor
+      description: |
+        Complete multi-factor authentication (MFA) sign-in by providing a second authentication factor.
+        
+        This endpoint is used after initial authentication to add an additional layer of security.
+        The user must have a valid refresh token from the initial authentication step.
+        
+        ## Flow
+        1. User completes initial authentication (e.g., passwordless, social login)
+        2. If MFA is required, user receives refresh token with limited scope
+        3. User calls this endpoint with the second factor credentials
+        4. Upon successful verification, user receives full access tokens
+        
+        ## Supported Factors
+        - `password`: User's password (requires identifier: username, email, or phone_number)
+        - `pin`: User's PIN (requires identifier: username, email, or phone_number)
+        - `sms-otp`: One-time password sent via SMS (coming soon)
+        - `email-otp`: One-time password sent via email (coming soon)
+        
+        ## Validation Rules
+        - For `password` and `pin` factors: exactly one of username, email, or phone_number is required
+        - For `password` factor: password field is required
+        - For `pin` factor: pin field is required
+        - refresh_token and client_id are always required
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V2MfaSignInRequestBody'
+            examples:
+              password_factor:
+                summary: Sign in with password factor
+                value:
+                  factor: "password"
+                  email: "user@example.com"
+                  password: "userPassword123"
+                  refresh_token: "rt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                  client_id: "my-client-id"
+                  scopes: ["openid", "email", "profile"]
+              pin_factor:
+                summary: Sign in with PIN factor
+                value:
+                  factor: "pin"
+                  phone_number: "+1234567890"
+                  pin: "123456"
+                  refresh_token: "rt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                  client_id: "my-client-id"
+      responses:
+        '200':
+          description: MFA sign-in successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2MfaTokenResponse'
+          headers:
+            Set-Cookie:
+              description: Sets authentication cookies (access token, refresh token, SSO token)
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request - Invalid input parameters or validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missing_factor:
+                  summary: Missing factor
+                  value:
+                    error:
+                      code: "invalid_request"
+                      message: "factor cannot be null or empty"
+                missing_identifier:
+                  summary: Missing identifier for password/pin factor
+                  value:
+                    error:
+                      code: "invalid_request"
+                      message: "exactly one of username, email or phone_number is required"
+                missing_password:
+                  summary: Missing password for password factor
+                  value:
+                    error:
+                      code: "invalid_request"
+                      message: "password is required for password factor"
+                missing_pin:
+                  summary: Missing PIN for pin factor
+                  value:
+                    error:
+                      code: "invalid_request"
+                      message: "pin is required for pin factor"
+                factor_not_supported:
+                  summary: MFA factor not supported
+                  value:
+                    error:
+                      code: "mfa_factor_not_supported"
+                      message: "The requested MFA factor is not supported"
+        '401':
+          description: Unauthorized - Invalid refresh token or credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_refresh_token:
+                  summary: Invalid or expired refresh token
+                  value:
+                    error:
+                      code: "unauthorized"
+                      message: "Invalid or expired refresh token"
+                invalid_credentials:
+                  summary: Invalid credentials
+                  value:
+                    error:
+                      code: "unauthorized"
+                      message: "Invalid credentials"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v2/mfa/enroll:
+    post:
+      tags:
+        - MFA
+      summary: Enroll a new MFA factor
+      description: |
+        Enroll a new multi-factor authentication (MFA) factor for the user.
+        
+        This endpoint allows users to add additional authentication factors to their account
+        for enhanced security. The user must be authenticated with a valid refresh token.
+        
+        ## Flow
+        1. User authenticates with their primary method
+        2. User calls this endpoint to enroll a new factor
+        3. The factor is registered and linked to the user's account
+        4. Upon successful enrollment, user receives updated tokens
+        
+        ## Supported Factors for Enrollment
+        - `password`: Set a password for the user account
+        - `pin`: Set a PIN for the user account
+        
+        ## Enrollment Rules
+        - A factor can only be enrolled once per user
+        - Attempting to enroll an already enrolled factor will result in an error
+        - For `password` factor: password field is required
+        - For `pin` factor: pin field is required
+        - refresh_token and client_id are always required
+        
+        ## Validation Rules
+        - For `password` and `pin` factors: exactly one of username, email, or phone_number is required
+        - The user must not already have the factor enrolled
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V2MfaSignInRequestBody'
+            examples:
+              enroll_password:
+                summary: Enroll password factor
+                value:
+                  factor: "password"
+                  email: "user@example.com"
+                  password: "newSecurePassword123"
+                  refresh_token: "rt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                  client_id: "my-client-id"
+                  scopes: ["openid", "email", "profile"]
+              enroll_pin:
+                summary: Enroll PIN factor
+                value:
+                  factor: "pin"
+                  username: "johndoe"
+                  pin: "123456"
+                  refresh_token: "rt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                  client_id: "my-client-id"
+      responses:
+        '200':
+          description: MFA factor enrolled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2MfaTokenResponse'
+          headers:
+            Set-Cookie:
+              description: Sets authentication cookies (access token, refresh token, SSO token)
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request - Invalid input parameters or validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missing_factor:
+                  summary: Missing factor
+                  value:
+                    error:
+                      code: "invalid_request"
+                      message: "factor cannot be null or empty"
+                missing_identifier:
+                  summary: Missing identifier for password/pin factor
+                  value:
+                    error:
+                      code: "invalid_request"
+                      message: "exactly one of username, email or phone_number is required"
+                missing_password:
+                  summary: Missing password for password factor
+                  value:
+                    error:
+                      code: "invalid_request"
+                      message: "password is required for password factor"
+                factor_not_supported:
+                  summary: MFA factor not supported for enrollment
+                  value:
+                    error:
+                      code: "mfa_factor_not_supported"
+                      message: "The requested MFA factor is not supported for enrollment"
+        '401':
+          description: Unauthorized - Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_refresh_token:
+                  summary: Invalid or expired refresh token
+                  value:
+                    error:
+                      code: "unauthorized"
+                      message: "Invalid or expired refresh token"
+        '409':
+          description: Conflict - Factor already enrolled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                password_already_enrolled:
+                  summary: Password factor already enrolled
+                  value:
+                    error:
+                      code: "mfa_factor_already_enrolled"
+                      message: "Password factor cannot be enrolled as it is already set for the user"
+                pin_already_enrolled:
+                  summary: PIN factor already enrolled
+                  value:
+                    error:
+                      code: "mfa_factor_already_enrolled"
+                      message: "PIN factor cannot be enrolled as it is already set for the user"
         '500':
           description: Internal Server Error
           content:
@@ -4884,6 +5156,39 @@ components:
           description: Whether to skip user consent for this client
           default: false
           example: false
+        client_type:
+          type: string
+          description: |
+            Type of the client application.
+            - first_party: Internal/trusted application owned by the same organization
+            - third_party: External application that requires user consent
+          enum: ["first_party", "third_party"]
+          default: "third_party"
+          example: "third_party"
+        is_default:
+          type: boolean
+          description: Whether this is the default client for the tenant
+          default: false
+          example: false
+        mfa_policy:
+          type: string
+          description: |
+            MFA policy for this client.
+            - disabled: MFA is not required for this client
+            - optional: MFA is available but not required
+            - required: MFA is always required for authentication
+          enum: ["disabled", "optional", "required"]
+          default: "disabled"
+          example: "optional"
+        allowed_mfa_methods:
+          type: array
+          description: |
+            List of allowed MFA methods for this client. If empty or not specified, 
+            all MFA methods are allowed when MFA is enabled.
+          items:
+            type: string
+            enum: ["password", "pin", "sms-otp", "email-otp"]
+          example: ["password", "pin"]
       example:
         client_name: "My Application"
         client_uri: "https://myapp.com"
@@ -4892,6 +5197,9 @@ components:
         redirect_uris: ["https://myapp.com/callback"]
         response_types: ["code"]
         skip_consent: false
+        client_type: "third_party"
+        mfa_policy: "optional"
+        allowed_mfa_methods: ["password", "pin"]
 
     UpdateClientRequestBody:
       type: object
@@ -4948,12 +5256,44 @@ components:
           type: boolean
           description: Whether to skip user consent for this client
           example: false
+        client_type:
+          type: string
+          description: |
+            Type of the client application.
+            - first_party: Internal/trusted application owned by the same organization
+            - third_party: External application that requires user consent
+          enum: ["first_party", "third_party"]
+          example: "third_party"
+        is_default:
+          type: boolean
+          description: Whether this is the default client for the tenant
+          example: false
+        mfa_policy:
+          type: string
+          description: |
+            MFA policy for this client.
+            - disabled: MFA is not required for this client
+            - optional: MFA is available but not required
+            - required: MFA is always required for authentication
+          enum: ["disabled", "optional", "required"]
+          example: "required"
+        allowed_mfa_methods:
+          type: array
+          description: |
+            List of allowed MFA methods for this client. If empty or not specified, 
+            all MFA methods are allowed when MFA is enabled.
+          items:
+            type: string
+            enum: ["password", "pin", "sms-otp", "email-otp"]
+          example: ["password", "pin", "sms-otp"]
       example:
         client_name: "My Updated Application"
         client_uri: "https://myapp.com"
         grant_types: ["authorization_code", "refresh_token"]
         redirect_uris: ["https://myapp.com/callback"]
         response_types: ["code"]
+        mfa_policy: "required"
+        allowed_mfa_methods: ["password", "pin"]
 
     ClientResponse:
       type: object
@@ -5024,6 +5364,27 @@ components:
           type: boolean
           description: Whether to skip user consent for this client
           example: false
+        client_type:
+          type: string
+          description: Type of the client application
+          enum: ["first_party", "third_party"]
+          example: "third_party"
+        is_default:
+          type: boolean
+          description: Whether this is the default client for the tenant
+          example: false
+        mfa_policy:
+          type: string
+          description: MFA policy for this client
+          enum: ["disabled", "optional", "required"]
+          example: "optional"
+        allowed_mfa_methods:
+          type: array
+          description: List of allowed MFA methods for this client
+          items:
+            type: string
+            enum: ["password", "pin", "sms-otp", "email-otp"]
+          example: ["password", "pin"]
       example:
         client_id: "my-client-id"
         client_name: "My Application"
@@ -5034,6 +5395,9 @@ components:
         redirect_uris: ["https://myapp.com/callback"]
         response_types: ["code"]
         skip_consent: false
+        client_type: "third_party"
+        mfa_policy: "optional"
+        allowed_mfa_methods: ["password", "pin"]
 
     ClientListResponse:
       type: object
@@ -5064,12 +5428,18 @@ components:
             redirect_uris: ["https://app1.com/callback"]
             response_types: ["code"]
             skip_consent: false
+            client_type: "third_party"
+            mfa_policy: "disabled"
+            allowed_mfa_methods: []
           - client_id: "client-2"
             client_name: "Second Application"
             grant_types: ["authorization_code", "refresh_token"]
             redirect_uris: ["https://app2.com/callback"]
             response_types: ["code"]
             skip_consent: true
+            client_type: "first_party"
+            mfa_policy: "required"
+            allowed_mfa_methods: ["password", "pin"]
         page: 1
         page_size: 10
 
@@ -5115,6 +5485,138 @@ components:
           example: ["openid", "email", "profile"]
       example:
         scopes: ["openid", "email", "profile"]
+
+    V2MfaSignInRequestBody:
+      type: object
+      description: Request body for MFA sign-in and enrollment
+      required:
+        - factor
+        - refresh_token
+        - client_id
+      properties:
+        factor:
+          type: string
+          description: |
+            The MFA factor type to use for authentication or enrollment.
+            - password: Use password as the second factor
+            - pin: Use PIN as the second factor
+            - sms-otp: Use SMS OTP as the second factor (coming soon)
+            - email-otp: Use email OTP as the second factor (coming soon)
+          enum: ["password", "pin", "sms-otp", "email-otp"]
+          example: "password"
+        username:
+          type: string
+          description: Username of the user (one of username, email, or phone_number required for password/pin factors)
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: Email address of the user (one of username, email, or phone_number required for password/pin factors)
+          example: "user@example.com"
+        phone_number:
+          type: string
+          description: Phone number of the user (one of username, email, or phone_number required for password/pin factors)
+          example: "+1234567890"
+        password:
+          type: string
+          description: User's password (required when factor is "password")
+          example: "securePassword123"
+        pin:
+          type: string
+          description: User's PIN (required when factor is "pin")
+          example: "123456"
+        refresh_token:
+          type: string
+          description: Refresh token from the initial authentication step
+          example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        scopes:
+          type: array
+          description: List of scopes to request
+          items:
+            type: string
+          example: ["openid", "email", "profile"]
+        client_id:
+          type: string
+          description: Client identifier
+          example: "my-client-id"
+      example:
+        factor: "password"
+        email: "user@example.com"
+        password: "securePassword123"
+        refresh_token: "rt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+        client_id: "my-client-id"
+        scopes: ["openid", "email", "profile"]
+
+    V2MfaTokenResponse:
+      type: object
+      description: Token response for MFA endpoints with MFA factors information
+      properties:
+        access_token:
+          type: string
+          description: Short lived Bearer JWT token to access APIs
+          example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refresh_token:
+          type: string
+          description: Long lived token used to refresh access token
+          example: "refresh_token_xyz789"
+        id_token:
+          type: string
+          description: OpenID Connect ID token
+          example: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyNzg5..."
+        sso_token:
+          type: string
+          description: Single Sign-On token for session management
+          example: "sso_token_abc123"
+        token_type:
+          type: string
+          description: Type of token. Only supports Bearer for now
+          enum: ["Bearer"]
+          example: "Bearer"
+        expires_in:
+          type: integer
+          description: Expiry of the access token in seconds
+          example: 3600
+        is_new_user:
+          type: boolean
+          description: Indicates if the user is new
+          example: false
+        mfa_factors:
+          type: array
+          description: List of MFA factors available/enrolled for the user
+          items:
+            $ref: '#/components/schemas/MfaFactorDto'
+      example:
+        access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refresh_token: "refresh_token_xyz789"
+        id_token: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyNzg5..."
+        token_type: "Bearer"
+        expires_in: 3600
+        is_new_user: false
+        mfa_factors:
+          - factor: "password"
+            is_enabled: true
+          - factor: "pin"
+            is_enabled: false
+
+    MfaFactorDto:
+      type: object
+      description: MFA factor information
+      required:
+        - factor
+        - is_enabled
+      properties:
+        factor:
+          type: string
+          description: The MFA factor type
+          enum: ["password", "pin", "sms-otp", "email-otp"]
+          example: "password"
+        is_enabled:
+          type: boolean
+          description: Whether this factor is enabled/enrolled for the user
+          example: true
+      example:
+        factor: "password"
+        is_enabled: true
 
     UserConsentResponse:
       type: object
