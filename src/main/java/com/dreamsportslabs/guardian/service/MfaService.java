@@ -29,7 +29,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -240,65 +239,35 @@ public class MfaService {
     MfaFactor factor = requestDto.getFactor();
 
     return switch (factor) {
-      case PASSWORD -> validateAndEnrollPassword(requestDto, headers, userId, tenantId);
-      case PIN -> validateAndEnrollPin(requestDto, headers, userId, tenantId);
+      case PASSWORD -> enrollPassword(requestDto, headers, userId, tenantId);
+      case PIN -> enrollPin(requestDto, headers, userId, tenantId);
       default -> Single.error(MFA_FACTOR_NOT_SUPPORTED.getException());
     };
   }
 
-  private Single<JsonObject> validateAndEnrollPassword(
+  private Single<JsonObject> enrollPassword(
       V2MfaSignInRequestDto requestDto,
       MultivaluedMap<String, String> headers,
       String userId,
       String tenantId) {
-    return validateAndEnrollFactor(
-        requestDto,
-        headers,
-        userId,
-        tenantId,
-        PASSWORD_SET,
-        "Password factor cannot be enrolled as it is already set for the user",
-        userDtoBuilder -> userDtoBuilder.password(requestDto.getPassword()));
+    return enrollFactor(
+        headers, userId, tenantId, UserDto.builder().password(requestDto.getPassword()).build());
   }
 
-  private Single<JsonObject> validateAndEnrollPin(
+  private Single<JsonObject> enrollPin(
       V2MfaSignInRequestDto requestDto,
       MultivaluedMap<String, String> headers,
       String userId,
       String tenantId) {
-    return validateAndEnrollFactor(
-        requestDto,
-        headers,
-        userId,
-        tenantId,
-        PIN_SET,
-        "PIN factor cannot be enrolled as it is already set for the user",
-        userDtoBuilder -> userDtoBuilder.pin(requestDto.getPin()));
+    return enrollFactor(
+        headers, userId, tenantId, UserDto.builder().pin(requestDto.getPin()).build());
   }
 
-  private Single<JsonObject> validateAndEnrollFactor(
-      V2MfaSignInRequestDto requestDto,
-      MultivaluedMap<String, String> headers,
-      String userId,
-      String tenantId,
-      String factorSetField,
-      String errorMessage,
-      Consumer<UserDto.UserDtoBuilder> userDtoBuilderConsumer) {
+  private Single<JsonObject> enrollFactor(
+      MultivaluedMap<String, String> headers, String userId, String tenantId, UserDto userDto) {
     return userService
-        .getUser(Map.of(USERID, userId), headers, tenantId)
-        .flatMap(
-            user -> {
-              Boolean factorSet = user.getBoolean(factorSetField, false);
-              if (Boolean.TRUE.equals(factorSet)) {
-                return Single.error(MFA_FACTOR_ALREADY_ENROLLED.getCustomException(errorMessage));
-              }
-              UserDto.UserDtoBuilder userDtoBuilder = UserDto.builder();
-              userDtoBuilderConsumer.accept(userDtoBuilder);
-              UserDto userDto = userDtoBuilder.build();
-              return userService
-                  .updateUser(userId, userDto, headers, tenantId)
-                  .andThen(Single.just(user));
-            });
+        .updateUser(userId, userDto, headers, tenantId)
+        .andThen(userService.getUser(Map.of(USERID, userId), headers, tenantId));
   }
 
   public static Set<AuthMethodCategory> getUsedCategories(List<AuthMethod> authMethods) {
