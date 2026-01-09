@@ -126,23 +126,7 @@ public class MfaService {
 
   private Single<RefreshTokenModel> validateRefreshToken(
       String tenantId, String clientId, String refreshToken, MfaFactor factor) {
-    return authorizationService
-        .validateRefreshToken(tenantId, clientId, refreshToken)
-        .map(
-            refreshTokenModel -> {
-              validateAuthMethodCategory(refreshTokenModel.getAuthMethod(), factor);
-              return refreshTokenModel;
-            });
-  }
-
-  private void validateAuthMethodCategory(List<AuthMethod> existingAuthMethods, MfaFactor factor) {
-    Set<AuthMethodCategory> existingCategories =
-        existingAuthMethods.stream().map(AuthMethod::getCategory).collect(Collectors.toSet());
-    AuthMethodCategory currentCategory = factor.getAuthMethod().getCategory();
-    if (existingCategories.contains(currentCategory)) {
-      throw MFA_FACTOR_NOT_SUPPORTED.getCustomException(
-          "The refresh token is already authenticated using same category of authentication factor");
-    }
+    return authorizationService.validateRefreshToken(tenantId, clientId, refreshToken);
   }
 
   private Single<TokenResponseDto> updateRefreshToken(
