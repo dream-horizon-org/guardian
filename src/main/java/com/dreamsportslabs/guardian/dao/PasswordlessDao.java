@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dao;
 
+import static com.dreamsportslabs.guardian.constant.Constants.CACHE_KEY_OTP_RESEND_COUNT;
 import static com.dreamsportslabs.guardian.constant.Constants.CACHE_KEY_STATE;
 import static com.dreamsportslabs.guardian.constant.Constants.EXPIRE_AT_REDIS;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
@@ -7,6 +8,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_E
 import com.dreamsportslabs.guardian.dao.model.PasswordlessModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.redis.client.Command;
@@ -46,7 +48,42 @@ public class PasswordlessDao {
     redisClient.rxSend(Request.cmd(Command.DEL).arg(getCacheKey(tenantId, state))).subscribe();
   }
 
+  public Single<Integer> getGlobalResendCount(String tenantId, String userIdentifier) {
+    String redisKey = getResendCountKey(tenantId, userIdentifier);
+
+    return redisClient
+        .rxSend(Request.cmd(Command.GET).arg(redisKey))
+        .map(response -> response.toInteger())
+        .switchIfEmpty(Single.just(0));
+  }
+
+  public Completable incrementGlobalResendCount(
+      String tenantId, String userIdentifier, Integer ttlSeconds) {
+    String redisKey = getResendCountKey(tenantId, userIdentifier);
+
+    return redisClient
+        .rxSend(Request.cmd(Command.INCR).arg(redisKey))
+        .flatMap(
+            response -> {
+              if (response.toInteger() == 1) {
+                return redisClient.rxSend(
+                    Request.cmd(Command.EXPIRE).arg(redisKey).arg(String.valueOf(ttlSeconds)));
+              }
+              return Maybe.just(response);
+            })
+        .ignoreElement();
+  }
+
+  public Completable deleteGlobalResendCount(String tenantId, String userIdentifier) {
+    String redisKey = getResendCountKey(tenantId, userIdentifier);
+    return redisClient.rxSend(Request.cmd(Command.DEL).arg(redisKey)).ignoreElement();
+  }
+
   private String getCacheKey(String tenantId, String state) {
     return CACHE_KEY_STATE + "_" + tenantId + "_" + state;
+  }
+
+  private String getResendCountKey(String tenantId, String userIdentifier) {
+    return CACHE_KEY_OTP_RESEND_COUNT + "_" + tenantId + "_" + userIdentifier;
   }
 }
