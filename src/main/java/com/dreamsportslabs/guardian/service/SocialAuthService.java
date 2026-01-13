@@ -16,9 +16,9 @@ import static com.dreamsportslabs.guardian.constant.Constants.USERID;
 import static com.dreamsportslabs.guardian.constant.Constants.USER_FILTERS_EMAIL;
 import static com.dreamsportslabs.guardian.constant.Constants.USER_FILTERS_PROVIDER_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.USER_FILTERS_PROVIDER_USER_ID;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.GOOGLE_AUTH_NOT_CONFIGURED;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_EXISTS;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_NOT_EXISTS;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.GOOGLE_AUTH_NOT_CONFIGURED;
 
 import com.dreamsportslabs.guardian.cache.DefaultClientScopesCache;
 import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
@@ -245,7 +245,7 @@ public class SocialAuthService {
       String clientId,
       String tenantId,
       Map<String, Object> additionalInfo) {
-        GoogleIdProvider googleIdProvider = registry.get(tenantId, GoogleIdProvider.class);
+    GoogleIdProvider googleIdProvider = registry.get(tenantId, GoogleIdProvider.class);
     if (googleIdProvider == null) {
       return Single.error(GOOGLE_AUTH_NOT_CONFIGURED.getException());
     }
