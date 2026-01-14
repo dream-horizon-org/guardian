@@ -66,7 +66,32 @@ public enum ErrorEnum {
       "mfa_factor_already_enrolled",
       "MFA factor cannot be enrolled as it is already set for the user",
       400),
-
+  FEATURE_NOT_CONFIGURED(
+      "feature_not_configured", "This feature is not configured for the tenant", 400),
+  GOOGLE_AUTH_NOT_CONFIGURED(
+      "google_auth_not_configured", "Google authentication is not configured for this tenant", 400),
+  FACEBOOK_AUTH_NOT_CONFIGURED(
+      "facebook_auth_not_configured",
+      "Facebook authentication is not configured for this tenant",
+      400),
+  OIDC_PROVIDER_NOT_CONFIGURED(
+      "oidc_provider_not_configured", "OIDC provider is not configured for this tenant", 400),
+  OTP_NOT_CONFIGURED("otp_not_configured", "OTP feature is not configured for this tenant", 400),
+  EMAIL_NOT_CONFIGURED(
+      "email_not_configured", "Email service is not configured for this tenant", 400),
+  SMS_NOT_CONFIGURED("sms_not_configured", "SMS service is not configured for this tenant", 400),
+  CONTACT_VERIFY_NOT_CONFIGURED(
+      "contact_verify_not_configured",
+      "Contact verification is not configured for this tenant",
+      400),
+  GUEST_LOGIN_NOT_CONFIGURED(
+      "guest_login_not_configured", "Guest login is not configured for this tenant", 400),
+  AUTH_CODE_NOT_CONFIGURED(
+      "auth_code_not_configured",
+      "Authorization code feature is not configured for this tenant",
+      400),
+  ADMIN_NOT_CONFIGURED(
+      "admin_not_configured", "Admin feature is not configured for this tenant", 400),
   INVALID_PUBLIC_KEY("invalid_public_key", "Invalid public key format", 400),
   INVALID_SIGNATURE("invalid_signature", "Signature verification failed", 401),
   CHALLENGE_NOT_FOUND("challenge_not_found", "No active challenge found or challenge expired", 400),
@@ -77,6 +102,7 @@ public enum ErrorEnum {
       "The biometric credential has been revoked and is no longer active",
       403),
   INVALID_ENCODING("invalid_encoding", "Invalid signature encoding", 400);
+
   private final String code;
   private final String message;
   private final int httpStatusCode;

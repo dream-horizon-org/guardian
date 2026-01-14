@@ -16,8 +16,14 @@ public class RegistryInit {
     String tenantId = tenantConfig.getTenantId();
     registry.put(tenantId, tenantConfig);
     registry.put(tenantId, getTokenSigner(tenantConfig.getTokenConfig()));
-    registry.put(tenantId, new FacebookIdProvider(tenantConfig.getFbConfig()));
-    registry.put(tenantId, new GoogleIdProvider(tenantConfig.getGoogleConfig()));
+
+    if (tenantConfig.findFbConfig().isPresent()) {
+      registry.put(tenantId, new FacebookIdProvider(tenantConfig.findFbConfig().get()));
+    }
+    if (tenantConfig.findGoogleConfig().isPresent()) {
+      registry.put(tenantId, new GoogleIdProvider(tenantConfig.findGoogleConfig().get()));
+    }
+
     return tenantConfig;
   }
 

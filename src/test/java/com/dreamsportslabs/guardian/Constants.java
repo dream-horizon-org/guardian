@@ -406,6 +406,8 @@ public class Constants {
   public static final String ERROR_INVALID_SSO_TOKEN = "Invalid sso token";
   public static final String BODY_PARAM_SSO_TOKEN = "sso_token";
   public static final String ERROR_UNAUTHORIZED = "unauthorized";
+  public static final String ERROR_GOOGLE_AUTH_NOT_CONFIGURED = "google_auth_not_configured";
+  public static final String ERROR_OIDC_CONFIG_NOT_EXISTS = "oidc_config_not_exists";
   public static final String ERROR_CODE_CHALLENGE_TOGETHER =
       "code_challenge and code_challenge_method must be provided together";
 

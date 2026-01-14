@@ -8,6 +8,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.emptyString;
 
 import io.restassured.response.Response;
@@ -140,6 +141,8 @@ public class OidcDiscoveryIT {
         .statusCode(HttpStatus.SC_BAD_REQUEST)
         .rootPath("error")
         .body("code", equalTo("invalid_request"))
-        .body("message", equalTo("No config found"));
+        .body(
+            "message",
+            either(equalTo("User config not found")).or(equalTo("Token config not found")));
   }
 }
