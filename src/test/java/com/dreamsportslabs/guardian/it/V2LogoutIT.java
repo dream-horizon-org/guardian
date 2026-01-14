@@ -15,6 +15,7 @@ import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.dreamsportslabs.guardian.utils.ApplicationIoUtils;
@@ -446,7 +447,9 @@ class V2LogoutIT {
         .statusCode(SC_BAD_REQUEST)
         .rootPath(ERROR)
         .body("code", equalTo(ERROR_INVALID_REQUEST))
-        .body(MESSAGE, equalTo("No config found"));
+        .body(
+            MESSAGE,
+            either(equalTo("User config not found")).or(equalTo("Token config not found")));
   }
 
   @Test

@@ -9,6 +9,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.either;
 
 import com.dreamsportslabs.guardian.utils.DbUtils;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -408,7 +409,9 @@ public class UserBlockFlowsIT {
         .statusCode(HttpStatus.SC_BAD_REQUEST)
         .rootPath(ERROR)
         .body(CODE, equalTo(ERROR_INVALID_REQUEST))
-        .body(MESSAGE, equalTo("No config found"));
+        .body(
+            MESSAGE,
+            either(equalTo("User config not found")).or(equalTo("Token config not found")));
   }
 
   @Test

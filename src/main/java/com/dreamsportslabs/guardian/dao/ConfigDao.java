@@ -99,13 +99,15 @@ public class ConfigDao {
   }
 
   private Completable appendUserConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
-    return getMandatoryConfigFromDb(tenantId, UserConfig.class, USER_CONFIG)
+    return getMandatoryConfigFromDb(
+            tenantId, UserConfig.class, USER_CONFIG, "User config not found")
         .map(builder::userConfig)
         .ignoreElement();
   }
 
   private Completable appendTokenConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
-    return getMandatoryConfigFromDb(tenantId, TokenConfig.class, TOKEN_CONFIG)
+    return getMandatoryConfigFromDb(
+            tenantId, TokenConfig.class, TOKEN_CONFIG, "Token config not found")
         .map(builder::tokenConfig)
         .ignoreElement();
   }
@@ -160,13 +162,13 @@ public class ConfigDao {
   }
 
   private <T> Single<T> getMandatoryConfigFromDb(
-      String tenantId, Class<T> configType, String query) {
+      String tenantId, Class<T> configType, String query, String errorMessage) {
     return mysqlClient
         .getReaderPool()
         .preparedQuery(query)
         .execute(Tuple.of(tenantId))
         .filter(rowSet -> rowSet.size() > 0)
-        .switchIfEmpty(Single.error(INVALID_REQUEST.getCustomException("No config found")))
+        .switchIfEmpty(Single.error(INVALID_REQUEST.getCustomException(errorMessage)))
         .map(rows -> JsonUtils.rowSetToList(rows, configType).get(0));
   }
 

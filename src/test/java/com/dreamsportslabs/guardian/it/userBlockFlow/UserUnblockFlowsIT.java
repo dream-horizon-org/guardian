@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.either;
 
 import com.dreamsportslabs.guardian.utils.ApplicationIoUtils;
 import com.dreamsportslabs.guardian.utils.DbUtils;
@@ -300,7 +301,9 @@ class UserUnblockFlowsIT {
         .statusCode(HttpStatus.SC_BAD_REQUEST)
         .rootPath(ERROR)
         .body(CODE, equalTo(ERROR_INVALID_REQUEST))
-        .body(MESSAGE, equalTo("No config found"));
+        .body(
+            MESSAGE,
+            either(equalTo("User config not found")).or(equalTo("Token config not found")));
   }
 
   @Test
