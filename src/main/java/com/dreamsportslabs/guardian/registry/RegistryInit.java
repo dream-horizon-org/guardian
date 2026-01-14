@@ -17,8 +17,6 @@ public class RegistryInit {
     registry.put(tenantId, tenantConfig);
     registry.put(tenantId, getTokenSigner(tenantConfig.getTokenConfig()));
 
-    // Initialize optional providers only if their configs exist
-
     if (tenantConfig.findFbConfig().isPresent()) {
       registry.put(tenantId, new FacebookIdProvider(tenantConfig.findFbConfig().get()));
     }

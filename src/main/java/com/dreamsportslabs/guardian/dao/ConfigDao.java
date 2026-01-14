@@ -36,6 +36,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.sqlclient.Tuple;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -48,11 +49,10 @@ public class ConfigDao {
 
   public Single<TenantConfig> getTenantConfig(String tenantId) {
     TenantConfig.TenantConfigBuilder builder = TenantConfig.builder().tenantId(tenantId);
-    // Mandatory configs - will fail if missing
+
     List<Completable> mandatoryConfigSources =
         List.of(appendUserConfig(tenantId, builder), appendTokenConfig(tenantId, builder));
 
-    // Optional configs - will not fail if missing
     List<Completable> optionalConfigSources =
         List.of(
             appendAuthCodeConfig(tenantId, builder),
@@ -99,13 +99,13 @@ public class ConfigDao {
   }
 
   private Completable appendUserConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
-    return getConfigFromDb(tenantId, UserConfig.class, USER_CONFIG)
+    return getMandatoryConfigFromDb(tenantId, UserConfig.class, USER_CONFIG)
         .map(builder::userConfig)
         .ignoreElement();
   }
 
   private Completable appendTokenConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {
-    return getConfigFromDb(tenantId, TokenConfig.class, TOKEN_CONFIG)
+    return getMandatoryConfigFromDb(tenantId, TokenConfig.class, TOKEN_CONFIG)
         .map(builder::tokenConfig)
         .ignoreElement();
   }
@@ -159,7 +159,8 @@ public class ConfigDao {
         .ignoreElement();
   }
 
-  private <T> Single<T> getConfigFromDb(String tenantId, Class<T> configType, String query) {
+  private <T> Single<T> getMandatoryConfigFromDb(
+      String tenantId, Class<T> configType, String query) {
     return mysqlClient
         .getReaderPool()
         .preparedQuery(query)
@@ -189,7 +190,10 @@ public class ConfigDao {
         .getReaderPool()
         .preparedQuery(query)
         .execute(Tuple.of(tenantId))
-        .map(rows -> JsonUtils.rowSetToList(rows, configType))
-        .onErrorReturnItem(List.of());
+        .map(
+            rows ->
+                rows.size() > 0
+                    ? JsonUtils.rowSetToList(rows, configType)
+                    : Collections.emptyList());
   }
 }

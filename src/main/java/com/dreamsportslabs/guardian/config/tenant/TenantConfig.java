@@ -22,12 +22,10 @@ import lombok.ToString;
 @Builder
 public class TenantConfig {
 
-  // Mandatory configs - simple getters
   @Getter private String tenantId;
   @Getter private UserConfig userConfig;
   @Getter private TokenConfig tokenConfig;
 
-  // Optional configs - custom getters with null checks
   private AuthCodeConfig authCodeConfig;
   private EmailConfig emailConfig;
   private FbConfig fbConfig;

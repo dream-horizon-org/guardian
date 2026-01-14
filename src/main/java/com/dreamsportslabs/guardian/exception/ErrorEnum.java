@@ -90,6 +90,8 @@ public enum ErrorEnum {
       "auth_code_not_configured",
       "Authorization code feature is not configured for this tenant",
       400),
+  ADMIN_NOT_CONFIGURED(
+      "admin_not_configured", "Admin feature is not configured for this tenant", 400),
   INVALID_PUBLIC_KEY("invalid_public_key", "Invalid public key format", 400),
   INVALID_SIGNATURE("invalid_signature", "Signature verification failed", 401),
   CHALLENGE_NOT_FOUND("challenge_not_found", "No active challenge found or challenge expired", 400),
@@ -99,9 +101,7 @@ public enum ErrorEnum {
       "credential_revoked",
       "The biometric credential has been revoked and is no longer active",
       403),
-  INVALID_ENCODING("invalid_encoding", "Invalid signature encoding", 400),
-  ADMIN_NOT_CONFIGURED(
-      "admin_not_configured", "Admin feature is not configured for this tenant", 400);
+  INVALID_ENCODING("invalid_encoding", "Invalid signature encoding", 400);
 
   private final String code;
   private final String message;

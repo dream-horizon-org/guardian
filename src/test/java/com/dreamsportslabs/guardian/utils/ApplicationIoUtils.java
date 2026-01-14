@@ -360,7 +360,7 @@ public class ApplicationIoUtils {
     body.put("client_id", clientId);
     body.put("id_token", idToken);
     body.put(BODY_PARAM_FLOW, flow);
-    body.put(BODY_PARAM_RESPONSE_TYPE, responseType);
+    body.put(BODY_PARAM_RESPONSE_TYPE_V2, responseType);
 
     return execute(body, headers, new HashMap<>(), spec -> spec.post("/v2/auth/google"));
   }
