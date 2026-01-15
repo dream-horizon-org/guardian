@@ -7,10 +7,8 @@ import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateStrin
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class UpdateEmailConfigRequestDto {
   private String host;
   private Integer port;

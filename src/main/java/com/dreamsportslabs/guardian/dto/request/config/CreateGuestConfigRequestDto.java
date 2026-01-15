@@ -5,10 +5,8 @@ import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateStrin
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class CreateGuestConfigRequestDto {
   @JsonProperty("is_encrypted")
   private Boolean isEncrypted;

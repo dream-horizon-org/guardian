@@ -801,8 +801,8 @@ public class Constants {
   public static final String ERROR_MSG_TOKEN_URL_CANNOT_BE_BLANK = "token_url cannot be blank";
   public static final String ERROR_MSG_REDIRECT_URI_CANNOT_BE_BLANK =
       "redirect_uri cannot be blank";
-  public static final String ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_BE_BLANK =
-      "client_auth_method cannot be blank";
+  public static final String ERROR_MSG_CLIENT_AUTH_METHOD_INVALID =
+      "The value provided for the field is invalid or does not exist: client_auth_method";
   public static final String ERROR_MSG_USER_IDENTIFIER_CANNOT_EXCEED_20 =
       "user_identifier cannot exceed 20 characters";
   public static final String ERROR_MSG_AUDIENCE_CLAIMS_CANNOT_BE_NULL =

@@ -8,10 +8,8 @@ import com.dreamsportslabs.guardian.dao.model.config.RsaKey;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class UpdateTokenConfigRequestDto {
   private String algorithm;
   private String issuer;

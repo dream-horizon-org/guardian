@@ -1,38 +1,6 @@
 package com.dreamsportslabs.guardian.it.config;
 
-import static com.dreamsportslabs.guardian.Constants.CODE;
-import static com.dreamsportslabs.guardian.Constants.ERROR;
-import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_OIDC_PROVIDER_CONFIG_ALREADY_EXISTS;
-import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_OIDC_PROVIDER_CONFIG_NOT_FOUND;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_AUDIENCE_CLAIMS_CANNOT_BE_NULL;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_BE_BLANK;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_ID_CANNOT_BE_BLANK;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_ID_CANNOT_EXCEED_256;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_CLIENT_SECRET_CANNOT_BE_BLANK;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_ISSUER_CANNOT_BE_BLANK;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_JWKS_URL_CANNOT_BE_BLANK;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PROVIDER_NAME_CANNOT_EXCEED_50;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_REDIRECT_URI_CANNOT_BE_BLANK;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TOKEN_URL_CANNOT_BE_BLANK;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_USER_IDENTIFIER_CANNOT_EXCEED_20;
-import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
-import static com.dreamsportslabs.guardian.Constants.MESSAGE;
-import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_AUDIENCE_CLAIMS;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_CLIENT_AUTH_METHOD;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_CLIENT_ID;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_CLIENT_SECRET;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ISSUER;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_IS_SSL_ENABLED;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_JWKS_URL;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_PROVIDER_NAME;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_REDIRECT_URI;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TENANT_ID;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_TOKEN_URL;
-import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_USER_IDENTIFIER;
-import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.Constants.*;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createOidcProviderConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteOidcProviderConfig;
@@ -293,7 +261,7 @@ public class OidcProviderConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_BE_BLANK));
+        equalTo(ERROR_MSG_CLIENT_AUTH_METHOD_INVALID));
   }
 
   @Test
@@ -309,7 +277,7 @@ public class OidcProviderConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_CLIENT_AUTH_METHOD_CANNOT_BE_BLANK));
+        equalTo(ERROR_MSG_CLIENT_AUTH_METHOD_INVALID));
   }
 
   @Test

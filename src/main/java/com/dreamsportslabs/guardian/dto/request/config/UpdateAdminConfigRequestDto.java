@@ -4,10 +4,8 @@ import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeas
 import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
 
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class UpdateAdminConfigRequestDto {
   private String username;
   private String password;

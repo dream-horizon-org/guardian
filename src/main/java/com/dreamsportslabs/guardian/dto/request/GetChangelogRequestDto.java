@@ -7,10 +7,8 @@ import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateStrin
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.QueryParam;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class GetChangelogRequestDto {
   @QueryParam("tenant_id")
   private String tenantId;

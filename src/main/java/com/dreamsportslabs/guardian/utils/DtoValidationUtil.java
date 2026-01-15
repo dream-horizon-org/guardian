@@ -11,19 +11,19 @@ public final class DtoValidationUtil {
 
   private DtoValidationUtil() {}
 
-  private static RuntimeException invalid(String message) {
+  private static RuntimeException invalidRequestException(String message) {
     return INVALID_REQUEST.getCustomException(message);
   }
 
   public static <T> void requireNonNull(T value, String fieldName) {
     if (value == null) {
-      throw invalid(String.format("%s cannot be null", fieldName));
+      throw invalidRequestException(String.format("%s cannot be null", fieldName));
     }
   }
 
   public static void requireRequestBody(Object body) {
     if (body == null) {
-      throw invalid("request body is required");
+      throw invalidRequestException("request body is required");
     }
   }
 
@@ -39,10 +39,11 @@ public final class DtoValidationUtil {
       requireNonNull(value, fieldName);
     }
     if (StringUtils.isNotBlank(value) && value.length() > maxLength) {
-      throw invalid(String.format("%s cannot exceed %d characters", fieldName, maxLength));
+      throw invalidRequestException(
+          String.format("%s cannot exceed %d characters", fieldName, maxLength));
     }
     if (value != null && StringUtils.isBlank(value)) {
-      throw invalid(String.format("%s cannot be blank", fieldName));
+      throw invalidRequestException(String.format("%s cannot be blank", fieldName));
     }
   }
 
@@ -52,7 +53,8 @@ public final class DtoValidationUtil {
       requireNonNull(value, fieldName);
     }
     if (value != null && value < minValue) {
-      throw invalid(String.format("%s must be greater than or equal to %d", fieldName, minValue));
+      throw invalidRequestException(
+          String.format("%s must be greater than or equal to %d", fieldName, minValue));
     }
   }
 
@@ -62,13 +64,14 @@ public final class DtoValidationUtil {
       return;
     }
     if (value < minValue || value > maxValue) {
-      throw invalid(String.format("%s must be between %d and %d", fieldName, minValue, maxValue));
+      throw invalidRequestException(
+          String.format("%s must be between %d and %d", fieldName, minValue, maxValue));
     }
   }
 
   public static <T extends Enum<T>> void validateEnum(T value, String fieldName, boolean required) {
     if (required && value == null) {
-      throw invalid(String.format("%s cannot be blank", fieldName));
+      throw invalidRequestException(String.format("%s cannot be blank", fieldName));
     }
   }
 }

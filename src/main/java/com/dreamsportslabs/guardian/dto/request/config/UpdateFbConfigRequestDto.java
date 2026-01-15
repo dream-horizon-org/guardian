@@ -5,10 +5,8 @@ import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateStrin
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class UpdateFbConfigRequestDto {
   @JsonProperty("app_id")
   private String appId;

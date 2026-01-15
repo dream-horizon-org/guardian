@@ -19,7 +19,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.mysqlclient.MySQLException;
 import io.vertx.rxjava3.sqlclient.SqlConnection;
 import io.vertx.rxjava3.sqlclient.Tuple;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -96,7 +95,7 @@ public class OidcProviderConfigDao {
         .addString(oidcProviderConfig.getClientId())
         .addString(oidcProviderConfig.getClientSecret())
         .addString(oidcProviderConfig.getRedirectUri())
-        .addString(Objects.toString(oidcProviderConfig.getClientAuthMethod(), null))
+        .addString(oidcProviderConfig.getClientAuthMethod().getValue())
         .addValue(oidcProviderConfig.getIsSslEnabled())
         .addString(oidcProviderConfig.getUserIdentifier())
         .addString(

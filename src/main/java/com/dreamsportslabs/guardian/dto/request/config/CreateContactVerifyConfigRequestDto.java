@@ -5,10 +5,8 @@ import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateInteg
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class CreateContactVerifyConfigRequestDto {
   @JsonProperty("is_otp_mocked")
   private Boolean isOtpMocked;

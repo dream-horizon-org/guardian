@@ -7,10 +7,8 @@ import com.dreamsportslabs.guardian.constant.ClientAuthMethod;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class UpdateOidcProviderConfigRequestDto {
   private String issuer;
 
