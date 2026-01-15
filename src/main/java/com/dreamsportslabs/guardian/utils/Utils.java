@@ -10,14 +10,20 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.UNAUTHORIZED;
 import static com.dreamsportslabs.guardian.exception.OidcErrorEnum.INVALID_TOKEN;
 
 import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
+import com.dreamsportslabs.guardian.dao.model.config.RsaKey;
+import com.dreamsportslabs.guardian.dto.request.GenerateRsaKeyRequestDto;
+import com.dreamsportslabs.guardian.dto.response.RsaKeyResponseDto;
 import com.dreamsportslabs.guardian.exception.ErrorEnum;
+import com.dreamsportslabs.guardian.service.RsaKeyPairGeneratorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -195,5 +201,38 @@ public final class Utils {
     } catch (Exception e) {
       throw ErrorEnum.DECRYPTION_FAILED.getException();
     }
+  }
+
+  public static <T> T coalesce(T newValue, T oldValue) {
+    return newValue != null ? newValue : oldValue;
+  }
+
+  public static GenerateRsaKeyRequestDto buildRsaKeyRequest(int keySize, String format) {
+    GenerateRsaKeyRequestDto keyRequest = new GenerateRsaKeyRequestDto();
+    keyRequest.setKeySize(keySize);
+    keyRequest.setFormat(format);
+    return keyRequest;
+  }
+
+  public static List<RsaKey> generateRsaKeys(
+      RsaKeyPairGeneratorService rsaKeyPairGeneratorService,
+      int rsaKeyCount,
+      int currentKeyIndex,
+      int keySize,
+      String format) {
+    GenerateRsaKeyRequestDto keyRequest = buildRsaKeyRequest(keySize, format);
+    List<RsaKey> rsaKeys = new ArrayList<>();
+
+    for (int i = 0; i < rsaKeyCount; i++) {
+      RsaKeyResponseDto rsaKeyResponse = rsaKeyPairGeneratorService.generateKey(keyRequest);
+      rsaKeys.add(
+          RsaKey.builder()
+              .kid(rsaKeyResponse.getKid())
+              .publicKey(rsaKeyResponse.getPublicKey().toString())
+              .privateKey(rsaKeyResponse.getPrivateKey().toString())
+              .current(i == currentKeyIndex)
+              .build());
+    }
+    return rsaKeys;
   }
 }
