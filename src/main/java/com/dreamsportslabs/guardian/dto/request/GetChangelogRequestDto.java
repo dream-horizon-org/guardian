@@ -23,7 +23,7 @@ public class GetChangelogRequestDto {
 
   public void validate() {
     validateString(tenantId, "tenant_id", 256, true);
-    validateIntegerRange(Integer.valueOf(limit), "limit", 1, 100);
+    validateIntegerRange(Integer.valueOf(limit), "limit", 1, 100, false);
     validateInteger(Integer.valueOf(offset), "offset", 0, false);
   }
 }

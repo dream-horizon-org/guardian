@@ -27,7 +27,7 @@ public class CreateEmailConfigRequestDto {
 
   public void validate() {
     validateString(host, "host", 256, true);
-    validateIntegerRange(port, "port", 1, 65535);
+    validateIntegerRange(port, "port", 1, 65535, false);
     validateString(sendEmailPath, "send_email_path", 256, true);
     validateString(templateName, "template_name", 256, true);
     requireNonNull(templateParams, "template_params");

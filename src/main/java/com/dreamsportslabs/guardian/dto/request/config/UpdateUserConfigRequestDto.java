@@ -46,7 +46,7 @@ public class UpdateUserConfigRequestDto {
         sendProviderDetails);
 
     validateString(host, "host", 256, false);
-    validateIntegerRange(port, "port", 1, 65535);
+    validateIntegerRange(port, "port", 1, 65535, false);
     validateString(getUserPath, "get_user_path", 256, false);
     validateString(createUserPath, "create_user_path", 256, false);
     validateString(authenticateUserPath, "authenticate_user_path", 256, false);

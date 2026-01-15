@@ -59,7 +59,10 @@ public final class DtoValidationUtil {
   }
 
   public static void validateIntegerRange(
-      Integer value, String fieldName, int minValue, int maxValue) {
+      Integer value, String fieldName, int minValue, int maxValue, boolean required) {
+    if (required) {
+      requireNonNull(value, fieldName);
+    }
     if (value == null) {
       return;
     }

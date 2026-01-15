@@ -29,7 +29,7 @@ public class UpdateEmailConfigRequestDto {
     requireAtLeastOneField(host, port, sendEmailPath, isSslEnabled, templateName, templateParams);
 
     validateString(host, "host", 256, false);
-    validateIntegerRange(port, "port", 1, 65535);
+    validateIntegerRange(port, "port", 1, 65535, false);
     validateString(sendEmailPath, "send_email_path", 256, false);
     validateString(templateName, "template_name", 256, false);
   }
