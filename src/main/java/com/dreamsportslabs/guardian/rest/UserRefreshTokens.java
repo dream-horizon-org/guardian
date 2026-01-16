@@ -7,6 +7,7 @@ import static com.dreamsportslabs.guardian.utils.Utils.getAccessTokenFromAuthHea
 import com.dreamsportslabs.guardian.dto.request.GetUserRefreshTokensRequestDto;
 import com.dreamsportslabs.guardian.service.AuthorizationService;
 import com.google.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -32,7 +33,7 @@ public class UserRefreshTokens {
   public CompletionStage<Response> getActiveRefreshTokens(
       @Context HttpHeaders headers,
       @HeaderParam(TENANT_ID) String tenantId,
-      GetUserRefreshTokensRequestDto requestDto) {
+      @Valid GetUserRefreshTokensRequestDto requestDto) {
 
     String accessToken =
         getAccessTokenFromAuthHeader(headers.getHeaderString(HttpHeaders.AUTHORIZATION));

@@ -1,6 +1,5 @@
 package com.dreamsportslabs.guardian.dao;
 
-import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ACTIVE_REFRESH_TOKENS_FOR_USER;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ALL_REFRESH_TOKENS_FOR_USER;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ALL_REFRESH_TOKENS_FOR_USER_AND_CLIENT;
@@ -227,15 +226,6 @@ public class RefreshTokenDao {
         .getReaderPool()
         .preparedQuery(GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT)
         .rxExecute(Tuple.of(tenantId, userId, clientId))
-        .map(rowSet -> JsonUtils.rowSetToList(rowSet, UserRefreshTokenModel.class));
-  }
-
-  public Single<List<UserRefreshTokenModel>> getActiveRefreshTokensForUser(
-      String tenantId, String userId) {
-    return mysqlClient
-        .getReaderPool()
-        .preparedQuery(GET_ACTIVE_REFRESH_TOKENS_FOR_USER)
-        .rxExecute(Tuple.of(tenantId, userId))
         .map(rowSet -> JsonUtils.rowSetToList(rowSet, UserRefreshTokenModel.class));
   }
 }

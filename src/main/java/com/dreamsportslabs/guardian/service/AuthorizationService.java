@@ -3,12 +3,12 @@ package com.dreamsportslabs.guardian.service;
 import static com.dreamsportslabs.guardian.constant.Constants.ACCESS_TOKEN_COOKIE_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.CODE;
 import static com.dreamsportslabs.guardian.constant.Constants.IS_NEW_USER;
+import static com.dreamsportslabs.guardian.constant.Constants.JWT_CLAIMS_SUB;
 import static com.dreamsportslabs.guardian.constant.Constants.MFA_POLICY_MANDATORY;
 import static com.dreamsportslabs.guardian.constant.Constants.REFRESH_TOKEN_COOKIE_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.SSO_TOKEN_COOKIE_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.TOKEN;
 import static com.dreamsportslabs.guardian.constant.Constants.TOKEN_TYPE;
-import static com.dreamsportslabs.guardian.constant.Constants.JWT_CLAIMS_SUB;
 import static com.dreamsportslabs.guardian.constant.Constants.USERID;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_CODE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
@@ -29,7 +29,6 @@ import com.dreamsportslabs.guardian.dao.model.ClientModel;
 import com.dreamsportslabs.guardian.dao.model.CodeModel;
 import com.dreamsportslabs.guardian.dao.model.RefreshTokenModel;
 import com.dreamsportslabs.guardian.dao.model.SsoTokenModel;
-import com.dreamsportslabs.guardian.dao.model.UserRefreshTokenModel;
 import com.dreamsportslabs.guardian.dto.request.MetaInfo;
 import com.dreamsportslabs.guardian.dto.request.V1CodeTokenExchangeRequestDto;
 import com.dreamsportslabs.guardian.dto.request.V1LogoutRequestDto;
@@ -617,20 +616,14 @@ public class AuthorizationService {
                     INVALID_TOKEN.getBearerAuthHeaderException("Invalid token: missing sub claim"));
               }
 
-              Single<List<UserRefreshTokenModel>> tokensSingle;
-              if (StringUtils.isNotBlank(clientId)) {
-                tokensSingle =
-                    refreshTokenDao.getActiveRefreshTokensForUser(tenantId, userId, clientId);
-              } else {
-                tokensSingle = refreshTokenDao.getActiveRefreshTokensForUser(tenantId, userId);
-              }
-
-              return tokensSingle.map(
-                  tokens ->
-                      UserRefreshTokensResponseDto.builder()
-                          .refreshTokens(tokens)
-                          .totalCount(tokens.size())
-                          .build());
+              return refreshTokenDao
+                  .getActiveRefreshTokensForUser(tenantId, userId, clientId)
+                  .map(
+                      tokens ->
+                          UserRefreshTokensResponseDto.builder()
+                              .refreshTokens(tokens)
+                              .totalCount(tokens.size())
+                              .build());
             });
   }
 }

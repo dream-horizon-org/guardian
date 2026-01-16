@@ -84,22 +84,4 @@ public class RefreshTokenSql {
           AND refresh_token_exp > UNIX_TIMESTAMP()
       ORDER BY created_at DESC
       """;
-
-  public static final String GET_ACTIVE_REFRESH_TOKENS_FOR_USER =
-      """
-      SELECT
-          tenant_id,
-          client_id,
-          refresh_token,
-          device_name,
-          location,
-          ip,
-          source
-      FROM refresh_tokens
-      WHERE tenant_id = ?
-          AND user_id = ?
-          AND is_active = 1
-          AND refresh_token_exp > UNIX_TIMESTAMP()
-      ORDER BY created_at DESC
-      """;
 }

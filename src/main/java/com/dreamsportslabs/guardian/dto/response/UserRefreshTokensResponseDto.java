@@ -1,7 +1,8 @@
 package com.dreamsportslabs.guardian.dto.response;
 
 import com.dreamsportslabs.guardian.dao.model.UserRefreshTokenModel;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,10 +11,9 @@ import lombok.extern.jackson.Jacksonized;
 @Getter
 @Builder
 @Jacksonized
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UserRefreshTokensResponseDto {
-  @JsonProperty("refresh_tokens")
   private List<UserRefreshTokenModel> refreshTokens;
 
-  @JsonProperty("total_count")
   private int totalCount;
 }
