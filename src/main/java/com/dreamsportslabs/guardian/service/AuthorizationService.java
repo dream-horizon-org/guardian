@@ -3,6 +3,8 @@ package com.dreamsportslabs.guardian.service;
 import static com.dreamsportslabs.guardian.constant.Constants.ACCESS_TOKEN_COOKIE_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.CODE;
 import static com.dreamsportslabs.guardian.constant.Constants.IS_NEW_USER;
+import static com.dreamsportslabs.guardian.constant.Constants.JWT_CLAIMS_CLIENT_ID;
+import static com.dreamsportslabs.guardian.constant.Constants.JWT_CLAIMS_SUB;
 import static com.dreamsportslabs.guardian.constant.Constants.MFA_POLICY_MANDATORY;
 import static com.dreamsportslabs.guardian.constant.Constants.REFRESH_TOKEN_COOKIE_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.SSO_TOKEN_COOKIE_NAME;
@@ -12,6 +14,7 @@ import static com.dreamsportslabs.guardian.constant.Constants.USERID;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_CODE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.UNAUTHORIZED;
+import static com.dreamsportslabs.guardian.exception.OidcErrorEnum.INVALID_TOKEN;
 import static com.dreamsportslabs.guardian.utils.Utils.getCurrentTimeInSeconds;
 import static com.dreamsportslabs.guardian.utils.Utils.getRftId;
 import static com.dreamsportslabs.guardian.utils.Utils.shouldSetAccessTokenAdditionalClaims;
@@ -37,6 +40,7 @@ import com.dreamsportslabs.guardian.dto.response.IdpConnectResponseDto;
 import com.dreamsportslabs.guardian.dto.response.MfaFactorDto;
 import com.dreamsportslabs.guardian.dto.response.RefreshTokenResponseDto;
 import com.dreamsportslabs.guardian.dto.response.TokenResponseDto;
+import com.dreamsportslabs.guardian.dto.response.UserRefreshTokensResponseDto;
 import com.dreamsportslabs.guardian.registry.Registry;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
@@ -66,6 +70,7 @@ public class AuthorizationService {
   private final RevocationDao revocationDao;
   private final ClientService clientService;
   private final UserService userService;
+  private final TokenVerifier tokenVerifier;
 
   public Single<Object> generate(
       JsonObject user,
@@ -598,5 +603,34 @@ public class AuthorizationService {
         ssoToken,
         registry.get(tenantId, TenantConfig.class).getTokenConfig().getRefreshTokenExpiry(),
         tenantId);
+  }
+
+  public Single<UserRefreshTokensResponseDto> getActiveRefreshTokensForUser(
+      String tenantId, String accessToken, String clientId) {
+
+    return Single.fromCallable(() -> tokenVerifier.verifyAccessToken(accessToken, tenantId))
+        .map(claims -> validateClientIdAndExtractUserId(claims, clientId))
+        .flatMap(
+            userId -> refreshTokenDao.getActiveRefreshTokensForUser(tenantId, userId, clientId))
+        .map(
+            tokens ->
+                UserRefreshTokensResponseDto.builder()
+                    .refreshTokens(tokens)
+                    .totalCount(tokens.size())
+                    .build());
+  }
+
+  private String validateClientIdAndExtractUserId(Map<String, Object> claims, String clientId) {
+    String userId = (String) claims.get(JWT_CLAIMS_SUB);
+    if (userId == null) {
+      throw INVALID_TOKEN.getBearerAuthHeaderException("Invalid token: missing sub claim");
+    }
+
+    String tokenClientId = (String) claims.get(JWT_CLAIMS_CLIENT_ID);
+    if (!tokenClientId.equals(clientId)) {
+      throw INVALID_TOKEN.getBearerAuthHeaderException("Invalid token: client_id mismatch");
+    }
+
+    return userId;
   }
 }
