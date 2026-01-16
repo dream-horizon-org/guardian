@@ -24,7 +24,7 @@ public final class JsonUtils {
     throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
   }
 
-  private static final ObjectMapper snakeCaseObjectMapper =
+  public static final ObjectMapper snakeCaseObjectMapper =
       JsonMapper.builder()
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
           .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
