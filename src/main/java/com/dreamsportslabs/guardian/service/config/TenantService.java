@@ -9,6 +9,7 @@ import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.TENANT_NOT_FOUND;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.TenantDao;
 import com.dreamsportslabs.guardian.dao.model.config.TenantModel;
@@ -31,6 +32,7 @@ public class TenantService {
   private final UserConfigService userConfigService;
   private final TokenConfigService tokenConfigService;
   private final MysqlClient mysqlClient;
+  private final TenantCache tenantCache;
 
   public Single<TenantModel> createTenant(CreateTenantRequestDto requestDto) {
     TenantModel tenantModel =
@@ -82,7 +84,8 @@ public class TenantService {
                                               null,
                                               tokenConfigModel,
                                               tenantId))
-                                      .andThen(Single.just(createdTenant)));
+                                      .andThen(Single.just(createdTenant)))
+                              .doOnSuccess(tenant -> tenantCache.invalidateCache(tenant.getId()));
                         })
                     .toMaybe())
         .switchIfEmpty(
@@ -126,6 +129,7 @@ public class TenantService {
                                       updatedTenant,
                                       tenantId))
                               .andThen(Single.just(updatedTenant))
+                              .doOnSuccess(tenant -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.<TenantModel>error(
@@ -159,6 +163,7 @@ public class TenantService {
                                           null,
                                           tenantId);
                                     })
+                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
                     .ignoreElement());
   }

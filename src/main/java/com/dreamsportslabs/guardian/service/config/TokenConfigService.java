@@ -23,6 +23,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.TOKEN_CONFIG_NOT_
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 import static com.dreamsportslabs.guardian.utils.Utils.generateRsaKeys;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.TokenConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.TokenConfigModel;
@@ -52,10 +53,14 @@ public class TokenConfigService {
   private final RsaKeyPairGeneratorService rsaKeyPairGeneratorService;
   private final MysqlClient mysqlClient;
   private final Vertx vertx;
+  private final TenantCache tenantCache;
 
   public Completable createDefaultTokenConfig(SqlConnection client, String tenantId) {
     TokenConfigModel tokenConfigModel = buildDefaultTokenConfig(tenantId);
-    return tokenConfigDao.createTokenConfig(client, tenantId, tokenConfigModel).ignoreElement();
+    return tokenConfigDao
+        .createTokenConfig(client, tenantId, tokenConfigModel)
+        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
+        .ignoreElement();
   }
 
   public Single<TokenConfigModel> getTokenConfig(String tenantId) {
@@ -88,6 +93,7 @@ public class TokenConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
+                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.<TokenConfigModel>error(

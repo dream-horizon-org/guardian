@@ -8,6 +8,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.AUTH_CODE_CONFIG_
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.AuthCodeConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.AuthCodeConfigModel;
@@ -26,6 +27,7 @@ public class AuthCodeConfigService {
   private final AuthCodeConfigDao authCodeConfigDao;
   private final ChangelogService changelogService;
   private final MysqlClient mysqlClient;
+  private final TenantCache tenantCache;
 
   public Single<AuthCodeConfigModel> createAuthCodeConfig(
       String tenantId, CreateAuthCodeConfigRequestDto requestDto) {
@@ -48,6 +50,7 @@ public class AuthCodeConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
+                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
         .switchIfEmpty(
             Single.error(
@@ -84,6 +87,7 @@ public class AuthCodeConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
+                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.error(
@@ -119,6 +123,7 @@ public class AuthCodeConfigService {
                                           null,
                                           tenantId);
                                     })
+                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
                     .ignoreElement());
   }

@@ -15,6 +15,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_E
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.USER_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.UserConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.UserConfigModel;
@@ -37,10 +38,14 @@ public class UserConfigService {
   private final ChangelogService changelogService;
   private final MysqlClient mysqlClient;
   private final Vertx vertx;
+  private final TenantCache tenantCache;
 
   public Completable createDefaultUserConfig(SqlConnection client, String tenantId) {
     UserConfigModel userConfigModel = buildDefaultUserConfig(tenantId);
-    return userConfigDao.createUserConfig(client, tenantId, userConfigModel).ignoreElement();
+    return userConfigDao
+        .createUserConfig(client, tenantId, userConfigModel)
+        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
+        .ignoreElement();
   }
 
   public Single<UserConfigModel> getUserConfig(String tenantId) {
@@ -73,6 +78,7 @@ public class UserConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
+                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.<UserConfigModel>error(

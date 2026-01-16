@@ -8,6 +8,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_E
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.OIDC_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.OidcConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.OidcConfigModel;
@@ -27,6 +28,7 @@ public class OidcConfigService {
   private final OidcConfigDao oidcConfigDao;
   private final ChangelogService changelogService;
   private final MysqlClient mysqlClient;
+  private final TenantCache tenantCache;
 
   public Single<OidcConfigModel> createOidcConfig(
       String tenantId, CreateOidcConfigRequestDto requestDto) {
@@ -49,6 +51,7 @@ public class OidcConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
+                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
         .switchIfEmpty(
             Single.error(INTERNAL_SERVER_ERROR.getCustomException("Failed to create OIDC config")));
@@ -84,6 +87,7 @@ public class OidcConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
+                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.error(
@@ -119,6 +123,7 @@ public class OidcConfigService {
                                           null,
                                           tenantId);
                                     })
+                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
                     .ignoreElement());
   }

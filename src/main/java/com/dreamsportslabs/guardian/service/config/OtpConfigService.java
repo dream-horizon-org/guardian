@@ -17,6 +17,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_E
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.OTP_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.OtpConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.OtpConfigModel;
@@ -35,6 +36,7 @@ public class OtpConfigService {
   private final OtpConfigDao otpConfigDao;
   private final ChangelogService changelogService;
   private final MysqlClient mysqlClient;
+  private final TenantCache tenantCache;
 
   public Single<OtpConfigModel> createOtpConfig(
       String tenantId, CreateOtpConfigRequestDto requestDto) {
@@ -57,6 +59,7 @@ public class OtpConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
+                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
         .switchIfEmpty(
             Single.<OtpConfigModel>error(
@@ -93,6 +96,7 @@ public class OtpConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
+                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.<OtpConfigModel>error(
@@ -127,6 +131,7 @@ public class OtpConfigService {
                                           null,
                                           tenantId);
                                     })
+                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
                     .ignoreElement());
   }

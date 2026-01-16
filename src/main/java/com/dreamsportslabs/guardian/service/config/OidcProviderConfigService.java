@@ -10,6 +10,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_E
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.OIDC_PROVIDER_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.OidcProviderConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.OidcProviderConfigModel;
@@ -28,6 +29,7 @@ public class OidcProviderConfigService {
   private final OidcProviderConfigDao oidcProviderConfigDao;
   private final ChangelogService changelogService;
   private final MysqlClient mysqlClient;
+  private final TenantCache tenantCache;
 
   public Single<OidcProviderConfigModel> createOidcProviderConfig(
       String tenantId, CreateOidcProviderConfigRequestDto requestDto) {
@@ -51,6 +53,7 @@ public class OidcProviderConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
+                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
         .switchIfEmpty(
             Single.error(
@@ -90,6 +93,7 @@ public class OidcProviderConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
+                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.error(
@@ -125,6 +129,7 @@ public class OidcProviderConfigService {
                                           null,
                                           tenantId);
                                     })
+                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
                     .ignoreElement());
   }

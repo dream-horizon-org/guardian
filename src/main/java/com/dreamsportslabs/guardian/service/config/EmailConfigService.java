@@ -10,6 +10,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.EMAIL_CONFIG_NOT_
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.EmailConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.EmailConfigModel;
@@ -28,6 +29,7 @@ public class EmailConfigService {
   private final EmailConfigDao emailConfigDao;
   private final ChangelogService changelogService;
   private final MysqlClient mysqlClient;
+  private final TenantCache tenantCache;
 
   public Single<EmailConfigModel> createEmailConfig(
       String tenantId, CreateEmailConfigRequestDto requestDto) {
@@ -50,6 +52,7 @@ public class EmailConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
+                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
         .switchIfEmpty(
             Single.error(
@@ -86,6 +89,7 @@ public class EmailConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
+                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.error(
@@ -121,6 +125,7 @@ public class EmailConfigService {
                                           null,
                                           tenantId);
                                     })
+                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
                     .ignoreElement());
   }

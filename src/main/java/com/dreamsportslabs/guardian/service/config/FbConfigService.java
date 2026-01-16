@@ -9,6 +9,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.FB_CONFIG_NOT_FOU
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.FbConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.FbConfigModel;
@@ -27,6 +28,7 @@ public class FbConfigService {
   private final FbConfigDao fbConfigDao;
   private final ChangelogService changelogService;
   private final MysqlClient mysqlClient;
+  private final TenantCache tenantCache;
 
   public Single<FbConfigModel> createFbConfig(
       String tenantId, CreateFbConfigRequestDto requestDto) {
@@ -49,6 +51,7 @@ public class FbConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
+                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
         .switchIfEmpty(
             Single.error(INTERNAL_SERVER_ERROR.getCustomException("Failed to create FB config")));
@@ -84,6 +87,7 @@ public class FbConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
+                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.error(
@@ -118,6 +122,7 @@ public class FbConfigService {
                                           null,
                                           tenantId);
                                     })
+                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
                     .ignoreElement());
   }

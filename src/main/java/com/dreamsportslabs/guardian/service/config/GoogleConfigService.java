@@ -8,6 +8,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.GOOGLE_CONFIG_NOT
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
+import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.GoogleConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.GoogleConfigModel;
@@ -26,6 +27,7 @@ public class GoogleConfigService {
   private final GoogleConfigDao googleConfigDao;
   private final ChangelogService changelogService;
   private final MysqlClient mysqlClient;
+  private final TenantCache tenantCache;
 
   public Single<GoogleConfigModel> createGoogleConfig(
       String tenantId, CreateGoogleConfigRequestDto requestDto) {
@@ -48,6 +50,7 @@ public class GoogleConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
+                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
         .switchIfEmpty(
             Single.error(
@@ -84,6 +87,7 @@ public class GoogleConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
+                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
                   .switchIfEmpty(
                       Single.error(
@@ -119,6 +123,7 @@ public class GoogleConfigService {
                                           null,
                                           tenantId);
                                     })
+                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
                     .ignoreElement());
   }
