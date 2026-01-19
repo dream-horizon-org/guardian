@@ -1,6 +1,5 @@
 package com.dreamsportslabs.guardian.dao.config;
 
-import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
 import static com.dreamsportslabs.guardian.dao.config.query.GoogleConfigQuery.CREATE_GOOGLE_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.GoogleConfigQuery.DELETE_GOOGLE_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.GoogleConfigQuery.GET_GOOGLE_CONFIG;
@@ -11,11 +10,11 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_E
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.model.config.GoogleConfigModel;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
+import com.dreamsportslabs.guardian.utils.SqlUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.mysqlclient.MySQLException;
 import io.vertx.rxjava3.sqlclient.SqlConnection;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
@@ -33,15 +32,12 @@ public class GoogleConfigDao {
         .rxExecute(buildParams(tenantId, googleConfig))
         .map(result -> googleConfig)
         .onErrorResumeNext(
-            err -> {
-              if (err instanceof MySQLException mySQLException
-                  && mySQLException.getErrorCode() == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
-                return Single.error(
-                    GOOGLE_CONFIG_ALREADY_EXISTS.getCustomException(
-                        String.format("Google config already exists: %s", tenantId)));
-              }
-              return Single.error(INTERNAL_SERVER_ERROR.getException(err));
-            });
+            err ->
+                SqlUtils.handleMySqlError(
+                    err,
+                    GOOGLE_CONFIG_ALREADY_EXISTS,
+                    String.format("Google config already exists: %s", tenantId),
+                    INTERNAL_SERVER_ERROR));
   }
 
   public Maybe<GoogleConfigModel> getGoogleConfig(String tenantId) {
@@ -49,11 +45,9 @@ public class GoogleConfigDao {
         .getReaderPool()
         .preparedQuery(GET_GOOGLE_CONFIG)
         .rxExecute(Tuple.of(tenantId))
-        .flatMapMaybe(
-            result ->
-                result.size() == 0
-                    ? Maybe.empty()
-                    : Maybe.just(JsonUtils.rowSetToList(result, GoogleConfigModel.class).get(0)))
+        .filter(result -> result.size() > 0)
+        .switchIfEmpty(Maybe.empty())
+        .map(result -> JsonUtils.rowSetToList(result, GoogleConfigModel.class).get(0))
         .onErrorResumeNext(err -> Maybe.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 

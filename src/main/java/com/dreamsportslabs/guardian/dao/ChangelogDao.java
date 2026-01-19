@@ -39,8 +39,8 @@ public class ChangelogDao {
             .addString(tenantId)
             .addString(configType)
             .addString(operationType)
-            .addString(oldValues != null ? oldValues.encode() : null)
-            .addString(newValues != null ? newValues.encode() : null)
+            .addJsonObject(oldValues)
+            .addJsonObject(newValues)
             .addString(changedBy);
 
     return client
@@ -55,11 +55,9 @@ public class ChangelogDao {
         .getReaderPool()
         .preparedQuery(GET_CHANGELOG_BY_ID)
         .rxExecute(Tuple.of(id))
-        .flatMapMaybe(
-            result ->
-                result.size() == 0
-                    ? Maybe.empty()
-                    : Maybe.just(JsonUtils.rowSetToList(result, ChangelogModel.class).get(0)))
+        .filter(result -> result.size() > 0)
+        .switchIfEmpty(Maybe.empty())
+        .map(result -> JsonUtils.rowSetToList(result, ChangelogModel.class).get(0))
         .onErrorResumeNext(err -> Maybe.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 

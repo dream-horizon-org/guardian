@@ -38,11 +38,9 @@ public class TokenConfigDao {
         .getReaderPool()
         .preparedQuery(GET_TOKEN_CONFIG)
         .rxExecute(Tuple.of(tenantId))
-        .flatMapMaybe(
-            result ->
-                result.size() == 0
-                    ? Maybe.empty()
-                    : Maybe.just(JsonUtils.rowSetToList(result, TokenConfigModel.class).get(0)))
+        .filter(result -> result.size() > 0)
+        .switchIfEmpty(Maybe.empty())
+        .map(result -> JsonUtils.rowSetToList(result, TokenConfigModel.class).get(0))
         .onErrorResumeNext(err -> Maybe.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 

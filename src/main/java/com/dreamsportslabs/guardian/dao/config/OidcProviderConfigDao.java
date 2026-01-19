@@ -1,6 +1,5 @@
 package com.dreamsportslabs.guardian.dao.config;
 
-import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
 import static com.dreamsportslabs.guardian.dao.config.query.OidcProviderConfigQuery.CREATE_OIDC_PROVIDER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.OidcProviderConfigQuery.DELETE_OIDC_PROVIDER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.OidcProviderConfigQuery.GET_OIDC_PROVIDER_CONFIG;
@@ -11,12 +10,12 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.OIDC_PROVIDER_CON
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.model.config.OidcProviderConfigModel;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
+import com.dreamsportslabs.guardian.utils.SqlUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.mysqlclient.MySQLException;
 import io.vertx.rxjava3.sqlclient.SqlConnection;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
@@ -38,16 +37,13 @@ public class OidcProviderConfigDao {
         .rxExecute(buildParams(tenantId, providerName, oidcProviderConfig))
         .map(result -> oidcProviderConfig)
         .onErrorResumeNext(
-            err -> {
-              if (err instanceof MySQLException mySQLException
-                  && mySQLException.getErrorCode() == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
-                return Single.error(
-                    OIDC_PROVIDER_CONFIG_ALREADY_EXISTS.getCustomException(
-                        String.format(
-                            "OIDC provider config already exists: %s/%s", tenantId, providerName)));
-              }
-              return Single.error(INTERNAL_SERVER_ERROR.getException(err));
-            });
+            err ->
+                SqlUtils.handleMySqlError(
+                    err,
+                    OIDC_PROVIDER_CONFIG_ALREADY_EXISTS,
+                    String.format(
+                        "OIDC provider config already exists: %s/%s", tenantId, providerName),
+                    INTERNAL_SERVER_ERROR));
   }
 
   public Maybe<OidcProviderConfigModel> getOidcProviderConfig(
@@ -56,12 +52,9 @@ public class OidcProviderConfigDao {
         .getReaderPool()
         .preparedQuery(GET_OIDC_PROVIDER_CONFIG)
         .rxExecute(Tuple.of(tenantId, providerName))
-        .flatMapMaybe(
-            result ->
-                result.size() == 0
-                    ? Maybe.empty()
-                    : Maybe.just(
-                        JsonUtils.rowSetToList(result, OidcProviderConfigModel.class).get(0)))
+        .filter(result -> result.size() > 0)
+        .switchIfEmpty(Maybe.empty())
+        .map(result -> JsonUtils.rowSetToList(result, OidcProviderConfigModel.class).get(0))
         .onErrorResumeNext(err -> Maybe.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 

@@ -13,8 +13,8 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.TENANT_NAME_ALREA
 
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.model.config.TenantModel;
-import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
+import com.dreamsportslabs.guardian.utils.SqlUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -37,8 +37,7 @@ public class TenantDao {
         .preparedQuery(CREATE_TENANT)
         .rxExecute(params)
         .map(result -> tenant)
-        .onErrorResumeNext(
-            err -> handleTenantError(err, tenant.getName(), tenant.getId(), TENANT_ALREADY_EXISTS));
+        .onErrorResumeNext(err -> handleTenantError(err, tenant.getName(), tenant.getId()));
   }
 
   public Maybe<TenantModel> getTenant(String tenantId) {
@@ -54,11 +53,9 @@ public class TenantDao {
         .getReaderPool()
         .preparedQuery(query)
         .rxExecute(params)
-        .flatMapMaybe(
-            result ->
-                result.size() == 0
-                    ? Maybe.empty()
-                    : Maybe.just(JsonUtils.rowSetToList(result, TenantModel.class).get(0)))
+        .filter(result -> result.size() > 0)
+        .switchIfEmpty(Maybe.empty())
+        .map(result -> JsonUtils.rowSetToList(result, TenantModel.class).get(0))
         .onErrorResumeNext(err -> Maybe.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 
@@ -69,7 +66,12 @@ public class TenantDao {
         .ignoreElement()
         .onErrorResumeNext(
             err ->
-                handleTenantError(err, name, tenantId, TENANT_NAME_ALREADY_EXISTS).ignoreElement());
+                SqlUtils.handleMySqlError(
+                        err,
+                        TENANT_NAME_ALREADY_EXISTS,
+                        String.format("Tenant name already exists: %s", name),
+                        INTERNAL_SERVER_ERROR)
+                    .ignoreElement());
   }
 
   public Single<Boolean> deleteTenant(SqlConnection client, String tenantId) {
@@ -80,22 +82,18 @@ public class TenantDao {
         .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 
-  private <T> Single<T> handleTenantError(
-      Throwable err, String name, String tenantId, ErrorEnum defaultError) {
-    if (err instanceof MySQLException mySQLException) {
-      int errorCode = mySQLException.getErrorCode();
-      if (errorCode == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
-        String errorMessage = mySQLException.getMessage();
-        if (errorMessage != null && errorMessage.contains(TENANT_NAME)) {
-          return Single.error(
-              TENANT_NAME_ALREADY_EXISTS.getCustomException(
-                  String.format("Tenant name already exists: %s", name)));
-        } else if (defaultError == TENANT_ALREADY_EXISTS) {
-          return Single.error(
-              TENANT_ALREADY_EXISTS.getCustomException(
-                  String.format("Tenant ID already exists: %s", tenantId)));
-        }
+  private <T> Single<T> handleTenantError(Throwable err, String name, String tenantId) {
+    if (err instanceof MySQLException mySQLException
+        && mySQLException.getErrorCode() == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
+      String errorMessage = mySQLException.getMessage();
+      if (errorMessage != null && errorMessage.contains(TENANT_NAME)) {
+        return Single.error(
+            TENANT_NAME_ALREADY_EXISTS.getCustomException(
+                String.format("Tenant name already exists: %s", name)));
       }
+      return Single.error(
+          TENANT_ALREADY_EXISTS.getCustomException(
+              String.format("Tenant ID already exists: %s", tenantId)));
     }
     return Single.error(INTERNAL_SERVER_ERROR.getException(err));
   }

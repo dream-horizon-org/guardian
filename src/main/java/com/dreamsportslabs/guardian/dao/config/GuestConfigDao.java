@@ -1,6 +1,5 @@
 package com.dreamsportslabs.guardian.dao.config;
 
-import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
 import static com.dreamsportslabs.guardian.dao.config.query.GuestConfigQuery.CREATE_GUEST_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.GuestConfigQuery.DELETE_GUEST_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.GuestConfigQuery.GET_GUEST_CONFIG;
@@ -11,12 +10,12 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_E
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.model.config.GuestConfigModel;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
+import com.dreamsportslabs.guardian.utils.SqlUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.mysqlclient.MySQLException;
 import io.vertx.rxjava3.sqlclient.SqlConnection;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
@@ -35,15 +34,12 @@ public class GuestConfigDao {
         .rxExecute(buildParams(tenantId, guestConfig))
         .map(result -> guestConfig)
         .onErrorResumeNext(
-            err -> {
-              if (err instanceof MySQLException mySQLException
-                  && mySQLException.getErrorCode() == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
-                return Single.error(
-                    GUEST_CONFIG_ALREADY_EXISTS.getCustomException(
-                        String.format("Guest config already exists: %s", tenantId)));
-              }
-              return Single.error(INTERNAL_SERVER_ERROR.getException(err));
-            });
+            err ->
+                SqlUtils.handleMySqlError(
+                    err,
+                    GUEST_CONFIG_ALREADY_EXISTS,
+                    String.format("Guest config already exists: %s", tenantId),
+                    INTERNAL_SERVER_ERROR));
   }
 
   public Maybe<GuestConfigModel> getGuestConfig(String tenantId) {
@@ -51,11 +47,9 @@ public class GuestConfigDao {
         .getReaderPool()
         .preparedQuery(GET_GUEST_CONFIG)
         .rxExecute(Tuple.of(tenantId))
-        .flatMapMaybe(
-            result ->
-                result.size() == 0
-                    ? Maybe.empty()
-                    : Maybe.just(JsonUtils.rowSetToList(result, GuestConfigModel.class).get(0)))
+        .filter(result -> result.size() > 0)
+        .switchIfEmpty(Maybe.empty())
+        .map(result -> JsonUtils.rowSetToList(result, GuestConfigModel.class).get(0))
         .onErrorResumeNext(err -> Maybe.error(INTERNAL_SERVER_ERROR.getException(err)));
   }
 
