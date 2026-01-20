@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateGoogleConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateGoogleConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.GoogleConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.GoogleConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,9 +32,8 @@ public class GoogleConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createGoogleConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateGoogleConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateGoogleConfigRequestDto requestDto) {
     return googleConfigService
         .createGoogleConfig(tenantId, requestDto)
         .map(config -> GoogleConfigResponseDto.from(tenantId, config))
@@ -56,8 +55,8 @@ public class GoogleConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateGoogleConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateGoogleConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateGoogleConfigRequestDto requestDto) {
     requestDto.validate();
     return googleConfigService
         .updateGoogleConfig(tenantId, requestDto)

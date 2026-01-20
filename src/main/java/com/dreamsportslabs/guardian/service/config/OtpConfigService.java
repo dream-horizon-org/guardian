@@ -59,8 +59,8 @@ public class OtpConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
-                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
+        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
         .switchIfEmpty(
             Single.<OtpConfigModel>error(
                 INTERNAL_SERVER_ERROR.getCustomException("Failed to create OTP config")));
@@ -96,8 +96,8 @@ public class OtpConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
-                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
+                  .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                   .switchIfEmpty(
                       Single.<OtpConfigModel>error(
                           INTERNAL_SERVER_ERROR.getCustomException("Failed to update OTP config")));
@@ -131,8 +131,8 @@ public class OtpConfigService {
                                           null,
                                           tenantId);
                                     })
-                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
+                    .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                     .ignoreElement());
   }
 

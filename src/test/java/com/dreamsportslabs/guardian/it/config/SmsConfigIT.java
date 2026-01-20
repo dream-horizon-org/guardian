@@ -6,7 +6,8 @@ import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_SMS_CONFIG_ALREA
 import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_SMS_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_HOST_CANNOT_BE_BLANK;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_HOST_CANNOT_EXCEED_256;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PORT_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PORT_MUST_BE_LESS_THAN_OR_EQUAL_TO_65535;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_SEND_SMS_PATH_CANNOT_BE_BLANK;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_SEND_SMS_PATH_CANNOT_EXCEED_256;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TEMPLATE_NAME_CANNOT_BE_BLANK;
@@ -142,7 +143,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
+        equalTo(ERROR_MSG_PORT_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1));
   }
 
   @Test
@@ -158,7 +159,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
+        equalTo(ERROR_MSG_PORT_MUST_BE_LESS_THAN_OR_EQUAL_TO_65535));
   }
 
   @Test
@@ -446,7 +447,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
+        equalTo(ERROR_MSG_PORT_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1));
   }
 
   @Test
@@ -463,7 +464,7 @@ public class SmsConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535));
+        equalTo(ERROR_MSG_PORT_MUST_BE_LESS_THAN_OR_EQUAL_TO_65535));
   }
 
   @Test

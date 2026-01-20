@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateAuthCodeConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateAuthCodeConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.AuthCodeConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.AuthCodeConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,9 +32,8 @@ public class AuthCodeConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createAuthCodeConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateAuthCodeConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateAuthCodeConfigRequestDto requestDto) {
     return authCodeConfigService
         .createAuthCodeConfig(tenantId, requestDto)
         .map(config -> AuthCodeConfigResponseDto.from(tenantId, config))
@@ -56,8 +55,8 @@ public class AuthCodeConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateAuthCodeConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateAuthCodeConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateAuthCodeConfigRequestDto requestDto) {
     requestDto.validate();
     return authCodeConfigService
         .updateAuthCodeConfig(tenantId, requestDto)

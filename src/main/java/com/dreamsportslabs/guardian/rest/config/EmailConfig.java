@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateEmailConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateEmailConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.EmailConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.EmailConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,9 +32,8 @@ public class EmailConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createEmailConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateEmailConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateEmailConfigRequestDto requestDto) {
     return emailConfigService
         .createEmailConfig(tenantId, requestDto)
         .map(config -> EmailConfigResponseDto.from(tenantId, config))
@@ -56,8 +55,8 @@ public class EmailConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateEmailConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateEmailConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateEmailConfigRequestDto requestDto) {
     requestDto.validate();
     return emailConfigService
         .updateEmailConfig(tenantId, requestDto)

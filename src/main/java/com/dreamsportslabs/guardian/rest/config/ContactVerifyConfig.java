@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateContactVerifyConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateContactVerifyConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.ContactVerifyConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.ContactVerifyConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,9 +32,8 @@ public class ContactVerifyConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createContactVerifyConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateContactVerifyConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateContactVerifyConfigRequestDto requestDto) {
     return contactVerifyConfigService
         .createContactVerifyConfig(tenantId, requestDto)
         .map(config -> ContactVerifyConfigResponseDto.from(tenantId, config))
@@ -57,8 +56,8 @@ public class ContactVerifyConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateContactVerifyConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateContactVerifyConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateContactVerifyConfigRequestDto requestDto) {
     requestDto.validate();
     return contactVerifyConfigService
         .updateContactVerifyConfig(tenantId, requestDto)

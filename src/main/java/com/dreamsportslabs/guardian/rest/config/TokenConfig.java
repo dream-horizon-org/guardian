@@ -1,11 +1,11 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTokenConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.TokenConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.TokenConfigService;
 import com.google.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -38,8 +38,8 @@ public class TokenConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateTokenConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateTokenConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateTokenConfigRequestDto requestDto) {
     requestDto.validate();
     return tokenConfigService
         .updateTokenConfig(tenantId, requestDto)

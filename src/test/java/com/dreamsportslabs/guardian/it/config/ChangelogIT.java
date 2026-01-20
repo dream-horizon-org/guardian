@@ -146,7 +146,7 @@ public class ChangelogIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("tenant_id cannot be null"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("tenant_id cannot be blank"));
   }
 
   @Test
@@ -162,7 +162,7 @@ public class ChangelogIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("limit must be between 1 and 100"));
+        equalTo("limit must be less than or equal to 100"));
   }
 
   @Test

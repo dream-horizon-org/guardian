@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateSmsConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateSmsConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.SmsConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.SmsConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,9 +32,8 @@ public class SmsConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createSmsConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateSmsConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateSmsConfigRequestDto requestDto) {
     return smsConfigService
         .createSmsConfig(tenantId, requestDto)
         .map(config -> SmsConfigResponseDto.from(tenantId, config))
@@ -56,8 +55,8 @@ public class SmsConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateSmsConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateSmsConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateSmsConfigRequestDto requestDto) {
     requestDto.validate();
     return smsConfigService
         .updateSmsConfig(tenantId, requestDto)

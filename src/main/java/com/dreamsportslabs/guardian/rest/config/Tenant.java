@@ -1,14 +1,14 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateTenantRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTenantRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.TenantResponseDto;
 import com.dreamsportslabs.guardian.service.config.TenantService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -23,7 +23,6 @@ import jakarta.ws.rs.core.Response;
 import java.util.concurrent.CompletionStage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
@@ -34,9 +33,7 @@ public class Tenant {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public CompletionStage<Response> createTenant(CreateTenantRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+  public CompletionStage<Response> createTenant(@Valid @NotNull CreateTenantRequestDto requestDto) {
     return tenantService
         .createTenant(requestDto)
         .map(TenantResponseDto::from)
@@ -57,10 +54,7 @@ public class Tenant {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public CompletionStage<Response> getTenantByName(@QueryParam("name") String name) {
-    if (StringUtils.isBlank(name)) {
-      throw INVALID_REQUEST.getCustomException("name query parameter is required");
-    }
+  public CompletionStage<Response> getTenantByName(@QueryParam("name") @NotBlank String name) {
     return tenantService
         .getTenantByName(name)
         .map(TenantResponseDto::from)
@@ -73,9 +67,7 @@ public class Tenant {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateTenant(
-      @PathParam("tenantId") String tenantId, UpdateTenantRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @PathParam("tenantId") String tenantId, @Valid @NotNull UpdateTenantRequestDto requestDto) {
     return tenantService
         .updateTenant(tenantId, requestDto)
         .map(TenantResponseDto::from)

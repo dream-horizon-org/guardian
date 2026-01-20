@@ -2,6 +2,9 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_HOST_CANNOT_BE_BLANK;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PORT_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_PORT_MUST_BE_LESS_THAN_OR_EQUAL_TO_65535;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
 import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
@@ -187,7 +190,8 @@ public class UserConfigIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("host cannot be blank"));
+        response.jsonPath().getString(ERROR + "." + MESSAGE),
+        equalTo(ERROR_MSG_HOST_CANNOT_BE_BLANK));
   }
 
   @Test
@@ -220,7 +224,7 @@ public class UserConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1));
   }
 
   @Test
@@ -236,7 +240,7 @@ public class UserConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo("port must be between 1 and 65535"));
+        equalTo(ERROR_MSG_PORT_MUST_BE_LESS_THAN_OR_EQUAL_TO_65535));
   }
 
   @Test

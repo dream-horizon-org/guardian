@@ -5,14 +5,11 @@ import static com.dreamsportslabs.guardian.Constants.ERROR;
 import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_TENANT_NAME_ALREADY_EXISTS;
 import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_TENANT_NOT_FOUND;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_ID_CANNOT_BE_BLANK;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_ID_REQUIRED;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_NAME_CANNOT_BE_BLANK;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_NAME_CANNOT_EXCEED_256;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_NAME_REQUIRED;
 import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_TENANT_NAME_ALREADY_EXISTS_PREFIX;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
-import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
 import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
 import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_ACCESS_TOKEN_CLAIMS;
@@ -173,8 +170,7 @@ public class TenantIT {
     Response response = createTenant(requestBody);
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
-    assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo(ERROR_MSG_ID_REQUIRED));
+    assertThat(response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("id cannot be blank"));
   }
 
   @Test
@@ -187,7 +183,7 @@ public class TenantIT {
 
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
-        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo(ERROR_MSG_NAME_REQUIRED));
+        response.jsonPath().getString(ERROR + "." + MESSAGE), equalTo("name cannot be blank"));
   }
 
   @Test
@@ -449,11 +445,7 @@ public class TenantIT {
 
     Response response = updateTenant(testTenantId, updateBody);
 
-    response
-        .then()
-        .statusCode(SC_BAD_REQUEST)
-        .rootPath(ERROR)
-        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
+    response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
   }
 
   @Test

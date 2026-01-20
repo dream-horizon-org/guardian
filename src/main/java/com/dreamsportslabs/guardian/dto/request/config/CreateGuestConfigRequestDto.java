@@ -1,8 +1,7 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.Getter;
 
@@ -12,12 +11,9 @@ public class CreateGuestConfigRequestDto {
   private Boolean isEncrypted;
 
   @JsonProperty("secret_key")
+  @Size(max = 16, message = "secret_key cannot exceed 16 characters")
   private String secretKey;
 
   @JsonProperty("allowed_scopes")
   private List<String> allowedScopes;
-
-  public void validate() {
-    validateString(secretKey, "secret_key", 16, false);
-  }
 }

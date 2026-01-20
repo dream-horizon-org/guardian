@@ -1,16 +1,16 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
-
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
 public class CreateTenantRequestDto {
+  @NotBlank(message = "id cannot be blank")
+  @Size(max = 10, message = "id cannot exceed 10 characters")
   private String id;
-  private String name;
 
-  public void validate() {
-    validateString(id, "id", 10, true);
-    validateString(name, "name", 256, true);
-  }
+  @NotBlank(message = "name cannot be blank")
+  @Size(max = 256, message = "name cannot exceed 256 characters")
+  private String name;
 }

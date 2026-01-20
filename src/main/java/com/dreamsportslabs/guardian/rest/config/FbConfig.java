@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateFbConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateFbConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.FbConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.FbConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,9 +32,8 @@ public class FbConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createFbConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateFbConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateFbConfigRequestDto requestDto) {
     return fbConfigService
         .createFbConfig(tenantId, requestDto)
         .map(config -> FbConfigResponseDto.from(tenantId, config))
@@ -56,8 +55,8 @@ public class FbConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateFbConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateFbConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateFbConfigRequestDto requestDto) {
     requestDto.validate();
     return fbConfigService
         .updateFbConfig(tenantId, requestDto)

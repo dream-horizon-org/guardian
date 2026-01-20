@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateOidcProviderConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateOidcProviderConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.OidcProviderConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.OidcProviderConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -33,9 +33,8 @@ public class OidcProviderConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createOidcProviderConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateOidcProviderConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateOidcProviderConfigRequestDto requestDto) {
     return oidcProviderConfigService
         .createOidcProviderConfig(tenantId, requestDto)
         .map(
@@ -62,8 +61,7 @@ public class OidcProviderConfig {
   public CompletionStage<Response> updateOidcProviderConfig(
       @HeaderParam("tenant-id") String tenantId,
       @QueryParam("provider_name") String providerName,
-      UpdateOidcProviderConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @Valid @NotNull UpdateOidcProviderConfigRequestDto requestDto) {
     requestDto.validate();
     return oidcProviderConfigService
         .updateOidcProviderConfig(tenantId, providerName, requestDto)

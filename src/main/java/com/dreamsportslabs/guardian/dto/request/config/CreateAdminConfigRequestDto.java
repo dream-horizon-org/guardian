@@ -1,16 +1,16 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
-
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
 public class CreateAdminConfigRequestDto {
+  @NotBlank(message = "username cannot be blank")
+  @Size(max = 50, message = "username cannot exceed 50 characters")
   private String username;
-  private String password;
 
-  public void validate() {
-    validateString(username, "username", 50, true);
-    validateString(password, "password", 50, true);
-  }
+  @NotBlank(message = "password cannot be blank")
+  @Size(max = 50, message = "password cannot exceed 50 characters")
+  private String password;
 }

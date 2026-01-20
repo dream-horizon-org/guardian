@@ -84,10 +84,10 @@ public class TenantService {
                                               null,
                                               tokenConfigModel,
                                               tenantId))
-                                      .andThen(Single.just(createdTenant)))
-                              .doOnSuccess(tenant -> tenantCache.invalidateCache(tenant.getId()));
+                                      .andThen(Single.just(createdTenant)));
                         })
                     .toMaybe())
+        .doOnSuccess(tenant -> tenantCache.invalidateCache(tenant.getId()))
         .switchIfEmpty(
             Single.<TenantModel>error(
                 INTERNAL_SERVER_ERROR.getCustomException("Failed to create tenant")));
@@ -129,8 +129,8 @@ public class TenantService {
                                       updatedTenant,
                                       tenantId))
                               .andThen(Single.just(updatedTenant))
-                              .doOnSuccess(tenant -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
+                  .doOnSuccess(tenant -> tenantCache.invalidateCache(tenantId))
                   .switchIfEmpty(
                       Single.<TenantModel>error(
                           INTERNAL_SERVER_ERROR.getCustomException("Failed to update tenant")));
@@ -163,8 +163,8 @@ public class TenantService {
                                           null,
                                           tenantId);
                                     })
-                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
+                    .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                     .ignoreElement());
   }
 }

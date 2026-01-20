@@ -3,6 +3,7 @@ package com.dreamsportslabs.guardian.rest;
 import com.dreamsportslabs.guardian.dto.request.GetChangelogRequestDto;
 import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.google.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -22,8 +23,8 @@ public class Changelog {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public CompletionStage<Response> getChangelog(@BeanParam GetChangelogRequestDto requestDto) {
-    requestDto.validate();
+  public CompletionStage<Response> getChangelog(
+      @Valid @BeanParam GetChangelogRequestDto requestDto) {
     return changelogService
         .getChangelogByTenant(
             requestDto.getTenantId(), requestDto.getLimit(), requestDto.getOffset())

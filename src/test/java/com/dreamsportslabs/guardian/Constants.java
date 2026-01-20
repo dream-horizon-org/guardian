@@ -759,6 +759,10 @@ public class Constants {
   public static final String ERROR_MSG_HOST_CANNOT_EXCEED_256 = "host cannot exceed 256 characters";
   public static final String ERROR_MSG_PORT_MUST_BE_BETWEEN_1_AND_65535 =
       "port must be between 1 and 65535";
+  public static final String ERROR_MSG_PORT_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1 =
+      "port must be greater than or equal to 1";
+  public static final String ERROR_MSG_PORT_MUST_BE_LESS_THAN_OR_EQUAL_TO_65535 =
+      "port must be less than or equal to 65535";
   public static final String ERROR_MSG_SEND_EMAIL_PATH_CANNOT_BE_BLANK =
       "send_email_path cannot be blank";
   public static final String ERROR_MSG_SEND_EMAIL_PATH_CANNOT_EXCEED_256 =

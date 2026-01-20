@@ -53,8 +53,8 @@ public class OidcProviderConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
-                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
+        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
         .switchIfEmpty(
             Single.error(
                 INTERNAL_SERVER_ERROR.getCustomException("Failed to create OIDC provider config")));
@@ -93,8 +93,8 @@ public class OidcProviderConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
-                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
+                  .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                   .switchIfEmpty(
                       Single.error(
                           INTERNAL_SERVER_ERROR.getCustomException(
@@ -129,8 +129,8 @@ public class OidcProviderConfigService {
                                           null,
                                           tenantId);
                                     })
-                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
+                    .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                     .ignoreElement());
   }
 

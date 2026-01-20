@@ -51,8 +51,8 @@ public class SmsConfigService {
                                     createdConfig,
                                     tenantId)
                                 .andThen(Single.just(createdConfig)))
-                    .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                     .toMaybe())
+        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
         .switchIfEmpty(
             Single.<SmsConfigModel>error(
                 INTERNAL_SERVER_ERROR.getCustomException("Failed to create SMS config")));
@@ -88,8 +88,8 @@ public class SmsConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
-                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
+                  .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                   .switchIfEmpty(
                       Single.<SmsConfigModel>error(
                           INTERNAL_SERVER_ERROR.getCustomException("Failed to update SMS config")));
@@ -123,8 +123,8 @@ public class SmsConfigService {
                                           null,
                                           tenantId);
                                     })
-                                .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                                 .toMaybe())
+                    .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
                     .ignoreElement());
   }
 

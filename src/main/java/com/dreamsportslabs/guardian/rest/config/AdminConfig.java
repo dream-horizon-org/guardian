@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateAdminConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateAdminConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.AdminConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.AdminConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,9 +32,8 @@ public class AdminConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createAdminConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateAdminConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateAdminConfigRequestDto requestDto) {
     return adminConfigService
         .createAdminConfig(tenantId, requestDto)
         .map(config -> AdminConfigResponseDto.from(tenantId, config))
@@ -56,8 +55,8 @@ public class AdminConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateAdminConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateAdminConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateAdminConfigRequestDto requestDto) {
     requestDto.validate();
     return adminConfigService
         .updateAdminConfig(tenantId, requestDto)

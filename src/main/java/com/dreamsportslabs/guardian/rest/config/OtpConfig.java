@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateOtpConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateOtpConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.OtpConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.OtpConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,9 +32,8 @@ public class OtpConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createOtpConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateOtpConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateOtpConfigRequestDto requestDto) {
     return otpConfigService
         .createOtpConfig(tenantId, requestDto)
         .map(config -> OtpConfigResponseDto.from(tenantId, config))
@@ -56,8 +55,8 @@ public class OtpConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateOtpConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateOtpConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateOtpConfigRequestDto requestDto) {
     requestDto.validate();
     return otpConfigService
         .updateOtpConfig(tenantId, requestDto)

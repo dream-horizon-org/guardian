@@ -42,10 +42,7 @@ public class UserConfigService {
 
   public Completable createDefaultUserConfig(SqlConnection client, String tenantId) {
     UserConfigModel userConfigModel = buildDefaultUserConfig(tenantId);
-    return userConfigDao
-        .createUserConfig(client, tenantId, userConfigModel)
-        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
-        .ignoreElement();
+    return userConfigDao.createUserConfig(client, tenantId, userConfigModel).ignoreElement();
   }
 
   public Single<UserConfigModel> getUserConfig(String tenantId) {
@@ -78,8 +75,8 @@ public class UserConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
-                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
+                  .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                   .switchIfEmpty(
                       Single.<UserConfigModel>error(
                           INTERNAL_SERVER_ERROR.getCustomException(

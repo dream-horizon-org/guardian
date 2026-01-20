@@ -1,16 +1,12 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
-
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
 public class UpdateTenantRequestDto {
+  @NotBlank(message = "name cannot be blank")
+  @Size(max = 256, message = "name cannot exceed 256 characters")
   private String name;
-
-  public void validate() {
-    requireAtLeastOneField(name);
-    validateString(name, "name", 256, true);
-  }
 }

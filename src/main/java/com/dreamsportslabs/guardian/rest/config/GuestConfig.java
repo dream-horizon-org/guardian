@@ -1,13 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireRequestBody;
-
 import com.dreamsportslabs.guardian.dto.request.config.CreateGuestConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateGuestConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.GuestConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.GuestConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,9 +32,8 @@ public class GuestConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createGuestConfig(
-      @HeaderParam("tenant-id") String tenantId, CreateGuestConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
-    requestDto.validate();
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull CreateGuestConfigRequestDto requestDto) {
     return guestConfigService
         .createGuestConfig(tenantId, requestDto)
         .map(config -> GuestConfigResponseDto.from(tenantId, config))
@@ -56,8 +55,8 @@ public class GuestConfig {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateGuestConfig(
-      @HeaderParam("tenant-id") String tenantId, UpdateGuestConfigRequestDto requestDto) {
-    requireRequestBody(requestDto);
+      @HeaderParam("tenant-id") String tenantId,
+      @Valid @NotNull UpdateGuestConfigRequestDto requestDto) {
     requestDto.validate();
     return guestConfigService
         .updateGuestConfig(tenantId, requestDto)

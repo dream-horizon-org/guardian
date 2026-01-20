@@ -1,18 +1,22 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
+import static com.dreamsportslabs.guardian.utils.Utils.requireAtLeastOneField;
+import static com.dreamsportslabs.guardian.utils.Utils.requireNonBlankIfPresent;
 
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
 public class UpdateAdminConfigRequestDto {
+  @Size(max = 50, message = "username cannot exceed 50 characters")
   private String username;
+
+  @Size(max = 50, message = "password cannot exceed 50 characters")
   private String password;
 
   public void validate() {
     requireAtLeastOneField(username, password);
-    validateString(username, "username", 50, false);
-    validateString(password, "password", 50, false);
+    requireNonBlankIfPresent(username, "username");
+    requireNonBlankIfPresent(password, "password");
   }
 }

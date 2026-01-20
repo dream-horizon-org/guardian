@@ -57,10 +57,7 @@ public class TokenConfigService {
 
   public Completable createDefaultTokenConfig(SqlConnection client, String tenantId) {
     TokenConfigModel tokenConfigModel = buildDefaultTokenConfig(tenantId);
-    return tokenConfigDao
-        .createTokenConfig(client, tenantId, tokenConfigModel)
-        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
-        .ignoreElement();
+    return tokenConfigDao.createTokenConfig(client, tenantId, tokenConfigModel).ignoreElement();
   }
 
   public Single<TokenConfigModel> getTokenConfig(String tenantId) {
@@ -93,8 +90,8 @@ public class TokenConfigService {
                                       updatedConfig,
                                       tenantId))
                               .andThen(Single.just(updatedConfig))
-                              .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                               .toMaybe())
+                  .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
                   .switchIfEmpty(
                       Single.<TokenConfigModel>error(
                           INTERNAL_SERVER_ERROR.getCustomException(

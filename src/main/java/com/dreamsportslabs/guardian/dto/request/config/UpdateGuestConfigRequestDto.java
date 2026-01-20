@@ -1,9 +1,9 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.requireAtLeastOneField;
-import static com.dreamsportslabs.guardian.utils.DtoValidationUtil.validateString;
+import static com.dreamsportslabs.guardian.utils.Utils.requireAtLeastOneField;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.Getter;
 
@@ -13,6 +13,7 @@ public class UpdateGuestConfigRequestDto {
   private Boolean isEncrypted;
 
   @JsonProperty("secret_key")
+  @Size(max = 16, message = "secret_key cannot exceed 16 characters")
   private String secretKey;
 
   @JsonProperty("allowed_scopes")
@@ -20,6 +21,5 @@ public class UpdateGuestConfigRequestDto {
 
   public void validate() {
     requireAtLeastOneField(isEncrypted, secretKey, allowedScopes);
-    validateString(secretKey, "secret_key", 16, false);
   }
 }
