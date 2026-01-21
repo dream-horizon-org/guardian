@@ -1,39 +1,24 @@
 package com.dreamsportslabs.guardian.dto.response.config;
 
 import com.dreamsportslabs.guardian.dao.model.config.UserConfigModel;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Getter;
 
 @Builder
 @Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UserConfigResponseDto {
-  @JsonProperty("tenant_id")
   private String tenantId;
-
-  @JsonProperty("is_ssl_enabled")
   private Boolean isSslEnabled;
-
   private String host;
-
   private Integer port;
-
-  @JsonProperty("get_user_path")
   private String getUserPath;
-
-  @JsonProperty("create_user_path")
   private String createUserPath;
-
-  @JsonProperty("authenticate_user_path")
   private String authenticateUserPath;
-
-  @JsonProperty("add_provider_path")
   private String addProviderPath;
-
-  @JsonProperty("update_user_path")
   private String updateUserPath;
-
-  @JsonProperty("send_provider_details")
   private Boolean sendProviderDetails;
 
   public static UserConfigResponseDto from(String tenantId, UserConfigModel model) {

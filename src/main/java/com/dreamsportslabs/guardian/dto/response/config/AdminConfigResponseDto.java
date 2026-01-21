@@ -1,16 +1,16 @@
 package com.dreamsportslabs.guardian.dto.response.config;
 
 import com.dreamsportslabs.guardian.dao.model.config.AdminConfigModel;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Getter;
 
 @Builder
 @Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class AdminConfigResponseDto {
-  @JsonProperty("tenant_id")
   private String tenantId;
-
   private String username;
   private String password;
 

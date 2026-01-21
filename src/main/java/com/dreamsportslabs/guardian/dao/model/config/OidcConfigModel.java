@@ -5,7 +5,6 @@ import com.dreamsportslabs.guardian.constant.OidcIdTokenSigningAlgValue;
 import com.dreamsportslabs.guardian.constant.OidcResponseType;
 import com.dreamsportslabs.guardian.constant.OidcSubjectType;
 import com.dreamsportslabs.guardian.constant.OidcTokenEndpointAuthMethod;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +13,6 @@ import lombok.extern.jackson.Jacksonized;
 @Getter
 @Builder
 @Jacksonized
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OidcConfigModel {
   private String tenantId;
   private String issuer;

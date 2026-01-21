@@ -1,15 +1,6 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_OTP_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_OTP_MOCKED;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_LENGTH;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_RESEND_INTERVAL;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_SEND_BLOCK_SECONDS;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_SEND_WINDOW_MAX_COUNT;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_SEND_WINDOW_SECONDS;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_VALIDITY;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_RESEND_LIMIT;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TRY_LIMIT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
@@ -138,18 +129,15 @@ public class OtpConfigService {
 
   private OtpConfigModel mapToOtpConfigModel(CreateOtpConfigRequestDto requestDto) {
     return OtpConfigModel.builder()
-        .isOtpMocked(coalesce(requestDto.getIsOtpMocked(), DEFAULT_IS_OTP_MOCKED))
-        .otpLength(coalesce(requestDto.getOtpLength(), DEFAULT_OTP_LENGTH))
-        .tryLimit(coalesce(requestDto.getTryLimit(), DEFAULT_TRY_LIMIT))
-        .resendLimit(coalesce(requestDto.getResendLimit(), DEFAULT_RESEND_LIMIT))
-        .otpResendInterval(coalesce(requestDto.getOtpResendInterval(), DEFAULT_OTP_RESEND_INTERVAL))
-        .otpValidity(coalesce(requestDto.getOtpValidity(), DEFAULT_OTP_VALIDITY))
-        .otpSendWindowSeconds(
-            coalesce(requestDto.getOtpSendWindowSeconds(), DEFAULT_OTP_SEND_WINDOW_SECONDS))
-        .otpSendWindowMaxCount(
-            coalesce(requestDto.getOtpSendWindowMaxCount(), DEFAULT_OTP_SEND_WINDOW_MAX_COUNT))
-        .otpSendBlockSeconds(
-            coalesce(requestDto.getOtpSendBlockSeconds(), DEFAULT_OTP_SEND_BLOCK_SECONDS))
+        .isOtpMocked(requestDto.getIsOtpMocked())
+        .otpLength(requestDto.getOtpLength())
+        .tryLimit(requestDto.getTryLimit())
+        .resendLimit(requestDto.getResendLimit())
+        .otpResendInterval(requestDto.getOtpResendInterval())
+        .otpValidity(requestDto.getOtpValidity())
+        .otpSendWindowSeconds(requestDto.getOtpSendWindowSeconds())
+        .otpSendWindowMaxCount(requestDto.getOtpSendWindowMaxCount())
+        .otpSendBlockSeconds(requestDto.getOtpSendBlockSeconds())
         .whitelistedInputs(requestDto.getWhitelistedInputs())
         .build();
   }

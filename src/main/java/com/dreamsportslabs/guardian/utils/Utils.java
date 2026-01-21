@@ -6,7 +6,6 @@ import static com.dreamsportslabs.guardian.constant.Constants.BASIC_AUTHENTICATI
 import static com.dreamsportslabs.guardian.constant.Constants.USER_AGENT;
 import static com.dreamsportslabs.guardian.constant.Constants.X_FORWARDED_FOR;
 import static com.dreamsportslabs.guardian.constant.Constants.prohibitedForwardingHeaders;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.UNAUTHORIZED;
 import static com.dreamsportslabs.guardian.exception.OidcErrorEnum.INVALID_TOKEN;
@@ -243,12 +242,6 @@ public final class Utils {
   public static void requireAtLeastOneField(Object... fields) {
     if (Stream.of(fields).allMatch(Objects::isNull)) {
       throw NO_FIELDS_TO_UPDATE.getException();
-    }
-  }
-
-  public static void requireNonBlankIfPresent(String value, String fieldName) {
-    if (value != null && StringUtils.isBlank(value)) {
-      throw INVALID_REQUEST.getCustomException(String.format("%s cannot be blank", fieldName));
     }
   }
 }

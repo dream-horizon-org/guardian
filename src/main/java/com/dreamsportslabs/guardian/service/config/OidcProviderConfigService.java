@@ -1,8 +1,6 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_OIDC_PROVIDER_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OIDC_PROVIDER_IS_SSL_ENABLED;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_IDENTIFIER;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
@@ -144,8 +142,8 @@ public class OidcProviderConfigService {
         .clientSecret(requestDto.getClientSecret())
         .redirectUri(requestDto.getRedirectUri())
         .clientAuthMethod(requestDto.getClientAuthMethod())
-        .isSslEnabled(coalesce(requestDto.getIsSslEnabled(), DEFAULT_OIDC_PROVIDER_IS_SSL_ENABLED))
-        .userIdentifier(coalesce(requestDto.getUserIdentifier(), DEFAULT_USER_IDENTIFIER))
+        .isSslEnabled(requestDto.getIsSslEnabled())
+        .userIdentifier(requestDto.getUserIdentifier())
         .audienceClaims(requestDto.getAudienceClaims())
         .build();
   }

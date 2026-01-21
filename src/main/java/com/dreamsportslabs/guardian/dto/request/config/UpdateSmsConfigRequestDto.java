@@ -1,9 +1,10 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
 import static com.dreamsportslabs.guardian.utils.Utils.requireAtLeastOneField;
-import static com.dreamsportslabs.guardian.utils.Utils.requireNonBlankIfPresent;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.dreamsportslabs.guardian.validation.annotation.NotBlankIfPresent;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
@@ -11,10 +12,11 @@ import java.util.HashMap;
 import lombok.Getter;
 
 @Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UpdateSmsConfigRequestDto {
-  @JsonProperty("is_ssl_enabled")
   private Boolean isSslEnabled;
 
+  @NotBlankIfPresent(message = "host cannot be blank")
   @Size(max = 256, message = "host cannot exceed 256 characters")
   private String host;
 
@@ -22,22 +24,17 @@ public class UpdateSmsConfigRequestDto {
   @Max(value = 65535, message = "port must be less than or equal to 65535")
   private Integer port;
 
-  @JsonProperty("send_sms_path")
+  @NotBlankIfPresent(message = "send_sms_path cannot be blank")
   @Size(max = 256, message = "send_sms_path cannot exceed 256 characters")
   private String sendSmsPath;
 
-  @JsonProperty("template_name")
+  @NotBlankIfPresent(message = "template_name cannot be blank")
   @Size(max = 256, message = "template_name cannot exceed 256 characters")
   private String templateName;
 
-  @JsonProperty("template_params")
   private HashMap<String, String> templateParams;
 
   public void validate() {
     requireAtLeastOneField(isSslEnabled, host, port, sendSmsPath, templateName, templateParams);
-
-    requireNonBlankIfPresent(host, "host");
-    requireNonBlankIfPresent(sendSmsPath, "send_sms_path");
-    requireNonBlankIfPresent(templateName, "template_name");
   }
 }

@@ -1,31 +1,22 @@
 package com.dreamsportslabs.guardian.dto.response.config;
 
 import com.dreamsportslabs.guardian.dao.model.config.SmsConfigModel;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.util.HashMap;
 import lombok.Builder;
 import lombok.Getter;
 
 @Builder
 @Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class SmsConfigResponseDto {
-  @JsonProperty("tenant_id")
   private String tenantId;
-
-  @JsonProperty("is_ssl_enabled")
   private Boolean isSslEnabled;
-
   private String host;
-
   private Integer port;
-
-  @JsonProperty("send_sms_path")
   private String sendSmsPath;
-
-  @JsonProperty("template_name")
   private String templateName;
-
-  @JsonProperty("template_params")
   private HashMap<String, String> templateParams;
 
   public static SmsConfigResponseDto from(String tenantId, SmsConfigModel model) {

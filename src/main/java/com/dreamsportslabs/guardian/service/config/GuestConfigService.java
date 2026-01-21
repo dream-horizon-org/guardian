@@ -1,7 +1,6 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_GUEST_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_ENCRYPTED;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
@@ -19,7 +18,6 @@ import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -132,9 +130,9 @@ public class GuestConfigService {
 
   private GuestConfigModel mapToGuestConfigModel(CreateGuestConfigRequestDto requestDto) {
     return GuestConfigModel.builder()
-        .isEncrypted(coalesce(requestDto.getIsEncrypted(), DEFAULT_IS_ENCRYPTED))
+        .isEncrypted(requestDto.getIsEncrypted())
         .secretKey(requestDto.getSecretKey())
-        .allowedScopes(coalesce(requestDto.getAllowedScopes(), List.of()))
+        .allowedScopes(requestDto.getAllowedScopes())
         .build();
   }
 

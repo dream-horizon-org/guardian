@@ -149,7 +149,7 @@ public class OidcProviderConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_ISSUER_CANNOT_BE_BLANK));
+        equalTo("issuer must be a valid HTTP/HTTPS URL"));
   }
 
   @Test
@@ -165,7 +165,7 @@ public class OidcProviderConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_JWKS_URL_CANNOT_BE_BLANK));
+        equalTo("jwks_url must be a valid HTTP/HTTPS URL"));
   }
 
   @Test
@@ -181,7 +181,7 @@ public class OidcProviderConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_TOKEN_URL_CANNOT_BE_BLANK));
+        equalTo("token_url must be a valid HTTP/HTTPS URL"));
   }
 
   @Test
@@ -245,7 +245,7 @@ public class OidcProviderConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_REDIRECT_URI_CANNOT_BE_BLANK));
+        equalTo("redirect_uri must be a valid HTTP/HTTPS URL"));
   }
 
   @Test

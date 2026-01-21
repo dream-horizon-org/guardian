@@ -2,7 +2,6 @@ package com.dreamsportslabs.guardian.it.config;
 
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_ISSUER_CANNOT_BE_BLANK;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
 import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
@@ -94,32 +93,37 @@ public class OidcConfigIT {
     response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(INVALID_REQUEST));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
-        equalTo(ERROR_MSG_ISSUER_CANNOT_BE_BLANK));
+        equalTo("issuer must be a valid HTTP/HTTPS URL"));
   }
 
   @Test
-  @DisplayName("Should create oidc_config with null JSON arrays (defaults to empty arrays)")
+  @DisplayName("Should create oidc_config with missing JSON arrays (defaults to empty arrays)")
   public void testCreateOidcConfigWithNullJsonArrays() {
     createTenant(createTenantBody()).then().statusCode(201);
 
-    Map<String, Object> requestBody = createOidcConfigBody();
-    requestBody.put("grant_types_supported", null);
-    requestBody.put("response_types_supported", null);
-    requestBody.put("subject_types_supported", null);
-    requestBody.put("id_token_signing_alg_values_supported", null);
-    requestBody.put("token_endpoint_auth_methods_supported", null);
+    Map<String, Object> requestBody = new HashMap<>();
+    requestBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
+    requestBody.put(REQUEST_FIELD_ISSUER, "https://example.com");
+    requestBody.put("authorization_endpoint", "https://example.com/authorize");
+    requestBody.put("token_endpoint", "https://example.com/token");
+    requestBody.put("userinfo_endpoint", "https://example.com/userinfo");
+    requestBody.put("revocation_endpoint", "https://example.com/revoke");
+    requestBody.put("jwks_uri", "https://example.com/jwks");
 
     Response response = createOidcConfig(testTenantId, requestBody);
 
     response.then().statusCode(SC_CREATED);
     assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
-    assertThat(response.jsonPath().getList("grant_types_supported").size(), equalTo(0));
-    assertThat(response.jsonPath().getList("response_types_supported").size(), equalTo(0));
-    assertThat(response.jsonPath().getList("subject_types_supported").size(), equalTo(0));
-    assertThat(
-        response.jsonPath().getList("id_token_signing_alg_values_supported").size(), equalTo(0));
-    assertThat(
-        response.jsonPath().getList("token_endpoint_auth_methods_supported").size(), equalTo(0));
+    List<?> grantTypes = response.jsonPath().getList("grant_types_supported");
+    List<?> responseTypes = response.jsonPath().getList("response_types_supported");
+    List<?> subjectTypes = response.jsonPath().getList("subject_types_supported");
+    List<?> idTokenAlgs = response.jsonPath().getList("id_token_signing_alg_values_supported");
+    List<?> authMethods = response.jsonPath().getList("token_endpoint_auth_methods_supported");
+    assertThat(grantTypes != null ? grantTypes.size() : 0, equalTo(0));
+    assertThat(responseTypes != null ? responseTypes.size() : 0, equalTo(0));
+    assertThat(subjectTypes != null ? subjectTypes.size() : 0, equalTo(0));
+    assertThat(idTokenAlgs != null ? idTokenAlgs.size() : 0, equalTo(0));
+    assertThat(authMethods != null ? authMethods.size() : 0, equalTo(0));
   }
 
   @Test

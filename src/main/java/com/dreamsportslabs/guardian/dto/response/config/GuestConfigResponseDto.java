@@ -1,24 +1,19 @@
 package com.dreamsportslabs.guardian.dto.response.config;
 
 import com.dreamsportslabs.guardian.dao.model.config.GuestConfigModel;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
 @Builder
 @Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class GuestConfigResponseDto {
-  @JsonProperty("tenant_id")
   private String tenantId;
-
-  @JsonProperty("is_encrypted")
   private Boolean isEncrypted;
-
-  @JsonProperty("secret_key")
   private String secretKey;
-
-  @JsonProperty("allowed_scopes")
   private List<String> allowedScopes;
 
   public static GuestConfigResponseDto from(String tenantId, GuestConfigModel model) {

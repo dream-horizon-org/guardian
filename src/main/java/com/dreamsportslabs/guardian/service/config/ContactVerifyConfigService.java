@@ -1,12 +1,6 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_CONTACT_VERIFY_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_OTP_MOCKED;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_LENGTH;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_RESEND_INTERVAL;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_OTP_VALIDITY;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_RESEND_LIMIT;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TRY_LIMIT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
@@ -24,7 +18,6 @@ import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -140,13 +133,13 @@ public class ContactVerifyConfigService {
   private ContactVerifyConfigModel mapToContactVerifyConfigModel(
       CreateContactVerifyConfigRequestDto requestDto) {
     return ContactVerifyConfigModel.builder()
-        .isOtpMocked(coalesce(requestDto.getIsOtpMocked(), DEFAULT_IS_OTP_MOCKED))
-        .otpLength(coalesce(requestDto.getOtpLength(), DEFAULT_OTP_LENGTH))
-        .tryLimit(coalesce(requestDto.getTryLimit(), DEFAULT_TRY_LIMIT))
-        .resendLimit(coalesce(requestDto.getResendLimit(), DEFAULT_RESEND_LIMIT))
-        .otpResendInterval(coalesce(requestDto.getOtpResendInterval(), DEFAULT_OTP_RESEND_INTERVAL))
-        .otpValidity(coalesce(requestDto.getOtpValidity(), DEFAULT_OTP_VALIDITY))
-        .whitelistedInputs(coalesce(requestDto.getWhitelistedInputs(), new HashMap<>()))
+        .isOtpMocked(requestDto.getIsOtpMocked())
+        .otpLength(requestDto.getOtpLength())
+        .tryLimit(requestDto.getTryLimit())
+        .resendLimit(requestDto.getResendLimit())
+        .otpResendInterval(requestDto.getOtpResendInterval())
+        .otpValidity(requestDto.getOtpValidity())
+        .whitelistedInputs(requestDto.getWhitelistedInputs())
         .build();
   }
 

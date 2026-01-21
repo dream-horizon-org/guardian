@@ -108,7 +108,6 @@ public class GuestConfigIT {
 
     Map<String, Object> requestBody = new HashMap<>();
     requestBody.put(REQUEST_FIELD_TENANT_ID, testTenantId);
-    requestBody.put(REQUEST_FIELD_ALLOWED_SCOPES, null);
 
     Response response = createGuestConfig(testTenantId, requestBody);
 

@@ -1,7 +1,6 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_FB_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_SEND_APP_SECRET;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
@@ -131,7 +130,7 @@ public class FbConfigService {
     return FbConfigModel.builder()
         .appId(requestDto.getAppId())
         .appSecret(requestDto.getAppSecret())
-        .sendAppSecret(coalesce(requestDto.getSendAppSecret(), DEFAULT_SEND_APP_SECRET))
+        .sendAppSecret(requestDto.getSendAppSecret())
         .build();
   }
 

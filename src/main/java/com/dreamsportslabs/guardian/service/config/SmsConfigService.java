@@ -1,7 +1,6 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_SMS_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_SSL_ENABLED;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
@@ -130,7 +129,7 @@ public class SmsConfigService {
 
   private SmsConfigModel mapToSmsConfigModel(CreateSmsConfigRequestDto requestDto) {
     return SmsConfigModel.builder()
-        .isSslEnabled(coalesce(requestDto.getIsSslEnabled(), DEFAULT_IS_SSL_ENABLED))
+        .isSslEnabled(requestDto.getIsSslEnabled())
         .host(requestDto.getHost())
         .port(requestDto.getPort())
         .sendSmsPath(requestDto.getSendSmsPath())

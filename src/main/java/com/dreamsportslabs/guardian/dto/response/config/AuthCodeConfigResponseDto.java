@@ -1,16 +1,16 @@
 package com.dreamsportslabs.guardian.dto.response.config;
 
 import com.dreamsportslabs.guardian.dao.model.config.AuthCodeConfigModel;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Getter;
 
 @Builder
 @Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class AuthCodeConfigResponseDto {
-  @JsonProperty("tenant_id")
   private String tenantId;
-
   private Integer ttl;
   private Integer length;
 

@@ -1,8 +1,6 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_EMAIL_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_EMAIL_CONFIG_PORT;
-import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_SSL_ENABLED;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
 import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
@@ -132,9 +130,9 @@ public class EmailConfigService {
 
   private EmailConfigModel mapToEmailConfigModel(CreateEmailConfigRequestDto requestDto) {
     return EmailConfigModel.builder()
-        .isSslEnabled(coalesce(requestDto.getIsSslEnabled(), DEFAULT_IS_SSL_ENABLED))
+        .isSslEnabled(requestDto.getIsSslEnabled())
         .host(requestDto.getHost())
-        .port(coalesce(requestDto.getPort(), DEFAULT_EMAIL_CONFIG_PORT))
+        .port(requestDto.getPort())
         .sendEmailPath(requestDto.getSendEmailPath())
         .templateName(requestDto.getTemplateName())
         .templateParams(requestDto.getTemplateParams())

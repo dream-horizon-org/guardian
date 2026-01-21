@@ -18,7 +18,6 @@ import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -136,13 +135,11 @@ public class OidcConfigService {
         .userinfoEndpoint(requestDto.getUserinfoEndpoint())
         .revocationEndpoint(requestDto.getRevocationEndpoint())
         .jwksUri(requestDto.getJwksUri())
-        .grantTypesSupported(coalesce(requestDto.getGrantTypesSupported(), List.of()))
-        .responseTypesSupported(coalesce(requestDto.getResponseTypesSupported(), List.of()))
-        .subjectTypesSupported(coalesce(requestDto.getSubjectTypesSupported(), List.of()))
-        .idTokenSigningAlgValuesSupported(
-            coalesce(requestDto.getIdTokenSigningAlgValuesSupported(), List.of()))
-        .tokenEndpointAuthMethodsSupported(
-            coalesce(requestDto.getTokenEndpointAuthMethodsSupported(), List.of()))
+        .grantTypesSupported(requestDto.getGrantTypesSupported())
+        .responseTypesSupported(requestDto.getResponseTypesSupported())
+        .subjectTypesSupported(requestDto.getSubjectTypesSupported())
+        .idTokenSigningAlgValuesSupported(requestDto.getIdTokenSigningAlgValuesSupported())
+        .tokenEndpointAuthMethodsSupported(requestDto.getTokenEndpointAuthMethodsSupported())
         .loginPageUri(requestDto.getLoginPageUri())
         .consentPageUri(requestDto.getConsentPageUri())
         .authorizeTtl(requestDto.getAuthorizeTtl())

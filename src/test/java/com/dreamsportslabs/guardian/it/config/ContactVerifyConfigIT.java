@@ -199,7 +199,6 @@ public class ContactVerifyConfigIT {
     createTenant(createTenantBody()).then().statusCode(201);
 
     Map<String, Object> requestBody = createContactVerifyConfigBody();
-    requestBody.put(REQUEST_FIELD_WHITELISTED_INPUTS, null);
 
     Response response = createContactVerifyConfig(testTenantId, requestBody);
 

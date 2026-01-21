@@ -1,7 +1,6 @@
 package com.dreamsportslabs.guardian.dao.model.config;
 
 import com.dreamsportslabs.guardian.constant.ClientAuthMethod;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +9,6 @@ import lombok.extern.jackson.Jacksonized;
 @Getter
 @Builder
 @Jacksonized
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OidcProviderConfigModel {
   private String tenantId;
   private String providerName;

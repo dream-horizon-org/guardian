@@ -1,6 +1,10 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_EMAIL_CONFIG_PORT;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_IS_SSL_ENABLED;
+
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -10,29 +14,27 @@ import java.util.HashMap;
 import lombok.Getter;
 
 @Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CreateEmailConfigRequestDto {
   @NotBlank(message = "host cannot be blank")
   @Size(max = 256, message = "host cannot exceed 256 characters")
   private String host;
 
+  @NotNull
   @Min(value = 1, message = "port must be greater than or equal to 1")
   @Max(value = 65535, message = "port must be less than or equal to 65535")
-  private Integer port;
+  private Integer port = DEFAULT_EMAIL_CONFIG_PORT;
 
-  @JsonProperty("send_email_path")
   @NotBlank(message = "send_email_path cannot be blank")
   @Size(max = 256, message = "send_email_path cannot exceed 256 characters")
   private String sendEmailPath;
 
-  @JsonProperty("is_ssl_enabled")
-  private Boolean isSslEnabled;
+  @NotNull private Boolean isSslEnabled = DEFAULT_IS_SSL_ENABLED;
 
-  @JsonProperty("template_name")
   @NotBlank(message = "template_name cannot be blank")
   @Size(max = 256, message = "template_name cannot exceed 256 characters")
   private String templateName;
 
-  @JsonProperty("template_params")
   @NotNull(message = "template_params cannot be null")
   private HashMap<String, String> templateParams;
 }

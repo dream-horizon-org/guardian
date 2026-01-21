@@ -1,29 +1,27 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
 import static com.dreamsportslabs.guardian.utils.Utils.requireAtLeastOneField;
-import static com.dreamsportslabs.guardian.utils.Utils.requireNonBlankIfPresent;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.dreamsportslabs.guardian.validation.annotation.NotBlankIfPresent;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UpdateFbConfigRequestDto {
-  @JsonProperty("app_id")
+  @NotBlankIfPresent(message = "app_id cannot be blank")
   @Size(max = 256, message = "app_id cannot exceed 256 characters")
   private String appId;
 
-  @JsonProperty("app_secret")
+  @NotBlankIfPresent(message = "app_secret cannot be blank")
   @Size(max = 256, message = "app_secret cannot exceed 256 characters")
   private String appSecret;
 
-  @JsonProperty("send_app_secret")
   private Boolean sendAppSecret;
 
   public void validate() {
     requireAtLeastOneField(appId, appSecret, sendAppSecret);
-
-    requireNonBlankIfPresent(appId, "app_id");
-    requireNonBlankIfPresent(appSecret, "app_secret");
   }
 }

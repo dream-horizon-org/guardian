@@ -1,19 +1,21 @@
 package com.dreamsportslabs.guardian.dto.request.config;
 
 import static com.dreamsportslabs.guardian.utils.Utils.requireAtLeastOneField;
-import static com.dreamsportslabs.guardian.utils.Utils.requireNonBlankIfPresent;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.dreamsportslabs.guardian.validation.annotation.NotBlankIfPresent;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UpdateUserConfigRequestDto {
-  @JsonProperty("is_ssl_enabled")
   private Boolean isSslEnabled;
 
+  @NotBlankIfPresent(message = "host cannot be blank")
   @Size(max = 256, message = "host cannot exceed 256 characters")
   private String host;
 
@@ -21,27 +23,26 @@ public class UpdateUserConfigRequestDto {
   @Max(value = 65535, message = "port must be less than or equal to 65535")
   private Integer port;
 
-  @JsonProperty("get_user_path")
+  @NotBlankIfPresent(message = "get_user_path cannot be blank")
   @Size(max = 256, message = "get_user_path cannot exceed 256 characters")
   private String getUserPath;
 
-  @JsonProperty("create_user_path")
+  @NotBlankIfPresent(message = "create_user_path cannot be blank")
   @Size(max = 256, message = "create_user_path cannot exceed 256 characters")
   private String createUserPath;
 
-  @JsonProperty("authenticate_user_path")
+  @NotBlankIfPresent(message = "authenticate_user_path cannot be blank")
   @Size(max = 256, message = "authenticate_user_path cannot exceed 256 characters")
   private String authenticateUserPath;
 
-  @JsonProperty("add_provider_path")
+  @NotBlankIfPresent(message = "add_provider_path cannot be blank")
   @Size(max = 256, message = "add_provider_path cannot exceed 256 characters")
   private String addProviderPath;
 
-  @JsonProperty("update_user_path")
+  @NotBlankIfPresent(message = "update_user_path cannot be blank")
   @Size(max = 256, message = "update_user_path cannot exceed 256 characters")
   private String updateUserPath;
 
-  @JsonProperty("send_provider_details")
   private Boolean sendProviderDetails;
 
   public void validate() {
@@ -55,12 +56,5 @@ public class UpdateUserConfigRequestDto {
         addProviderPath,
         updateUserPath,
         sendProviderDetails);
-
-    requireNonBlankIfPresent(host, "host");
-    requireNonBlankIfPresent(getUserPath, "get_user_path");
-    requireNonBlankIfPresent(createUserPath, "create_user_path");
-    requireNonBlankIfPresent(authenticateUserPath, "authenticate_user_path");
-    requireNonBlankIfPresent(addProviderPath, "add_provider_path");
-    requireNonBlankIfPresent(updateUserPath, "update_user_path");
   }
 }
