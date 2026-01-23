@@ -1,73 +1,62 @@
 package com.dreamsportslabs.guardian.dao.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_FB_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.FbConfigQuery.CREATE_FB_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.FbConfigQuery.DELETE_FB_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.FbConfigQuery.GET_FB_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.FbConfigQuery.UPDATE_FB_CONFIG;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.FB_CONFIG_ALREADY_EXISTS;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.model.config.FbConfigModel;
-import com.dreamsportslabs.guardian.utils.JsonUtils;
-import com.dreamsportslabs.guardian.utils.SqlUtils;
+import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.google.inject.Inject;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Single;
-import io.vertx.rxjava3.sqlclient.SqlConnection;
 import io.vertx.rxjava3.sqlclient.Tuple;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class FbConfigDao {
-  private final MysqlClient mysqlClient;
+public class FbConfigDao extends BaseConfigDao<FbConfigModel> {
 
-  public Single<FbConfigModel> createFbConfig(
-      SqlConnection client, String tenantId, FbConfigModel fbConfig) {
-    return client
-        .preparedQuery(CREATE_FB_CONFIG)
-        .rxExecute(buildParams(tenantId, fbConfig))
-        .map(result -> fbConfig)
-        .onErrorResumeNext(
-            err ->
-                SqlUtils.handleMySqlError(
-                    err,
-                    FB_CONFIG_ALREADY_EXISTS,
-                    String.format("FB config already exists: %s", tenantId),
-                    INTERNAL_SERVER_ERROR));
+  @Inject
+  public FbConfigDao(MysqlClient mysqlClient) {
+    super(mysqlClient);
   }
 
-  public Maybe<FbConfigModel> getFbConfig(String tenantId) {
-    return mysqlClient
-        .getReaderPool()
-        .preparedQuery(GET_FB_CONFIG)
-        .rxExecute(Tuple.of(tenantId))
-        .filter(result -> result.size() > 0)
-        .switchIfEmpty(Maybe.empty())
-        .map(result -> JsonUtils.rowSetToList(result, FbConfigModel.class).get(0))
-        .onErrorResumeNext(err -> Maybe.error(INTERNAL_SERVER_ERROR.getException(err)));
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_FB_CONFIG;
   }
 
-  public Completable updateFbConfig(SqlConnection client, String tenantId, FbConfigModel fbConfig) {
-    return client
-        .preparedQuery(UPDATE_FB_CONFIG)
-        .rxExecute(buildParams(tenantId, fbConfig))
-        .ignoreElement()
-        .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
+  @Override
+  protected String getGetQuery() {
+    return GET_FB_CONFIG;
   }
 
-  public Single<Boolean> deleteFbConfig(SqlConnection client, String tenantId) {
-    return client
-        .preparedQuery(DELETE_FB_CONFIG)
-        .rxExecute(Tuple.of(tenantId))
-        .map(result -> result.rowCount() > 0)
-        .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)));
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_FB_CONFIG;
   }
 
-  private Tuple buildParams(String tenantId, FbConfigModel fbConfig) {
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_FB_CONFIG;
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return FB_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_FB_CONFIG;
+  }
+
+  @Override
+  protected Class<FbConfigModel> getModelClass() {
+    return FbConfigModel.class;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, FbConfigModel fbConfig) {
     return Tuple.tuple()
         .addString(fbConfig.getAppId())
         .addString(fbConfig.getAppSecret())

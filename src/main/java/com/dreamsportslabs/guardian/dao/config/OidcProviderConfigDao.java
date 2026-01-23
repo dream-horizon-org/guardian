@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dao.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_OIDC_PROVIDER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.OidcProviderConfigQuery.CREATE_OIDC_PROVIDER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.OidcProviderConfigQuery.DELETE_OIDC_PROVIDER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.OidcProviderConfigQuery.GET_OIDC_PROVIDER_CONFIG;
@@ -42,7 +43,8 @@ public class OidcProviderConfigDao {
                     err,
                     OIDC_PROVIDER_CONFIG_ALREADY_EXISTS,
                     String.format(
-                        "OIDC provider config already exists: %s/%s", tenantId, providerName),
+                        "%s: %s/%s",
+                        DUPLICATE_ENTRY_MESSAGE_OIDC_PROVIDER_CONFIG, tenantId, providerName),
                     INTERNAL_SERVER_ERROR));
   }
 

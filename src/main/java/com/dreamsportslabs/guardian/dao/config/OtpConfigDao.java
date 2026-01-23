@@ -1,76 +1,66 @@
 package com.dreamsportslabs.guardian.dao.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_OTP_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.OtpConfigQuery.CREATE_OTP_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.OtpConfigQuery.DELETE_OTP_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.OtpConfigQuery.GET_OTP_CONFIG;
 import static com.dreamsportslabs.guardian.dao.config.query.OtpConfigQuery.UPDATE_OTP_CONFIG;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.OTP_CONFIG_ALREADY_EXISTS;
 
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.model.config.OtpConfigModel;
+import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
-import com.dreamsportslabs.guardian.utils.SqlUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Single;
-import io.vertx.rxjava3.sqlclient.SqlConnection;
 import io.vertx.rxjava3.sqlclient.Tuple;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class OtpConfigDao {
-  private final MysqlClient mysqlClient;
+public class OtpConfigDao extends BaseConfigDao<OtpConfigModel> {
   private final ObjectMapper objectMapper;
 
-  public Single<OtpConfigModel> createOtpConfig(
-      SqlConnection client, String tenantId, OtpConfigModel otpConfig) {
-    return client
-        .preparedQuery(CREATE_OTP_CONFIG)
-        .rxExecute(buildParams(tenantId, otpConfig))
-        .map(result -> otpConfig)
-        .onErrorResumeNext(
-            err ->
-                SqlUtils.handleMySqlError(
-                    err,
-                    OTP_CONFIG_ALREADY_EXISTS,
-                    String.format("OTP config already exists: %s", tenantId),
-                    INTERNAL_SERVER_ERROR));
+  @Inject
+  public OtpConfigDao(MysqlClient mysqlClient, ObjectMapper objectMapper) {
+    super(mysqlClient);
+    this.objectMapper = objectMapper;
   }
 
-  public Maybe<OtpConfigModel> getOtpConfig(String tenantId) {
-    return mysqlClient
-        .getReaderPool()
-        .preparedQuery(GET_OTP_CONFIG)
-        .rxExecute(Tuple.of(tenantId))
-        .filter(result -> result.size() > 0)
-        .switchIfEmpty(Maybe.empty())
-        .map(result -> JsonUtils.rowSetToList(result, OtpConfigModel.class).get(0))
-        .onErrorResumeNext(err -> Maybe.error(INTERNAL_SERVER_ERROR.getException(err)));
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_OTP_CONFIG;
   }
 
-  public Completable updateOtpConfig(
-      SqlConnection client, String tenantId, OtpConfigModel otpConfig) {
-    return client
-        .preparedQuery(UPDATE_OTP_CONFIG)
-        .rxExecute(buildParams(tenantId, otpConfig))
-        .ignoreElement()
-        .onErrorResumeNext(err -> Completable.error(INTERNAL_SERVER_ERROR.getException(err)));
+  @Override
+  protected String getGetQuery() {
+    return GET_OTP_CONFIG;
   }
 
-  public Single<Boolean> deleteOtpConfig(SqlConnection client, String tenantId) {
-    return client
-        .preparedQuery(DELETE_OTP_CONFIG)
-        .rxExecute(Tuple.of(tenantId))
-        .map(result -> result.rowCount() > 0)
-        .onErrorResumeNext(err -> Single.error(INTERNAL_SERVER_ERROR.getException(err)));
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_OTP_CONFIG;
   }
 
-  private Tuple buildParams(String tenantId, OtpConfigModel otpConfig) {
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_OTP_CONFIG;
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return OTP_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_OTP_CONFIG;
+  }
+
+  @Override
+  protected Class<OtpConfigModel> getModelClass() {
+    return OtpConfigModel.class;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, OtpConfigModel otpConfig) {
     return Tuple.tuple()
         .addValue(otpConfig.getIsOtpMocked())
         .addInteger(otpConfig.getOtpLength())

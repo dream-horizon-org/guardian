@@ -1,5 +1,7 @@
 package com.dreamsportslabs.guardian.dao.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_TENANT_ID;
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_TENANT_NAME;
 import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
 import static com.dreamsportslabs.guardian.constant.Constants.TENANT_NAME;
 import static com.dreamsportslabs.guardian.dao.config.query.TenantQuery.CREATE_TENANT;
@@ -69,7 +71,7 @@ public class TenantDao {
                 SqlUtils.handleMySqlError(
                         err,
                         TENANT_NAME_ALREADY_EXISTS,
-                        String.format("Tenant name already exists: %s", name),
+                        String.format("%s: %s", DUPLICATE_ENTRY_MESSAGE_TENANT_NAME, name),
                         INTERNAL_SERVER_ERROR)
                     .ignoreElement());
   }
@@ -89,11 +91,11 @@ public class TenantDao {
       if (errorMessage != null && errorMessage.contains(TENANT_NAME)) {
         return Single.error(
             TENANT_NAME_ALREADY_EXISTS.getCustomException(
-                String.format("Tenant name already exists: %s", name)));
+                String.format("%s: %s", DUPLICATE_ENTRY_MESSAGE_TENANT_NAME, name)));
       }
       return Single.error(
           TENANT_ALREADY_EXISTS.getCustomException(
-              String.format("Tenant ID already exists: %s", tenantId)));
+              String.format("%s: %s", DUPLICATE_ENTRY_MESSAGE_TENANT_ID, tenantId)));
     }
     return Single.error(INTERNAL_SERVER_ERROR.getException(err));
   }

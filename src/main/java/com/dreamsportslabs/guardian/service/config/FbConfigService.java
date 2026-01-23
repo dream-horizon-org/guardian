@@ -1,132 +1,65 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_FB_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.FB_CONFIG_NOT_FOUND;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
+import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.config.FbConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.FbConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateFbConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateFbConfigRequestDto;
+import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class FbConfigService {
+public class FbConfigService
+    extends BaseConfigService<FbConfigModel, CreateFbConfigRequestDto, UpdateFbConfigRequestDto> {
   private final FbConfigDao fbConfigDao;
-  private final ChangelogService changelogService;
-  private final MysqlClient mysqlClient;
-  private final TenantCache tenantCache;
 
-  public Single<FbConfigModel> createFbConfig(
-      String tenantId, CreateFbConfigRequestDto requestDto) {
-    FbConfigModel fbConfig = mapToFbConfigModel(requestDto);
-    return mysqlClient
-        .getWriterPool()
-        .rxWithTransaction(
-            client ->
-                fbConfigDao
-                    .createFbConfig(client, tenantId, fbConfig)
-                    .flatMap(
-                        createdConfig ->
-                            changelogService
-                                .logConfigChange(
-                                    client,
-                                    tenantId,
-                                    CONFIG_TYPE_FB_CONFIG,
-                                    OPERATION_INSERT,
-                                    null,
-                                    createdConfig,
-                                    tenantId)
-                                .andThen(Single.just(createdConfig)))
-                    .toMaybe())
-        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
-        .switchIfEmpty(
-            Single.error(INTERNAL_SERVER_ERROR.getCustomException("Failed to create FB config")));
+  @Inject
+  public FbConfigService(
+      ChangelogService changelogService,
+      MysqlClient mysqlClient,
+      TenantCache tenantCache,
+      FbConfigDao fbConfigDao) {
+    super(changelogService, mysqlClient, tenantCache);
+    this.fbConfigDao = fbConfigDao;
   }
 
-  public Single<FbConfigModel> getFbConfig(String tenantId) {
-    return fbConfigDao
-        .getFbConfig(tenantId)
-        .switchIfEmpty(Single.error(FB_CONFIG_NOT_FOUND.getException()));
+  @Override
+  protected BaseConfigDao<FbConfigModel> getDao() {
+    return fbConfigDao;
   }
 
-  public Single<FbConfigModel> updateFbConfig(
-      String tenantId, UpdateFbConfigRequestDto requestDto) {
-    return fbConfigDao
-        .getFbConfig(tenantId)
-        .switchIfEmpty(Single.error(FB_CONFIG_NOT_FOUND.getException()))
-        .flatMap(
-            oldConfig -> {
-              FbConfigModel updatedConfig = mergeFbConfig(requestDto, oldConfig);
-              return mysqlClient
-                  .getWriterPool()
-                  .rxWithTransaction(
-                      client ->
-                          fbConfigDao
-                              .updateFbConfig(client, tenantId, updatedConfig)
-                              .andThen(
-                                  changelogService.logConfigChange(
-                                      client,
-                                      tenantId,
-                                      CONFIG_TYPE_FB_CONFIG,
-                                      OPERATION_UPDATE,
-                                      oldConfig,
-                                      updatedConfig,
-                                      tenantId))
-                              .andThen(Single.just(updatedConfig))
-                              .toMaybe())
-                  .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
-                  .switchIfEmpty(
-                      Single.error(
-                          INTERNAL_SERVER_ERROR.getCustomException("Failed to update FB config")));
-            });
+  @Override
+  protected String getConfigType() {
+    return CONFIG_TYPE_FB_CONFIG;
   }
 
-  public Completable deleteFbConfig(String tenantId) {
-    return fbConfigDao
-        .getFbConfig(tenantId)
-        .switchIfEmpty(Single.error(FB_CONFIG_NOT_FOUND.getException()))
-        .flatMapCompletable(
-            oldConfig ->
-                mysqlClient
-                    .getWriterPool()
-                    .rxWithTransaction(
-                        client ->
-                            fbConfigDao
-                                .deleteFbConfig(client, tenantId)
-                                .flatMapCompletable(
-                                    deleted -> {
-                                      if (!deleted) {
-                                        return Completable.error(
-                                            FB_CONFIG_NOT_FOUND.getException());
-                                      }
-                                      return changelogService.logConfigChange(
-                                          client,
-                                          tenantId,
-                                          CONFIG_TYPE_FB_CONFIG,
-                                          OPERATION_DELETE,
-                                          oldConfig,
-                                          null,
-                                          tenantId);
-                                    })
-                                .toMaybe())
-                    .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
-                    .ignoreElement());
+  @Override
+  protected ErrorEnum getNotFoundError() {
+    return FB_CONFIG_NOT_FOUND;
   }
 
-  private FbConfigModel mapToFbConfigModel(CreateFbConfigRequestDto requestDto) {
+  @Override
+  protected String getCreateErrorMessage() {
+    return "Failed to create FB config";
+  }
+
+  @Override
+  protected String getUpdateErrorMessage() {
+    return "Failed to update FB config";
+  }
+
+  @Override
+  protected FbConfigModel mapToModel(CreateFbConfigRequestDto requestDto) {
     return FbConfigModel.builder()
         .appId(requestDto.getAppId())
         .appSecret(requestDto.getAppSecret())
@@ -134,12 +67,30 @@ public class FbConfigService {
         .build();
   }
 
-  private FbConfigModel mergeFbConfig(
-      UpdateFbConfigRequestDto requestDto, FbConfigModel oldConfig) {
+  @Override
+  protected FbConfigModel mergeModel(UpdateFbConfigRequestDto requestDto, FbConfigModel oldConfig) {
     return FbConfigModel.builder()
         .appId(coalesce(requestDto.getAppId(), oldConfig.getAppId()))
         .appSecret(coalesce(requestDto.getAppSecret(), oldConfig.getAppSecret()))
         .sendAppSecret(coalesce(requestDto.getSendAppSecret(), oldConfig.getSendAppSecret()))
         .build();
+  }
+
+  public Single<FbConfigModel> createFbConfig(
+      String tenantId, CreateFbConfigRequestDto requestDto) {
+    return createConfig(tenantId, requestDto);
+  }
+
+  public Single<FbConfigModel> getFbConfig(String tenantId) {
+    return getConfig(tenantId);
+  }
+
+  public Single<FbConfigModel> updateFbConfig(
+      String tenantId, UpdateFbConfigRequestDto requestDto) {
+    return updateConfig(tenantId, requestDto);
+  }
+
+  public Completable deleteFbConfig(String tenantId) {
+    return deleteConfig(tenantId);
   }
 }

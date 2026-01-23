@@ -1,133 +1,66 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_OIDC_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.OIDC_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
+import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.config.OidcConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.OidcConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateOidcConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateOidcConfigRequestDto;
+import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class OidcConfigService {
+public class OidcConfigService
+    extends BaseConfigService<
+        OidcConfigModel, CreateOidcConfigRequestDto, UpdateOidcConfigRequestDto> {
   private final OidcConfigDao oidcConfigDao;
-  private final ChangelogService changelogService;
-  private final MysqlClient mysqlClient;
-  private final TenantCache tenantCache;
 
-  public Single<OidcConfigModel> createOidcConfig(
-      String tenantId, CreateOidcConfigRequestDto requestDto) {
-    OidcConfigModel oidcConfig = mapToOidcConfigModel(requestDto);
-    return mysqlClient
-        .getWriterPool()
-        .rxWithTransaction(
-            client ->
-                oidcConfigDao
-                    .createOidcConfig(client, tenantId, oidcConfig)
-                    .flatMap(
-                        createdConfig ->
-                            changelogService
-                                .logConfigChange(
-                                    client,
-                                    tenantId,
-                                    CONFIG_TYPE_OIDC_CONFIG,
-                                    OPERATION_INSERT,
-                                    null,
-                                    createdConfig,
-                                    tenantId)
-                                .andThen(Single.just(createdConfig)))
-                    .toMaybe())
-        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
-        .switchIfEmpty(
-            Single.error(INTERNAL_SERVER_ERROR.getCustomException("Failed to create OIDC config")));
+  @Inject
+  public OidcConfigService(
+      ChangelogService changelogService,
+      MysqlClient mysqlClient,
+      TenantCache tenantCache,
+      OidcConfigDao oidcConfigDao) {
+    super(changelogService, mysqlClient, tenantCache);
+    this.oidcConfigDao = oidcConfigDao;
   }
 
-  public Single<OidcConfigModel> getOidcConfig(String tenantId) {
-    return oidcConfigDao
-        .getOidcConfig(tenantId)
-        .switchIfEmpty(Single.error(OIDC_CONFIG_NOT_FOUND.getException()));
+  @Override
+  protected BaseConfigDao<OidcConfigModel> getDao() {
+    return oidcConfigDao;
   }
 
-  public Single<OidcConfigModel> updateOidcConfig(
-      String tenantId, UpdateOidcConfigRequestDto requestDto) {
-    return oidcConfigDao
-        .getOidcConfig(tenantId)
-        .switchIfEmpty(Single.error(OIDC_CONFIG_NOT_FOUND.getException()))
-        .flatMap(
-            oldConfig -> {
-              OidcConfigModel updatedConfig = mergeOidcConfig(requestDto, oldConfig);
-              return mysqlClient
-                  .getWriterPool()
-                  .rxWithTransaction(
-                      client ->
-                          oidcConfigDao
-                              .updateOidcConfig(client, tenantId, updatedConfig)
-                              .andThen(
-                                  changelogService.logConfigChange(
-                                      client,
-                                      tenantId,
-                                      CONFIG_TYPE_OIDC_CONFIG,
-                                      OPERATION_UPDATE,
-                                      oldConfig,
-                                      updatedConfig,
-                                      tenantId))
-                              .andThen(Single.just(updatedConfig))
-                              .toMaybe())
-                  .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
-                  .switchIfEmpty(
-                      Single.error(
-                          INTERNAL_SERVER_ERROR.getCustomException(
-                              "Failed to update OIDC config")));
-            });
+  @Override
+  protected String getConfigType() {
+    return CONFIG_TYPE_OIDC_CONFIG;
   }
 
-  public Completable deleteOidcConfig(String tenantId) {
-    return oidcConfigDao
-        .getOidcConfig(tenantId)
-        .switchIfEmpty(Single.error(OIDC_CONFIG_NOT_FOUND.getException()))
-        .flatMapCompletable(
-            oldConfig ->
-                mysqlClient
-                    .getWriterPool()
-                    .rxWithTransaction(
-                        client ->
-                            oidcConfigDao
-                                .deleteOidcConfig(client, tenantId)
-                                .flatMapCompletable(
-                                    deleted -> {
-                                      if (!deleted) {
-                                        return Completable.error(
-                                            OIDC_CONFIG_NOT_FOUND.getException());
-                                      }
-                                      return changelogService.logConfigChange(
-                                          client,
-                                          tenantId,
-                                          CONFIG_TYPE_OIDC_CONFIG,
-                                          OPERATION_DELETE,
-                                          oldConfig,
-                                          null,
-                                          tenantId);
-                                    })
-                                .toMaybe())
-                    .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
-                    .ignoreElement());
+  @Override
+  protected ErrorEnum getNotFoundError() {
+    return OIDC_CONFIG_NOT_FOUND;
   }
 
-  private OidcConfigModel mapToOidcConfigModel(CreateOidcConfigRequestDto requestDto) {
+  @Override
+  protected String getCreateErrorMessage() {
+    return "Failed to create OIDC config";
+  }
+
+  @Override
+  protected String getUpdateErrorMessage() {
+    return "Failed to update OIDC config";
+  }
+
+  @Override
+  protected OidcConfigModel mapToModel(CreateOidcConfigRequestDto requestDto) {
     return OidcConfigModel.builder()
         .issuer(requestDto.getIssuer())
         .authorizationEndpoint(requestDto.getAuthorizationEndpoint())
@@ -146,7 +79,8 @@ public class OidcConfigService {
         .build();
   }
 
-  private OidcConfigModel mergeOidcConfig(
+  @Override
+  protected OidcConfigModel mergeModel(
       UpdateOidcConfigRequestDto requestDto, OidcConfigModel oldConfig) {
     return OidcConfigModel.builder()
         .issuer(coalesce(requestDto.getIssuer(), oldConfig.getIssuer()))
@@ -176,5 +110,23 @@ public class OidcConfigService {
         .consentPageUri(coalesce(requestDto.getConsentPageUri(), oldConfig.getConsentPageUri()))
         .authorizeTtl(coalesce(requestDto.getAuthorizeTtl(), oldConfig.getAuthorizeTtl()))
         .build();
+  }
+
+  public Single<OidcConfigModel> createOidcConfig(
+      String tenantId, CreateOidcConfigRequestDto requestDto) {
+    return createConfig(tenantId, requestDto);
+  }
+
+  public Single<OidcConfigModel> getOidcConfig(String tenantId) {
+    return getConfig(tenantId);
+  }
+
+  public Single<OidcConfigModel> updateOidcConfig(
+      String tenantId, UpdateOidcConfigRequestDto requestDto) {
+    return updateConfig(tenantId, requestDto);
+  }
+
+  public Completable deleteOidcConfig(String tenantId) {
+    return deleteConfig(tenantId);
   }
 }

@@ -45,8 +45,8 @@ public class ChangelogService {
       Object oldValues,
       Object newValues,
       String changedBy) {
-    JsonObject oldJson = oldValues != null ? JsonObject.mapFrom(oldValues) : null;
-    JsonObject newJson = newValues != null ? JsonObject.mapFrom(newValues) : null;
+    JsonObject oldJson = JsonObject.mapFrom(oldValues);
+    JsonObject newJson = JsonObject.mapFrom(newValues);
     return changelogDao.logConfigChange(
         client, tenantId, configType, operationType, oldJson, newJson, changedBy);
   }

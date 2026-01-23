@@ -1,133 +1,66 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_OTP_CONFIG;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_DELETE;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_INSERT;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.OTP_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
+import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.config.OtpConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.OtpConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateOtpConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateOtpConfigRequestDto;
+import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class OtpConfigService {
+public class OtpConfigService
+    extends BaseConfigService<
+        OtpConfigModel, CreateOtpConfigRequestDto, UpdateOtpConfigRequestDto> {
   private final OtpConfigDao otpConfigDao;
-  private final ChangelogService changelogService;
-  private final MysqlClient mysqlClient;
-  private final TenantCache tenantCache;
 
-  public Single<OtpConfigModel> createOtpConfig(
-      String tenantId, CreateOtpConfigRequestDto requestDto) {
-    OtpConfigModel otpConfig = mapToOtpConfigModel(requestDto);
-    return mysqlClient
-        .getWriterPool()
-        .rxWithTransaction(
-            client ->
-                otpConfigDao
-                    .createOtpConfig(client, tenantId, otpConfig)
-                    .flatMap(
-                        createdConfig ->
-                            changelogService
-                                .logConfigChange(
-                                    client,
-                                    tenantId,
-                                    CONFIG_TYPE_OTP_CONFIG,
-                                    OPERATION_INSERT,
-                                    null,
-                                    createdConfig,
-                                    tenantId)
-                                .andThen(Single.just(createdConfig)))
-                    .toMaybe())
-        .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
-        .switchIfEmpty(
-            Single.<OtpConfigModel>error(
-                INTERNAL_SERVER_ERROR.getCustomException("Failed to create OTP config")));
+  @Inject
+  public OtpConfigService(
+      ChangelogService changelogService,
+      MysqlClient mysqlClient,
+      TenantCache tenantCache,
+      OtpConfigDao otpConfigDao) {
+    super(changelogService, mysqlClient, tenantCache);
+    this.otpConfigDao = otpConfigDao;
   }
 
-  public Single<OtpConfigModel> getOtpConfig(String tenantId) {
-    return otpConfigDao
-        .getOtpConfig(tenantId)
-        .switchIfEmpty(Single.error(OTP_CONFIG_NOT_FOUND.getException()));
+  @Override
+  protected BaseConfigDao<OtpConfigModel> getDao() {
+    return otpConfigDao;
   }
 
-  public Single<OtpConfigModel> updateOtpConfig(
-      String tenantId, UpdateOtpConfigRequestDto requestDto) {
-    return otpConfigDao
-        .getOtpConfig(tenantId)
-        .switchIfEmpty(Single.error(OTP_CONFIG_NOT_FOUND.getException()))
-        .flatMap(
-            oldConfig -> {
-              OtpConfigModel updatedConfig = mergeOtpConfig(requestDto, oldConfig);
-              return mysqlClient
-                  .getWriterPool()
-                  .rxWithTransaction(
-                      client ->
-                          otpConfigDao
-                              .updateOtpConfig(client, tenantId, updatedConfig)
-                              .andThen(
-                                  changelogService.logConfigChange(
-                                      client,
-                                      tenantId,
-                                      CONFIG_TYPE_OTP_CONFIG,
-                                      OPERATION_UPDATE,
-                                      oldConfig,
-                                      updatedConfig,
-                                      tenantId))
-                              .andThen(Single.just(updatedConfig))
-                              .toMaybe())
-                  .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
-                  .switchIfEmpty(
-                      Single.<OtpConfigModel>error(
-                          INTERNAL_SERVER_ERROR.getCustomException("Failed to update OTP config")));
-            });
+  @Override
+  protected String getConfigType() {
+    return CONFIG_TYPE_OTP_CONFIG;
   }
 
-  public Completable deleteOtpConfig(String tenantId) {
-    return otpConfigDao
-        .getOtpConfig(tenantId)
-        .switchIfEmpty(Single.error(OTP_CONFIG_NOT_FOUND.getException()))
-        .flatMapCompletable(
-            oldConfig ->
-                mysqlClient
-                    .getWriterPool()
-                    .rxWithTransaction(
-                        client ->
-                            otpConfigDao
-                                .deleteOtpConfig(client, tenantId)
-                                .flatMapCompletable(
-                                    deleted -> {
-                                      if (!deleted) {
-                                        return Completable.error(
-                                            OTP_CONFIG_NOT_FOUND.getException());
-                                      }
-                                      return changelogService.logConfigChange(
-                                          client,
-                                          tenantId,
-                                          CONFIG_TYPE_OTP_CONFIG,
-                                          OPERATION_DELETE,
-                                          oldConfig,
-                                          null,
-                                          tenantId);
-                                    })
-                                .toMaybe())
-                    .doOnComplete(() -> tenantCache.invalidateCache(tenantId))
-                    .ignoreElement());
+  @Override
+  protected ErrorEnum getNotFoundError() {
+    return OTP_CONFIG_NOT_FOUND;
   }
 
-  private OtpConfigModel mapToOtpConfigModel(CreateOtpConfigRequestDto requestDto) {
+  @Override
+  protected String getCreateErrorMessage() {
+    return "Failed to create OTP config";
+  }
+
+  @Override
+  protected String getUpdateErrorMessage() {
+    return "Failed to update OTP config";
+  }
+
+  @Override
+  protected OtpConfigModel mapToModel(CreateOtpConfigRequestDto requestDto) {
     return OtpConfigModel.builder()
         .isOtpMocked(requestDto.getIsOtpMocked())
         .otpLength(requestDto.getOtpLength())
@@ -142,7 +75,8 @@ public class OtpConfigService {
         .build();
   }
 
-  private OtpConfigModel mergeOtpConfig(
+  @Override
+  protected OtpConfigModel mergeModel(
       UpdateOtpConfigRequestDto requestDto, OtpConfigModel oldConfig) {
     return OtpConfigModel.builder()
         .isOtpMocked(coalesce(requestDto.getIsOtpMocked(), oldConfig.getIsOtpMocked()))
@@ -161,5 +95,23 @@ public class OtpConfigService {
         .whitelistedInputs(
             coalesce(requestDto.getWhitelistedInputs(), oldConfig.getWhitelistedInputs()))
         .build();
+  }
+
+  public Single<OtpConfigModel> createOtpConfig(
+      String tenantId, CreateOtpConfigRequestDto requestDto) {
+    return createConfig(tenantId, requestDto);
+  }
+
+  public Single<OtpConfigModel> getOtpConfig(String tenantId) {
+    return getConfig(tenantId);
+  }
+
+  public Single<OtpConfigModel> updateOtpConfig(
+      String tenantId, UpdateOtpConfigRequestDto requestDto) {
+    return updateConfig(tenantId, requestDto);
+  }
+
+  public Completable deleteOtpConfig(String tenantId) {
+    return deleteConfig(tenantId);
   }
 }

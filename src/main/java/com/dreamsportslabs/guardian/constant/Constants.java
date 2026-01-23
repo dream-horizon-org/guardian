@@ -314,4 +314,22 @@ public final class Constants {
   // Default OIDC Provider Config Values
   public static final String DEFAULT_USER_IDENTIFIER = "email";
   public static final boolean DEFAULT_OIDC_PROVIDER_IS_SSL_ENABLED = true;
+
+  // Duplicate Entry Message Formats
+  public static final String DUPLICATE_ENTRY_MESSAGE_ADMIN_CONFIG = "Admin config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_AUTH_CODE_CONFIG =
+      "Auth code config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_EMAIL_CONFIG = "Email config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_SMS_CONFIG = "SMS config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_FB_CONFIG = "FB config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_GOOGLE_CONFIG = "Google config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_GUEST_CONFIG = "Guest config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_OIDC_CONFIG = "OIDC config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_OTP_CONFIG = "OTP config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_CONTACT_VERIFY_CONFIG =
+      "Contact verify config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_OIDC_PROVIDER_CONFIG =
+      "OIDC provider config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_TENANT_NAME = "Tenant name already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_TENANT_ID = "Tenant ID already exists";
 }
