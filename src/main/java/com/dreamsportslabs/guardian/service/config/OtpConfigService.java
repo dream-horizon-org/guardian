@@ -1,0 +1,117 @@
+package com.dreamsportslabs.guardian.service.config;
+
+import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_OTP_CONFIG;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.OTP_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
+
+import com.dreamsportslabs.guardian.cache.TenantCache;
+import com.dreamsportslabs.guardian.client.MysqlClient;
+import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
+import com.dreamsportslabs.guardian.dao.config.OtpConfigDao;
+import com.dreamsportslabs.guardian.dao.model.config.OtpConfigModel;
+import com.dreamsportslabs.guardian.dto.request.config.CreateOtpConfigRequestDto;
+import com.dreamsportslabs.guardian.dto.request.config.UpdateOtpConfigRequestDto;
+import com.dreamsportslabs.guardian.exception.ErrorEnum;
+import com.dreamsportslabs.guardian.service.ChangelogService;
+import com.google.inject.Inject;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class OtpConfigService
+    extends BaseConfigService<
+        OtpConfigModel, CreateOtpConfigRequestDto, UpdateOtpConfigRequestDto> {
+  private final OtpConfigDao otpConfigDao;
+
+  @Inject
+  public OtpConfigService(
+      ChangelogService changelogService,
+      MysqlClient mysqlClient,
+      TenantCache tenantCache,
+      OtpConfigDao otpConfigDao) {
+    super(changelogService, mysqlClient, tenantCache);
+    this.otpConfigDao = otpConfigDao;
+  }
+
+  @Override
+  protected BaseConfigDao<OtpConfigModel> getDao() {
+    return otpConfigDao;
+  }
+
+  @Override
+  protected String getConfigType() {
+    return CONFIG_TYPE_OTP_CONFIG;
+  }
+
+  @Override
+  protected ErrorEnum getNotFoundError() {
+    return OTP_CONFIG_NOT_FOUND;
+  }
+
+  @Override
+  protected String getCreateErrorMessage() {
+    return "Failed to create OTP config";
+  }
+
+  @Override
+  protected String getUpdateErrorMessage() {
+    return "Failed to update OTP config";
+  }
+
+  @Override
+  protected OtpConfigModel mapToModel(CreateOtpConfigRequestDto requestDto) {
+    return OtpConfigModel.builder()
+        .isOtpMocked(requestDto.getIsOtpMocked())
+        .otpLength(requestDto.getOtpLength())
+        .tryLimit(requestDto.getTryLimit())
+        .resendLimit(requestDto.getResendLimit())
+        .otpResendInterval(requestDto.getOtpResendInterval())
+        .otpValidity(requestDto.getOtpValidity())
+        .otpSendWindowSeconds(requestDto.getOtpSendWindowSeconds())
+        .otpSendWindowMaxCount(requestDto.getOtpSendWindowMaxCount())
+        .otpSendBlockSeconds(requestDto.getOtpSendBlockSeconds())
+        .whitelistedInputs(requestDto.getWhitelistedInputs())
+        .build();
+  }
+
+  @Override
+  protected OtpConfigModel mergeModel(
+      UpdateOtpConfigRequestDto requestDto, OtpConfigModel oldConfig) {
+    return OtpConfigModel.builder()
+        .isOtpMocked(coalesce(requestDto.getIsOtpMocked(), oldConfig.getIsOtpMocked()))
+        .otpLength(coalesce(requestDto.getOtpLength(), oldConfig.getOtpLength()))
+        .tryLimit(coalesce(requestDto.getTryLimit(), oldConfig.getTryLimit()))
+        .resendLimit(coalesce(requestDto.getResendLimit(), oldConfig.getResendLimit()))
+        .otpResendInterval(
+            coalesce(requestDto.getOtpResendInterval(), oldConfig.getOtpResendInterval()))
+        .otpValidity(coalesce(requestDto.getOtpValidity(), oldConfig.getOtpValidity()))
+        .otpSendWindowSeconds(
+            coalesce(requestDto.getOtpSendWindowSeconds(), oldConfig.getOtpSendWindowSeconds()))
+        .otpSendWindowMaxCount(
+            coalesce(requestDto.getOtpSendWindowMaxCount(), oldConfig.getOtpSendWindowMaxCount()))
+        .otpSendBlockSeconds(
+            coalesce(requestDto.getOtpSendBlockSeconds(), oldConfig.getOtpSendBlockSeconds()))
+        .whitelistedInputs(
+            coalesce(requestDto.getWhitelistedInputs(), oldConfig.getWhitelistedInputs()))
+        .build();
+  }
+
+  public Single<OtpConfigModel> createOtpConfig(
+      String tenantId, CreateOtpConfigRequestDto requestDto) {
+    return createConfig(tenantId, requestDto);
+  }
+
+  public Single<OtpConfigModel> getOtpConfig(String tenantId) {
+    return getConfig(tenantId);
+  }
+
+  public Single<OtpConfigModel> updateOtpConfig(
+      String tenantId, UpdateOtpConfigRequestDto requestDto) {
+    return updateConfig(tenantId, requestDto);
+  }
+
+  public Completable deleteOtpConfig(String tenantId) {
+    return deleteConfig(tenantId);
+  }
+}
