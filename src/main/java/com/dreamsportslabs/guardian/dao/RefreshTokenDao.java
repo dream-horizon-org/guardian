@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dao;
 
+import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ALL_REFRESH_TOKENS_FOR_USER;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ALL_REFRESH_TOKENS_FOR_USER_AND_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_REFRESH_TOKEN;
@@ -19,6 +20,7 @@ import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.constant.AuthMethod;
 import com.dreamsportslabs.guardian.dao.model.RefreshTokenModel;
 import com.dreamsportslabs.guardian.dao.model.SsoTokenModel;
+import com.dreamsportslabs.guardian.dao.model.UserRefreshTokenModel;
 import com.dreamsportslabs.guardian.utils.JsonUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
@@ -216,5 +218,14 @@ public class RefreshTokenDao {
         .doOnError(
             err -> log.error("Error updating refresh token auth method, expiry and scopes", err))
         .ignoreElement();
+  }
+
+  public Single<List<UserRefreshTokenModel>> getActiveRefreshTokensForUser(
+      String tenantId, String userId, String clientId) {
+    return mysqlClient
+        .getReaderPool()
+        .preparedQuery(GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT)
+        .rxExecute(Tuple.of(tenantId, userId, clientId))
+        .map(rowSet -> JsonUtils.rowSetToList(rowSet, UserRefreshTokenModel.class));
   }
 }

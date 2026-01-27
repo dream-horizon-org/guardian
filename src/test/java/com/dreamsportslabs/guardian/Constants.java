@@ -614,6 +614,9 @@ public class Constants {
   public static final String TENANT3_PUBLIC_KEY_PATH =
       "src/test/resources/test-data/tenant3-public-key.pem";
 
+  // RefreshTokenList Test Constants
+  public static final String TOTAL_COUNT = "total_count";
+
   // V2RefreshToken Test Constants
   public static final String TEST_CLIENT_ID = "test-client";
   public static final String TEST_USER_ID_1234 = "1234";

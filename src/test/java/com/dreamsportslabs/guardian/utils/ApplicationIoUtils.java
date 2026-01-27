@@ -20,6 +20,7 @@ import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_STATE;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_USERNAME;
 import static com.dreamsportslabs.guardian.Constants.CLIENT_ID;
 import static com.dreamsportslabs.guardian.Constants.CONTENT_TYPE_APPLICATION_JSON;
+import static com.dreamsportslabs.guardian.Constants.HEADER_AUTHORIZATION;
 import static com.dreamsportslabs.guardian.Constants.HEADER_TENANT_ID;
 import static com.dreamsportslabs.guardian.Constants.OIDC_BODY_PARAM_REFRESH_TOKEN;
 import static com.dreamsportslabs.guardian.Constants.QUERY_PARAM_NAME;
@@ -614,6 +615,27 @@ public class ApplicationIoUtils {
     headers.put("Accept", "application/json");
 
     return execute(null, headers, new HashMap<>(), spec -> spec.get("/userinfo"));
+  }
+
+  public static Response getUserRefreshTokens(
+      String tenantId, String accessToken, String clientId) {
+    return getUserRefreshTokens(tenantId, accessToken, clientId, null);
+  }
+
+  public static Response getUserRefreshTokens(
+      String tenantId, String accessToken, String clientId, Map<String, Object> body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    headers.put(HEADER_AUTHORIZATION, "Bearer " + accessToken);
+
+    Map<String, Object> requestBody = body;
+    if (requestBody == null) {
+      requestBody = new HashMap<>();
+      requestBody.put(BODY_PARAM_CLIENT_ID, clientId);
+    }
+
+    return execute(
+        requestBody, headers, new HashMap<>(), spec -> spec.post("/v1/user/refreshTokens"));
   }
 
   public static Response postUserInfo(String tenantId, String accessToken) {

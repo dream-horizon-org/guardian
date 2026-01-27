@@ -809,6 +809,34 @@ public class DbUtils {
     }
   }
 
+  public static void cleanupRefreshTokens(String tenantId, String userId) {
+    String deleteQuery = "DELETE FROM refresh_tokens WHERE tenant_id = ? AND user_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(deleteQuery)) {
+      stmt.setString(1, tenantId);
+      stmt.setString(2, userId);
+      stmt.executeUpdate();
+    } catch (Exception e) {
+      log.error("Error while cleaning up refresh tokens for user", e);
+    }
+  }
+
+  public static void deactivateRefreshToken(String tenantId, String clientId, String refreshToken) {
+    String updateQuery =
+        "UPDATE refresh_tokens SET is_active = false WHERE tenant_id = ? AND client_id = ? AND refresh_token = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
+      stmt.setString(1, tenantId);
+      stmt.setString(2, clientId);
+      stmt.setString(3, refreshToken);
+      stmt.executeUpdate();
+    } catch (Exception e) {
+      log.error("Error while deactivating refresh token", e);
+    }
+  }
+
   public static boolean isOidcRefreshTokenActive(
       String tenantId, String clientId, String refreshToken) {
     String deleteQuery =
