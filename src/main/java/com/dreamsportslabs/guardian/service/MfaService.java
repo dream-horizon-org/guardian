@@ -7,18 +7,28 @@ import static com.dreamsportslabs.guardian.constant.Constants.PIN_SET;
 import static com.dreamsportslabs.guardian.constant.Constants.USERID;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INVALID_REQUEST;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.MAX_RESEND_LIMIT_EXCEEDED;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.MFA_FACTOR_ALREADY_ENROLLED;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.MFA_FACTOR_NOT_SUPPORTED;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.UNAUTHORIZED;
+import static com.dreamsportslabs.guardian.utils.Utils.getCurrentTimeInSeconds;
 
+import com.dreamsportslabs.guardian.config.tenant.PasswordPinBlockConfig;
+import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
 import com.dreamsportslabs.guardian.constant.AuthMethod;
 import com.dreamsportslabs.guardian.constant.AuthMethodCategory;
+import com.dreamsportslabs.guardian.constant.BlockFlow;
 import com.dreamsportslabs.guardian.constant.MfaFactor;
+import com.dreamsportslabs.guardian.dao.MfaDao;
+import com.dreamsportslabs.guardian.dao.UserFlowBlockDao;
 import com.dreamsportslabs.guardian.dao.model.RefreshTokenModel;
+import com.dreamsportslabs.guardian.dao.model.UserFlowBlockModel;
 import com.dreamsportslabs.guardian.dto.UserDto;
+import com.dreamsportslabs.guardian.dto.request.DeviceMetadataDto;
 import com.dreamsportslabs.guardian.dto.request.v2.V2MfaSignInRequestDto;
 import com.dreamsportslabs.guardian.dto.response.MfaFactorDto;
 import com.dreamsportslabs.guardian.dto.response.TokenResponseDto;
+import com.dreamsportslabs.guardian.registry.Registry;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -42,6 +52,15 @@ public class MfaService {
   private final AuthorizationService authorizationService;
   private final ClientService clientService;
   private final UserService userService;
+  private final MfaDao mfaDao;
+  private final UserFlowBlockService userFlowBlockService;
+  private final UserFlowBlockDao userFlowBlockDao;
+  private final Registry registry;
+
+  private static final int DEFAULT_ATTEMPTS_ALLOWED = 5;
+  private static final int DEFAULT_ATTEMPTS_WINDOW_SECONDS = 86400;
+  private static final int DEFAULT_BLOCK_INTERVAL_SECONDS = 86400;
+  private static final String DEFAULT_DEVICE_ID = "default";
 
   public Single<TokenResponseDto> mfaEnroll(
       V2MfaSignInRequestDto requestDto, MultivaluedMap<String, String> headers, String tenantId) {
@@ -107,21 +126,115 @@ public class MfaService {
                 requestDto.getRefreshToken(),
                 requestDto.getFactor()))
         .flatMap(
-            refreshTokenModel ->
-                authenticateAndGetUserDetails(
-                        requestDto, headers, refreshTokenModel.getUserId(), tenantId)
+            refreshTokenModel -> runMfaSignIn(requestDto, headers, tenantId, refreshTokenModel));
+  }
+
+  /** Only PASSWORD and PIN factors use block logic; other factors skip block. */
+  private Single<TokenResponseDto> runMfaSignIn(
+      V2MfaSignInRequestDto requestDto,
+      MultivaluedMap<String, String> headers,
+      String tenantId,
+      RefreshTokenModel refreshTokenModel) {
+    String userId = refreshTokenModel.getUserId();
+    MfaFactor factor = requestDto.getFactor();
+    String deviceId = resolveDeviceId(requestDto.getDeviceMetadata());
+    String userIdentifier = userIdentifier(userId, deviceId);
+
+    // Block only for password and PIN methods; other MFA methods (e.g. OTP) are not blocked
+    if (factor != MfaFactor.PASSWORD && factor != MfaFactor.PIN) {
+      return authenticateAndGetUserDetails(requestDto, headers, userId, tenantId)
+          .flatMap(
+              user ->
+                  updateRefreshToken(
+                      user,
+                      requestDto.getRefreshToken(),
+                      getMergedScopes(refreshTokenModel.getScope(), requestDto.getScopes()),
+                      getMergedAuthMethods(
+                          refreshTokenModel.getAuthMethod(), factor.getAuthMethod()),
+                      requestDto.getClientId(),
+                      tenantId));
+    }
+
+    BlockFlow blockFlow =
+        factor == MfaFactor.PASSWORD ? BlockFlow.MFA_SIGNIN_PASSWORD : BlockFlow.MFA_SIGNIN_PIN;
+    PasswordPinBlockConfig config =
+        registry.get(tenantId, TenantConfig.class).findPasswordPinBlockConfig().orElse(null);
+    int maxAttempts =
+        config != null && config.getAttemptsAllowed() != null
+            ? config.getAttemptsAllowed()
+            : DEFAULT_ATTEMPTS_ALLOWED;
+    int windowSeconds =
+        config != null && config.getAttemptsWindowSeconds() != null
+            ? config.getAttemptsWindowSeconds()
+            : DEFAULT_ATTEMPTS_WINDOW_SECONDS;
+    int blockIntervalSeconds =
+        config != null && config.getBlockIntervalSeconds() != null
+            ? config.getBlockIntervalSeconds()
+            : DEFAULT_BLOCK_INTERVAL_SECONDS;
+
+    return userFlowBlockService
+        .isFlowBlocked(tenantId, List.of(userIdentifier), blockFlow)
+        .andThen(Single.just(refreshTokenModel))
+        .flatMap(
+            model ->
+                mfaDao
+                    .getWrongAttemptsCount(tenantId, userId, deviceId, blockFlow)
                     .flatMap(
-                        user ->
-                            updateRefreshToken(
-                                user,
-                                requestDto.getRefreshToken(),
-                                getMergedScopes(
-                                    refreshTokenModel.getScope(), requestDto.getScopes()),
-                                getMergedAuthMethods(
-                                    refreshTokenModel.getAuthMethod(),
-                                    requestDto.getFactor().getAuthMethod()),
-                                requestDto.getClientId(),
-                                tenantId)));
+                        wrongAttemptsCount -> {
+                          if (wrongAttemptsCount >= maxAttempts) {
+                            return blockUserAndCleanup(
+                                userId, deviceId, tenantId, blockFlow, blockIntervalSeconds);
+                          }
+                          return authenticateAndGetUserDetails(
+                                  requestDto, headers, model.getUserId(), tenantId)
+                              .flatMap(
+                                  user ->
+                                      mfaDao
+                                          .deleteWrongAttemptsCount(
+                                              tenantId, userId, deviceId, blockFlow)
+                                          .andThen(
+                                              updateRefreshToken(
+                                                  user,
+                                                  requestDto.getRefreshToken(),
+                                                  getMergedScopes(
+                                                      model.getScope(), requestDto.getScopes()),
+                                                  getMergedAuthMethods(
+                                                      model.getAuthMethod(),
+                                                      requestDto.getFactor().getAuthMethod()),
+                                                  requestDto.getClientId(),
+                                                  tenantId)))
+                              .onErrorResumeNext(
+                                  error ->
+                                      mfaDao
+                                          .incrementWrongAttemptsCount(
+                                              tenantId, userId, deviceId, windowSeconds, blockFlow)
+                                          .andThen(
+                                              mfaDao.getWrongAttemptsCount(
+                                                  tenantId, userId, deviceId, blockFlow))
+                                          .flatMap(
+                                              newWrongAttemptsCount -> {
+                                                if (newWrongAttemptsCount >= maxAttempts) {
+                                                  return blockUserAndCleanup(
+                                                      userId,
+                                                      deviceId,
+                                                      tenantId,
+                                                      blockFlow,
+                                                      blockIntervalSeconds);
+                                                }
+                                                return Single.error(error);
+                                              }));
+                        }));
+  }
+
+  private static String resolveDeviceId(DeviceMetadataDto deviceMetadata) {
+    if (deviceMetadata != null && StringUtils.isNotBlank(deviceMetadata.getDeviceId())) {
+      return deviceMetadata.getDeviceId();
+    }
+    return DEFAULT_DEVICE_ID;
+  }
+
+  private static String userIdentifier(String userId, String deviceId) {
+    return userId + ":" + deviceId;
   }
 
   private Single<RefreshTokenModel> validateRefreshToken(
@@ -286,6 +399,35 @@ public class MfaService {
 
   private static boolean hasValue(String value) {
     return value != null && !value.isBlank();
+  }
+
+  private Single<TokenResponseDto> blockUserAndCleanup(
+      String userId,
+      String deviceId,
+      String tenantId,
+      BlockFlow blockFlow,
+      int blockIntervalSeconds) {
+
+    long unblockedAt = getCurrentTimeInSeconds() + blockIntervalSeconds;
+    String blockReason = "Maximum MFA password/PIN wrong attempts limit exceeded";
+    String compositeUserIdentifier = userIdentifier(userId, deviceId);
+
+    UserFlowBlockModel blockModel =
+        UserFlowBlockModel.builder()
+            .tenantId(tenantId)
+            .userIdentifier(compositeUserIdentifier)
+            .flowName(blockFlow.getFlowName())
+            .reason(blockReason)
+            .unblockedAt(unblockedAt)
+            .isActive(true)
+            .build();
+    return userFlowBlockDao
+        .blockFlows(List.of(blockModel))
+        .andThen(mfaDao.deleteWrongAttemptsCount(tenantId, userId, deviceId, blockFlow))
+        .andThen(
+            Single.error(
+                MAX_RESEND_LIMIT_EXCEEDED.getCustomException(
+                    blockReason, Map.of("retry_after", unblockedAt))));
   }
 
   public static List<MfaFactorDto> buildMfaFactors(
