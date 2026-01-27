@@ -10,6 +10,7 @@ import static com.dreamsportslabs.guardian.dao.query.ConfigQuery.GUEST_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.ConfigQuery.OIDC_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.ConfigQuery.OIDC_PROVIDER_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.ConfigQuery.OTP_CONFIG;
+import static com.dreamsportslabs.guardian.dao.query.ConfigQuery.PASSWORD_PIN_BLOCK_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.ConfigQuery.SMS_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.ConfigQuery.TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.dao.query.ConfigQuery.USER_CONFIG;
@@ -26,6 +27,7 @@ import com.dreamsportslabs.guardian.config.tenant.GuestConfig;
 import com.dreamsportslabs.guardian.config.tenant.OidcConfig;
 import com.dreamsportslabs.guardian.config.tenant.OidcProviderConfig;
 import com.dreamsportslabs.guardian.config.tenant.OtpConfig;
+import com.dreamsportslabs.guardian.config.tenant.PasswordPinBlockConfig;
 import com.dreamsportslabs.guardian.config.tenant.SmsConfig;
 import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
 import com.dreamsportslabs.guardian.config.tenant.TokenConfig;
@@ -62,6 +64,7 @@ public class ConfigDao {
             appendSmsConfig(tenantId, builder),
             appendOtpConfig(tenantId, builder),
             appendContactVerifyConfig(tenantId, builder),
+            appendPasswordPinBlockConfig(tenantId, builder),
             appendOidcProviderConfig(tenantId, builder),
             appendAdminConfig(tenantId, builder),
             appendOidcConfig(tenantId, builder),
@@ -95,6 +98,14 @@ public class ConfigDao {
       String tenantId, TenantConfig.TenantConfigBuilder builder) {
     return getOptionalConfigFromDb(tenantId, ContactVerifyConfig.class, CONTACT_VERIFY_CONFIG)
         .map(builder::contactVerifyConfig)
+        .ignoreElement();
+  }
+
+  private Completable appendPasswordPinBlockConfig(
+      String tenantId, TenantConfig.TenantConfigBuilder builder) {
+    return getOptionalConfigFromDb(
+            tenantId, PasswordPinBlockConfig.class, PASSWORD_PIN_BLOCK_CONFIG)
+        .map(builder::passwordPinBlockConfig)
         .ignoreElement();
   }
 
