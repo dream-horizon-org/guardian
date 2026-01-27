@@ -40,14 +40,16 @@ public class UserBlockFlowsIT {
   private static final String SOCIAL_AUTH_FLOW = "social_auth";
   private static final String OTP_VERIFY_FLOW = "otp_verify";
   private static final String PASSWORD_FLOW = "password";
+  private static final String PIN_FLOW = "pin";
   private static final Long UNBLOCKED_AT = Instant.now().plusSeconds(3600).toEpochMilli() / 1000;
+  private static String firstPartyClientId;
   private WireMockServer wireMockServer;
 
   @BeforeAll
   static void setup() {
     addScope(TENANT_ID, TEST_SCOPE_1);
-    String client1 = addFirstPartyClient(TENANT_ID);
-    addDefaultClientScopes(TENANT_ID, client1, TEST_SCOPE_1);
+    firstPartyClientId = addFirstPartyClient(TENANT_ID);
+    addDefaultClientScopes(TENANT_ID, firstPartyClientId, TEST_SCOPE_1);
   }
 
   private Map<String, Object> generateBlockRequestBody(
@@ -565,6 +567,114 @@ public class UserBlockFlowsIT {
   }
 
   @Test
+  @DisplayName("Should verify V2 password signin flow is blocked after blocking by username")
+  public void testV2PasswordSignInFlowBlockedAfterBlockingByUsername() {
+    // Arrange
+    String username = randomAlphanumeric(10);
+    String reason = randomAlphanumeric(10);
+    Map<String, Object> requestBody =
+        generateBlockRequestBody(username, new String[] {PASSWORD_FLOW}, reason, UNBLOCKED_AT);
+
+    Response blockResponse = blockUserFlows(TENANT_ID, requestBody);
+    blockResponse.then().statusCode(HttpStatus.SC_NO_CONTENT);
+
+    // Act - V2 signin with username (userIdentifier)
+    Response signInResponse =
+        v2SignIn(
+            TENANT_ID,
+            username,
+            null,
+            null,
+            PASSWORD,
+            null,
+            BODY_PARAM_RESPONSE_TYPE_TOKEN,
+            List.of(TEST_SCOPE_1),
+            new HashMap<>(),
+            firstPartyClientId);
+
+    // Assert
+    signInResponse
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN)
+        .rootPath(ERROR)
+        .body(CODE, equalTo(ERROR_FLOW_BLOCKED))
+        .body(MESSAGE, equalTo(reason))
+        .body("metadata.retryAfter.toString()", equalTo(String.valueOf(UNBLOCKED_AT)));
+  }
+
+  @Test
+  @DisplayName("Should verify V2 password signin flow is blocked after blocking by email")
+  public void testV2PasswordSignInFlowBlockedAfterBlockingByEmail() {
+    // Arrange - block by email (userIdentifier)
+    String email = randomAlphanumeric(10) + "@" + randomAlphanumeric(5) + ".com";
+    String reason = randomAlphanumeric(10);
+    Map<String, Object> requestBody =
+        generateBlockRequestBody(email, new String[] {PASSWORD_FLOW}, reason, UNBLOCKED_AT);
+
+    Response blockResponse = blockUserFlows(TENANT_ID, requestBody);
+    blockResponse.then().statusCode(HttpStatus.SC_NO_CONTENT);
+
+    // Act - V2 signin with email (userIdentifier)
+    Response signInResponse =
+        v2SignIn(
+            TENANT_ID,
+            null,
+            null,
+            email,
+            PASSWORD,
+            null,
+            BODY_PARAM_RESPONSE_TYPE_TOKEN,
+            List.of(TEST_SCOPE_1),
+            new HashMap<>(),
+            firstPartyClientId);
+
+    // Assert
+    signInResponse
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN)
+        .rootPath(ERROR)
+        .body(CODE, equalTo(ERROR_FLOW_BLOCKED))
+        .body(MESSAGE, equalTo(reason))
+        .body("metadata.retryAfter.toString()", equalTo(String.valueOf(UNBLOCKED_AT)));
+  }
+
+  @Test
+  @DisplayName("Should verify V2 pin signin flow is blocked after blocking by username")
+  public void testV2PinSignInFlowBlockedAfterBlockingByUsername() {
+    // Arrange
+    String username = randomAlphanumeric(10);
+    String reason = randomAlphanumeric(10);
+    Map<String, Object> requestBody =
+        generateBlockRequestBody(username, new String[] {PIN_FLOW}, reason, UNBLOCKED_AT);
+
+    Response blockResponse = blockUserFlows(TENANT_ID, requestBody);
+    blockResponse.then().statusCode(HttpStatus.SC_NO_CONTENT);
+
+    // Act - V2 signin with pin (userIdentifier = username)
+    Response signInResponse =
+        v2SignIn(
+            TENANT_ID,
+            username,
+            null,
+            null,
+            null,
+            "1234",
+            BODY_PARAM_RESPONSE_TYPE_TOKEN,
+            List.of(TEST_SCOPE_1),
+            new HashMap<>(),
+            firstPartyClientId);
+
+    // Assert
+    signInResponse
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN)
+        .rootPath(ERROR)
+        .body(CODE, equalTo(ERROR_FLOW_BLOCKED))
+        .body(MESSAGE, equalTo(reason))
+        .body("metadata.retryAfter.toString()", equalTo(String.valueOf(UNBLOCKED_AT)));
+  }
+
+  @Test
   @DisplayName("Should verify block is automatically lifted after unblockedAt time")
   public void testBlockAutomaticallyLiftedAfterUnblockedAt() {
     // Arrange
@@ -633,7 +743,7 @@ public class UserBlockFlowsIT {
         .body(
             MESSAGE,
             equalTo(
-                "Invalid flow: PASSWORDLESS. Valid flows are: [passwordless, password, social_auth, otp_verify]"));
+                "Invalid flow: PASSWORDLESS. Valid flows are: [passwordless, password, social_auth, otp_verify, pin]"));
   }
 
   @Test
@@ -658,7 +768,7 @@ public class UserBlockFlowsIT {
         .body(
             MESSAGE,
             equalTo(
-                "Invalid flow: invalid_flow. Valid flows are: [passwordless, password, social_auth, otp_verify]"));
+                "Invalid flow: invalid_flow. Valid flows are: [passwordless, password, social_auth, otp_verify, pin]"));
   }
 
   @Test

@@ -34,6 +34,8 @@ public enum ErrorEnum {
       "max_resend_limit_exceeded",
       "Maximum OTP limit exceeded. Try again after the cooldown period.",
       400),
+  MAX_LOGIN_ATTEMPTS_EXCEEDED(
+      "max_login_attempts_exceeded", "Maximum password/PIN login attempts limit exceeded", 400),
   INCORRECT_OTP("incorrect_otp", "Incorrect otp", 400),
   RETRIES_EXHAUSTED("retries_exhausted", "Retries exhausted", 400),
 

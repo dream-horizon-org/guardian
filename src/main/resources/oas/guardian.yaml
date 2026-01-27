@@ -943,6 +943,10 @@ paths:
       description: |
         API to unblock previously blocked authentication flows for a user identifier.
         This allows the user to use the specified authentication methods again.
+        For password/PIN block (wrong attempts from signin or MFA signin), use unblockFlows
+        ["password"] and/or ["pin"] to unblock. user_identifier must be the username, email, or
+        phone number (the identifier used when signing in) for password/PIN blocks. Lifts the
+        block before the block interval expires (e.g. after reset).
       parameters:
         - $ref: '#/components/parameters/TenantIdHeader'
       requestBody:
@@ -4451,12 +4455,14 @@ components:
           type: array
           items:
             type: string
-            enum: [passwordless, password, social_auth, otp_verify]
-          description: List of flow types to unblock
-          example: ["passwordless", "social_auth"]
+            enum: [passwordless, password, social_auth, otp_verify, pin]
+          description: |
+            List of flow types to unblock. Use "password" or "pin" to unblock when
+            blocked due to wrong attempts (user_identifier must be username, email, or phone).
+          example: ["password", "pin"]
       example:
-        userIdentifier: "user@example.com"
-        unblockFlows: ["passwordless", "social_auth"]
+        userIdentifier: "john@example.com"
+        unblockFlows: ["password"]
 
 
 
@@ -4471,9 +4477,9 @@ components:
           type: array
           items:
             type: string
-            enum: [passwordless, password, social_auth, otp_verify]
+            enum: [passwordless, password, social_auth, otp_verify, pin]
           description: List of currently blocked flow types
-          example: ["passwordless", "social_auth"]
+          example: ["passwordless", "password"]
         totalCount:
           type: integer
           description: Total number of blocked flows

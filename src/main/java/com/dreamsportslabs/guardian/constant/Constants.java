@@ -150,6 +150,8 @@ public final class Constants {
   public static final String CACHE_KEY_AUTH_SESSION = "AUTH_SESSION";
   public static final String CACHE_KEY_BIOMETRIC_CHALLENGE = "BIOMETRIC_CHALLENGE";
   public static final String CACHE_KEY_OTP_RESEND_COUNT = "otp_resend_count";
+  public static final String CACHE_KEY_PASSWORD_ATTEMPTS = "password_attempts";
+  public static final String CACHE_KEY_PIN_ATTEMPTS = "pin_attempts";
 
   public static final String TOKEN_TYPE = "Bearer";
 

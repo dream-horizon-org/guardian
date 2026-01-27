@@ -170,4 +170,13 @@ public class ConfigQuery {
      FROM guest_config
      WHERE tenant_id = ?
      """;
+
+  public static final String PASSWORD_PIN_BLOCK_CONFIG =
+      """
+    SELECT attempts_allowed,
+           attempts_window_seconds,
+           block_interval_seconds
+    FROM password_pin_block_config
+    WHERE tenant_id = ?
+    """;
 }
