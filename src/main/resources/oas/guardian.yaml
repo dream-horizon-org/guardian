@@ -943,6 +943,9 @@ paths:
       description: |
         API to unblock previously blocked authentication flows for a user identifier.
         This allows the user to use the specified authentication methods again.
+        For MFA password/PIN block (wrong attempts), clients can call with unblockFlows
+        ["mfa_signin_password"] and/or ["mfa_signin_pin"] to unblock only that method.
+        to lift the block before the block interval expires (e.g. after user resets PIN/password).
       parameters:
         - $ref: '#/components/parameters/TenantIdHeader'
       requestBody:
@@ -4451,12 +4454,15 @@ components:
           type: array
           items:
             type: string
-            enum: [passwordless, password, social_auth, otp_verify]
-          description: List of flow types to unblock
-          example: ["passwordless", "social_auth"]
+            enum: [passwordless, password, social_auth, otp_verify, mfa_signin_password, mfa_signin_pin]
+          description: |
+            List of flow types to unblock. Use "mfa_signin_password" or "mfa_signin_pin" to
+            unblock only that MFA method when blocked due to wrong attempts (user_identifier
+            must be "userId:deviceId" for MFA password/PIN blocks).
+          example: ["mfa_signin_password", "mfa_signin_pin"]
       example:
-        userIdentifier: "user@example.com"
-        unblockFlows: ["passwordless", "social_auth"]
+        userIdentifier: "user-123:device-456"
+        unblockFlows: ["mfa_signin_password"]
 
 
 
@@ -4471,9 +4477,9 @@ components:
           type: array
           items:
             type: string
-            enum: [passwordless, password, social_auth, otp_verify]
+            enum: [passwordless, password, social_auth, otp_verify, mfa_signin_password, mfa_signin_pin]
           description: List of currently blocked flow types
-          example: ["passwordless", "social_auth"]
+          example: ["passwordless", "mfa_signin_password"]
         totalCount:
           type: integer
           description: Total number of blocked flows

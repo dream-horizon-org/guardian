@@ -19,7 +19,15 @@ public enum BlockFlow {
           "/v2/auth/fb",
           "/v2/auth/google",
           "/v2/idp/connect")),
-  OTP_VERIFY("otp_verify", List.of("/v1/otp/send", "/v1/otp/verify"));
+  OTP_VERIFY("otp_verify", List.of("/v1/otp/send", "/v1/otp/verify")),
+  /**
+   * Blocks only MFA signin with password factor; other MFA methods (PIN, OTP, etc.) remain allowed.
+   */
+  MFA_SIGNIN_PASSWORD("mfa_signin_password", List.of("/v2/mfa/signin")),
+  /**
+   * Blocks only MFA signin with PIN factor; other MFA methods (password, OTP, etc.) remain allowed.
+   */
+  MFA_SIGNIN_PIN("mfa_signin_pin", List.of("/v2/mfa/signin"));
 
   private final String flowName;
   private final List<String> apiPaths;

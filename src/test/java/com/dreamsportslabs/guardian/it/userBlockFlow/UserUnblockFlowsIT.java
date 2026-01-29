@@ -398,7 +398,7 @@ class UserUnblockFlowsIT {
         .body(
             MESSAGE,
             equalTo(
-                "Invalid flow: invalid_flow. Valid flows are: [passwordless, password, social_auth, otp_verify]"));
+                "Invalid flow: invalid_flow. Valid flows are: [passwordless, password, social_auth, otp_verify, mfa_signin_password, mfa_signin_pin]"));
   }
 
   @Test
@@ -485,6 +485,6 @@ class UserUnblockFlowsIT {
         .body(
             MESSAGE,
             equalTo(
-                "Invalid flow: PASSWORDLESS. Valid flows are: [passwordless, password, social_auth, otp_verify]"));
+                "Invalid flow: PASSWORDLESS. Valid flows are: [passwordless, password, social_auth, otp_verify, mfa_signin_password, mfa_signin_pin]"));
   }
 }

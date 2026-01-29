@@ -1,6 +1,7 @@
 package com.dreamsportslabs.guardian.dto.request.v2;
 
 import com.dreamsportslabs.guardian.constant.MfaFactor;
+import com.dreamsportslabs.guardian.dto.request.DeviceMetadataDto;
 import com.dreamsportslabs.guardian.validation.annotation.ValidV2MfaSignInRequest;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,8 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
 @ValidV2MfaSignInRequest
@@ -46,6 +49,9 @@ public class V2MfaSignInRequestDto {
   @JsonProperty("client_id")
   @NotNull(message = "client_id cannot be null or empty")
   private String clientId;
+
+  @JsonProperty("device_metadata")
+  private DeviceMetadataDto deviceMetadata;
 
   public void setScopes(List<String> scopes) {
     if (scopes == null) this.scopes = new ArrayList<>();
