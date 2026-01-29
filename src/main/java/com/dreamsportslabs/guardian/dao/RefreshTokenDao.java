@@ -231,8 +231,7 @@ public class RefreshTokenDao {
         .toMaybe()
         .filter(rows -> rows.iterator().hasNext())
         .map(rows -> rows.iterator().next().getLong(COUNT))
-        .switchIfEmpty(Maybe.just(0L))
-        .toSingle();
+        .switchIfEmpty(Single.just(0L));
   }
 
   public Single<List<UserRefreshTokenModel>> getActiveRefreshTokensForUser(

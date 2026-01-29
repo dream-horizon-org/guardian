@@ -57,7 +57,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
-public class UserRefreshTokensIT {
+public class V2UserRefreshTokensIT {
 
   private static final String TENANT_ID = TENANT_1;
   private static final String TEST_SCOPE = SCOPE_PROFILE;
