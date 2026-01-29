@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dao;
 
+import static com.dreamsportslabs.guardian.constant.Constants.COUNT;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ACTIVE_REFRESH_TOKENS_COUNT_FOR_USER_WITH_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ALL_REFRESH_TOKENS_FOR_USER;
@@ -227,11 +228,11 @@ public class RefreshTokenDao {
         .getReaderPool()
         .preparedQuery(GET_ACTIVE_REFRESH_TOKENS_COUNT_FOR_USER_WITH_CLIENT)
         .rxExecute(Tuple.of(tenantId, clientId, userId))
-        .map(
-            rowSet -> {
-              var it = rowSet.iterator();
-              return it.hasNext() ? it.next().getLong("cnt") : 0L;
-            });
+        .toMaybe()
+        .filter(rows -> rows.iterator().hasNext())
+        .map(rows -> rows.iterator().next().getLong(COUNT))
+        .switchIfEmpty(Maybe.just(0L))
+        .toSingle();
   }
 
   public Single<List<UserRefreshTokenModel>> getActiveRefreshTokensForUser(

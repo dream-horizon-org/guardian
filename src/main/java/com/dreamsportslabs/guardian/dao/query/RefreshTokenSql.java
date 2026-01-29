@@ -68,7 +68,7 @@ public class RefreshTokenSql {
 
   public static final String GET_ACTIVE_REFRESH_TOKENS_COUNT_FOR_USER_WITH_CLIENT =
       """
-      SELECT COUNT(*) AS cnt
+      SELECT COUNT(*) AS count
       FROM refresh_tokens
       WHERE tenant_id = ?
           AND client_id = ?
