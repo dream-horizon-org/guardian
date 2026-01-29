@@ -11,8 +11,6 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UserRefreshTokenModel {
-  private String tenantId;
-  private String clientId;
   private String refreshToken;
   private String deviceName;
   private String location;

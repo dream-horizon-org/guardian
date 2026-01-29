@@ -619,23 +619,16 @@ public class ApplicationIoUtils {
 
   public static Response getUserRefreshTokens(
       String tenantId, String accessToken, String clientId) {
-    return getUserRefreshTokens(tenantId, accessToken, clientId, null);
-  }
-
-  public static Response getUserRefreshTokens(
-      String tenantId, String accessToken, String clientId, Map<String, Object> body) {
     Map<String, String> headers = new HashMap<>();
     headers.put(HEADER_TENANT_ID, tenantId);
     headers.put(HEADER_AUTHORIZATION, "Bearer " + accessToken);
 
-    Map<String, Object> requestBody = body;
-    if (requestBody == null) {
-      requestBody = new HashMap<>();
-      requestBody.put(BODY_PARAM_CLIENT_ID, clientId);
+    Map<String, String> queryParams = new HashMap<>();
+    if (clientId != null) {
+      queryParams.put(BODY_PARAM_CLIENT_ID, clientId);
     }
 
-    return execute(
-        requestBody, headers, new HashMap<>(), spec -> spec.post("/v1/user/refreshTokens"));
+    return execute(null, headers, queryParams, spec -> spec.get("/v2/user/refresh-tokens"));
   }
 
   public static Response postUserInfo(String tenantId, String accessToken) {

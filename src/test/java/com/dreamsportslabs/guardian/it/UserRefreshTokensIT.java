@@ -1,7 +1,6 @@
 package com.dreamsportslabs.guardian.it;
 
 import static com.dreamsportslabs.guardian.Constants.AUTH_RESPONSE_TYPE_TOKEN;
-import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_CLIENT_ID;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_LOCATION;
 import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.CONTENT_TYPE_APPLICATION_JSON;
@@ -48,7 +47,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import io.restassured.response.Response;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -186,10 +184,8 @@ public class UserRefreshTokensIT {
     String accessToken = generateAccessToken(TENANT_ID, TEST_USER_ID, firstPartyClientId);
     assertThat(accessToken, notNullValue());
 
-    // Act - Call with empty body (client_id missing)
-    Map<String, Object> body = new HashMap<>();
-
-    Response response = getUserRefreshTokens(TENANT_ID, accessToken, null, body);
+    // Act - Call without client_id query param
+    Response response = getUserRefreshTokens(TENANT_ID, accessToken, null);
 
     // Assert
     response
@@ -246,8 +242,12 @@ public class UserRefreshTokensIT {
     assertThat(refreshTokens, hasSize(1));
     Map<String, Object> token = refreshTokens.get(0);
     assertThat(token.get(OIDC_BODY_PARAM_REFRESH_TOKEN), equalTo(refreshToken1));
-    assertThat(token.get(BODY_PARAM_CLIENT_ID), equalTo(firstPartyClientId));
-    assertThat(token.get("tenant_id"), equalTo(TENANT_ID));
+    assertThat(
+        "Second client's token should not be returned",
+        refreshTokens.stream()
+            .map(t -> (String) t.get(OIDC_BODY_PARAM_REFRESH_TOKEN))
+            .toList(),
+        not(hasItems(refreshToken2)));
     assertThat(token.get("device_name"), equalTo(TEST_DEVICE_NAME_1));
     assertThat(token.get(BODY_PARAM_LOCATION), equalTo(TEST_LOCATION_1));
     assertThat(token.get("ip"), equalTo(TEST_IP_1));
@@ -321,8 +321,6 @@ public class UserRefreshTokensIT {
     assertThat(refreshTokens, hasSize(1));
     Map<String, Object> token = refreshTokens.get(0);
     assertThat(token.get(OIDC_BODY_PARAM_REFRESH_TOKEN), equalTo(activeRefreshToken));
-    assertThat(token.get("tenant_id"), equalTo(TENANT_ID));
-    assertThat(token.get(BODY_PARAM_CLIENT_ID), equalTo(firstPartyClientId));
   }
 
   @Test
@@ -682,7 +680,6 @@ public class UserRefreshTokensIT {
     assertThat(totalCount, equalTo(1));
     assertThat(refreshTokens, hasSize(1));
     assertThat(refreshTokens.get(0).get(OIDC_BODY_PARAM_REFRESH_TOKEN), equalTo(userRefreshToken));
-    assertThat(refreshTokens.get(0).get("tenant_id"), equalTo(TENANT_ID));
   }
 
   @Test

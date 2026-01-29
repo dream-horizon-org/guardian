@@ -225,7 +225,7 @@ public class RefreshTokenDao {
     return mysqlClient
         .getReaderPool()
         .preparedQuery(GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT)
-        .rxExecute(Tuple.of(tenantId, userId, clientId))
+        .rxExecute(Tuple.of(tenantId, clientId, userId))
         .map(rowSet -> JsonUtils.rowSetToList(rowSet, UserRefreshTokenModel.class));
   }
 }

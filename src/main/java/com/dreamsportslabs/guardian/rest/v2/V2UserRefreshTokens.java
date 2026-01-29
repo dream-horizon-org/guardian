@@ -1,18 +1,16 @@
-package com.dreamsportslabs.guardian.rest;
+package com.dreamsportslabs.guardian.rest.v2;
 
-import static com.dreamsportslabs.guardian.constant.Constants.APPLICATION_JWT;
 import static com.dreamsportslabs.guardian.constant.Constants.TENANT_ID;
 import static com.dreamsportslabs.guardian.utils.Utils.getAccessTokenFromAuthHeader;
 
-import com.dreamsportslabs.guardian.dto.request.GetUserRefreshTokensRequestDto;
+import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.service.AuthorizationService;
 import com.google.inject.Inject;
-import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
@@ -20,26 +18,30 @@ import jakarta.ws.rs.core.Response;
 import java.util.concurrent.CompletionStage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-@Path("/v1/user/refreshTokens")
+@Path("/v2/user/refresh-tokens")
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class UserRefreshTokens {
+public class V2UserRefreshTokens {
   private final AuthorizationService authorizationService;
 
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces({MediaType.APPLICATION_JSON, APPLICATION_JWT})
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> getActiveRefreshTokens(
       @Context HttpHeaders headers,
       @HeaderParam(TENANT_ID) String tenantId,
-      @Valid GetUserRefreshTokensRequestDto requestDto) {
+      @QueryParam("client_id") String clientId) {
+
+    if (StringUtils.isBlank(clientId)) {
+      throw ErrorEnum.INVALID_REQUEST.getCustomException("client_id is required");
+    }
 
     String accessToken =
         getAccessTokenFromAuthHeader(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
 
     return authorizationService
-        .getActiveRefreshTokensForUser(tenantId, accessToken, requestDto.getClientId())
+        .getActiveRefreshTokensForUser(tenantId, accessToken, clientId)
         .map(tokens -> Response.ok(tokens).build())
         .toCompletionStage();
   }
