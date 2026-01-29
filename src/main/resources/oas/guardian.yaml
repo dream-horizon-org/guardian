@@ -1315,6 +1315,92 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /v2/user/refresh-tokens:
+    get:
+      tags:
+        - Session Management
+      summary: Get user's active refresh tokens
+      description: |
+        Returns a paginated list of active refresh tokens for the authenticated user and client.
+        The user is identified from the Bearer access token; client_id must match the token's client.
+        
+        **Authentication:**
+        - Requires a valid Bearer access token in the Authorization header
+        
+        **Query parameters:**
+        - `client_id` (required): Client ID; must match the client_id in the access token
+        - `page` (optional): Page number (1-based). Default 1
+        - `page_size` (optional): Number of items per page (1-100). Default 10
+        
+        **Response:**
+        - `refresh_tokens`: List of active refresh tokens with device/location metadata
+        - `total_count`: Total number of active refresh tokens (across all pages)
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - name: Authorization
+          in: header
+          required: true
+          description: Bearer access token
+          schema:
+            type: string
+            example: "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        - name: client_id
+          in: query
+          required: true
+          description: Client ID (must match the access token's client_id)
+          schema:
+            type: string
+            example: "my-client-id"
+        - name: page
+          in: query
+          required: false
+          description: Page number (1-based). Default 1
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - name: page_size
+          in: query
+          required: false
+          description: Number of items per page (1-100). Default 10
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+            example: 10
+      responses:
+        '200':
+          description: List of active refresh tokens retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRefreshTokensResponse'
+        '400':
+          description: Bad Request (e.g. missing client_id, invalid page or page_size)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (invalid/expired token or client_id mismatch)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            WWW-Authenticate:
+              description: Bearer error details
+              schema:
+                type: string
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /v1/admin/logout:
     post:
       tags:
@@ -3370,6 +3456,54 @@ components:
               type: string
               description: Human-readable error message
               example: "Something went wrong."
+    UserRefreshTokenItem:
+      type: object
+      description: A single active refresh token with device/location metadata
+      properties:
+        refresh_token:
+          type: string
+          description: The refresh token value
+        device_name:
+          type: string
+          description: Device name associated with the token
+        location:
+          type: string
+          description: Location when the token was created
+        ip:
+          type: string
+          description: IP address when the token was created
+        source:
+          type: string
+          description: Source (e.g. mobile, web)
+    UserRefreshTokensResponse:
+      type: object
+      description: Paginated list of user's active refresh tokens
+      required:
+        - refresh_tokens
+        - total_count
+      properties:
+        refresh_tokens:
+          type: array
+          description: List of active refresh tokens for the current page
+          items:
+            $ref: '#/components/schemas/UserRefreshTokenItem'
+        total_count:
+          type: integer
+          format: int64
+          description: Total number of active refresh tokens (across all pages)
+      example:
+        refresh_tokens:
+          - refresh_token: "abc123..."
+            device_name: "iPhone 13"
+            location: "New York, USA"
+            ip: "192.168.1.1"
+            source: "mobile"
+          - refresh_token: "def456..."
+            device_name: "MacBook Pro"
+            location: "San Francisco, USA"
+            ip: "10.0.0.1"
+            source: "web"
+        total_count: 2
     MetaInfo:
       type: object
       properties:

@@ -65,4 +65,33 @@ public class RefreshTokenSql {
          SET auth_method = ?, scope = ?
          WHERE tenant_id = ? AND client_id = ? AND refresh_token = ?
       """;
+
+  public static final String GET_ACTIVE_REFRESH_TOKENS_COUNT_FOR_USER_WITH_CLIENT =
+      """
+      SELECT COUNT(*) AS count
+      FROM refresh_tokens
+      WHERE tenant_id = ?
+          AND client_id = ?
+          AND user_id = ?
+          AND is_active = 1
+          AND refresh_token_exp > UNIX_TIMESTAMP()
+      """;
+
+  public static final String GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT =
+      """
+      SELECT
+          refresh_token,
+          device_name,
+          location,
+          INET6_NTOA(ip) AS ip,
+          source
+      FROM refresh_tokens
+      WHERE tenant_id = ?
+          AND client_id = ?
+          AND user_id = ?
+          AND is_active = 1
+          AND refresh_token_exp > UNIX_TIMESTAMP()
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+      """;
 }

@@ -20,6 +20,7 @@ import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_STATE;
 import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_USERNAME;
 import static com.dreamsportslabs.guardian.Constants.CLIENT_ID;
 import static com.dreamsportslabs.guardian.Constants.CONTENT_TYPE_APPLICATION_JSON;
+import static com.dreamsportslabs.guardian.Constants.HEADER_AUTHORIZATION;
 import static com.dreamsportslabs.guardian.Constants.HEADER_TENANT_ID;
 import static com.dreamsportslabs.guardian.Constants.OIDC_BODY_PARAM_REFRESH_TOKEN;
 import static com.dreamsportslabs.guardian.Constants.QUERY_PARAM_NAME;
@@ -614,6 +615,31 @@ public class ApplicationIoUtils {
     headers.put("Accept", "application/json");
 
     return execute(null, headers, new HashMap<>(), spec -> spec.get("/userinfo"));
+  }
+
+  public static Response getUserRefreshTokens(
+      String tenantId, String accessToken, String clientId) {
+    return getUserRefreshTokens(tenantId, accessToken, clientId, null, null);
+  }
+
+  public static Response getUserRefreshTokens(
+      String tenantId, String accessToken, String clientId, Integer page, Integer pageSize) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HEADER_TENANT_ID, tenantId);
+    headers.put(HEADER_AUTHORIZATION, "Bearer " + accessToken);
+
+    Map<String, String> queryParams = new HashMap<>();
+    if (clientId != null) {
+      queryParams.put(BODY_PARAM_CLIENT_ID, clientId);
+    }
+    if (page != null) {
+      queryParams.put("page", String.valueOf(page));
+    }
+    if (pageSize != null) {
+      queryParams.put("page_size", String.valueOf(pageSize));
+    }
+
+    return execute(null, headers, queryParams, spec -> spec.get("/v2/user/refresh-tokens"));
   }
 
   public static Response postUserInfo(String tenantId, String accessToken) {

@@ -165,6 +165,7 @@ public final class Constants {
   public static final Integer REVOCATIONS_KEY_SCORE_END_INDEX = 2;
   public static final String REVOCATIONS_REDIS_KEY_PREFIX = "revocations";
   public static final Integer MILLIS_TO_SECONDS = 1000;
+  public static final String COUNT = "count";
 
   public static final String ACCESS_TOKEN_COOKIE_NAME = "AT";
   public static final String REFRESH_TOKEN_COOKIE_NAME = "RT";
