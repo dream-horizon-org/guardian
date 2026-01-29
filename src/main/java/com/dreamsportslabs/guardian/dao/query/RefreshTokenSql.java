@@ -66,6 +66,17 @@ public class RefreshTokenSql {
          WHERE tenant_id = ? AND client_id = ? AND refresh_token = ?
       """;
 
+  public static final String GET_ACTIVE_REFRESH_TOKENS_COUNT_FOR_USER_WITH_CLIENT =
+      """
+      SELECT COUNT(*) AS cnt
+      FROM refresh_tokens
+      WHERE tenant_id = ?
+          AND client_id = ?
+          AND user_id = ?
+          AND is_active = 1
+          AND refresh_token_exp > UNIX_TIMESTAMP()
+      """;
+
   public static final String GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT =
       """
       SELECT
@@ -81,5 +92,6 @@ public class RefreshTokenSql {
           AND is_active = 1
           AND refresh_token_exp > UNIX_TIMESTAMP()
       ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
       """;
 }

@@ -619,6 +619,11 @@ public class ApplicationIoUtils {
 
   public static Response getUserRefreshTokens(
       String tenantId, String accessToken, String clientId) {
+    return getUserRefreshTokens(tenantId, accessToken, clientId, null, null);
+  }
+
+  public static Response getUserRefreshTokens(
+      String tenantId, String accessToken, String clientId, Integer page, Integer pageSize) {
     Map<String, String> headers = new HashMap<>();
     headers.put(HEADER_TENANT_ID, tenantId);
     headers.put(HEADER_AUTHORIZATION, "Bearer " + accessToken);
@@ -626,6 +631,12 @@ public class ApplicationIoUtils {
     Map<String, String> queryParams = new HashMap<>();
     if (clientId != null) {
       queryParams.put(BODY_PARAM_CLIENT_ID, clientId);
+    }
+    if (page != null) {
+      queryParams.put("page", String.valueOf(page));
+    }
+    if (pageSize != null) {
+      queryParams.put("page_size", String.valueOf(pageSize));
     }
 
     return execute(null, headers, queryParams, spec -> spec.get("/v2/user/refresh-tokens"));

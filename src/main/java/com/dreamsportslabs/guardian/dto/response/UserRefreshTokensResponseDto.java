@@ -12,5 +12,5 @@ import lombok.Getter;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UserRefreshTokensResponseDto {
   private List<UserRefreshTokenModel> refreshTokens;
-  private int totalCount;
+  private Long totalCount;
 }

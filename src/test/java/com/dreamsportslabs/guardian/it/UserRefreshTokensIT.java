@@ -244,9 +244,7 @@ public class UserRefreshTokensIT {
     assertThat(token.get(OIDC_BODY_PARAM_REFRESH_TOKEN), equalTo(refreshToken1));
     assertThat(
         "Second client's token should not be returned",
-        refreshTokens.stream()
-            .map(t -> (String) t.get(OIDC_BODY_PARAM_REFRESH_TOKEN))
-            .toList(),
+        refreshTokens.stream().map(t -> (String) t.get(OIDC_BODY_PARAM_REFRESH_TOKEN)).toList(),
         not(hasItems(refreshToken2)));
     assertThat(token.get("device_name"), equalTo(TEST_DEVICE_NAME_1));
     assertThat(token.get(BODY_PARAM_LOCATION), equalTo(TEST_LOCATION_1));
@@ -699,5 +697,77 @@ public class UserRefreshTokensIT {
         .rootPath(ERROR)
         .body(CODE, equalTo(ERROR_INVALID_REQUEST))
         .body(MESSAGE, equalTo("client_id is required"));
+  }
+
+  @Test
+  @DisplayName("Should return paginated results with total count")
+  public void testPaginationReturnsCorrectPageAndTotalCount() {
+    // Arrange - insert 5 refresh tokens
+    String accessToken = generateAccessToken(TENANT_ID, TEST_USER_ID, firstPartyClientId);
+    assertThat(accessToken, notNullValue());
+
+    for (int i = 0; i < 5; i++) {
+      insertOidcRefreshToken(
+          TENANT_ID,
+          firstPartyClientId,
+          TEST_USER_ID,
+          1800L,
+          TEST_SCOPES_OPENID_PROFILE,
+          "Device " + i,
+          TEST_IP_1,
+          TEST_SOURCE_1,
+          TEST_LOCATION_1,
+          TEST_AUTH_METHOD);
+    }
+
+    // Act & Assert - page 1, page_size 2
+    Response page1 = getUserRefreshTokens(TENANT_ID, accessToken, firstPartyClientId, 1, 2);
+    page1.then().statusCode(SC_OK);
+    assertThat(page1.jsonPath().getLong(TOTAL_COUNT), equalTo(5L));
+    assertThat(getRefreshTokensList(page1), hasSize(2));
+
+    // Act & Assert - page 2, page_size 2
+    Response page2 = getUserRefreshTokens(TENANT_ID, accessToken, firstPartyClientId, 2, 2);
+    page2.then().statusCode(SC_OK);
+    assertThat(page2.jsonPath().getLong(TOTAL_COUNT), equalTo(5L));
+    assertThat(getRefreshTokensList(page2), hasSize(2));
+
+    // Act & Assert - page 3, page_size 2 (last page has 1 item)
+    Response page3 = getUserRefreshTokens(TENANT_ID, accessToken, firstPartyClientId, 3, 2);
+    page3.then().statusCode(SC_OK);
+    assertThat(page3.jsonPath().getLong(TOTAL_COUNT), equalTo(5L));
+    assertThat(getRefreshTokensList(page3), hasSize(1));
+  }
+
+  @Test
+  @DisplayName("Should return 400 when page is less than 1")
+  public void testPageLessThanOneReturns400() {
+    String accessToken = generateAccessToken(TENANT_ID, TEST_USER_ID, firstPartyClientId);
+    assertThat(accessToken, notNullValue());
+
+    Response response = getUserRefreshTokens(TENANT_ID, accessToken, firstPartyClientId, 0, 10);
+
+    response
+        .then()
+        .statusCode(SC_BAD_REQUEST)
+        .rootPath(ERROR)
+        .body(CODE, equalTo(ERROR_INVALID_REQUEST))
+        .body(MESSAGE, equalTo("page value cannot be less than 1"));
+  }
+
+  @Test
+  @DisplayName("Should return 400 when page_size is out of range")
+  public void testPageSizeOutOfRangeReturns400() {
+    String accessToken = generateAccessToken(TENANT_ID, TEST_USER_ID, firstPartyClientId);
+    assertThat(accessToken, notNullValue());
+
+    Response response = getUserRefreshTokens(TENANT_ID, accessToken, firstPartyClientId, 1, 101);
+
+    response
+        .then()
+        .statusCode(SC_BAD_REQUEST)
+        .rootPath(ERROR)
+        .body(CODE, equalTo(ERROR_INVALID_REQUEST))
+        .body(MESSAGE, equalTo("page_size must be between 1 and 100"));
   }
 }

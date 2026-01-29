@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dao;
 
+import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ACTIVE_REFRESH_TOKENS_COUNT_FOR_USER_WITH_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ALL_REFRESH_TOKENS_FOR_USER;
 import static com.dreamsportslabs.guardian.dao.query.RefreshTokenSql.GET_ALL_REFRESH_TOKENS_FOR_USER_AND_CLIENT;
@@ -220,12 +221,25 @@ public class RefreshTokenDao {
         .ignoreElement();
   }
 
-  public Single<List<UserRefreshTokenModel>> getActiveRefreshTokensForUser(
+  public Single<Long> getActiveRefreshTokensCountForUser(
       String tenantId, String userId, String clientId) {
     return mysqlClient
         .getReaderPool()
-        .preparedQuery(GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT)
+        .preparedQuery(GET_ACTIVE_REFRESH_TOKENS_COUNT_FOR_USER_WITH_CLIENT)
         .rxExecute(Tuple.of(tenantId, clientId, userId))
+        .map(
+            rowSet -> {
+              var it = rowSet.iterator();
+              return it.hasNext() ? it.next().getLong("cnt") : 0L;
+            });
+  }
+
+  public Single<List<UserRefreshTokenModel>> getActiveRefreshTokensForUser(
+      String tenantId, String userId, String clientId, int limit, int offset) {
+    return mysqlClient
+        .getReaderPool()
+        .preparedQuery(GET_ACTIVE_REFRESH_TOKENS_FOR_USER_WITH_CLIENT)
+        .rxExecute(Tuple.of(tenantId, clientId, userId, limit, offset))
         .map(rowSet -> JsonUtils.rowSetToList(rowSet, UserRefreshTokenModel.class));
   }
 }

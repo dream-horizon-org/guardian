@@ -606,18 +606,23 @@ public class AuthorizationService {
   }
 
   public Single<UserRefreshTokensResponseDto> getActiveRefreshTokensForUser(
-      String tenantId, String accessToken, String clientId) {
+      String tenantId, String accessToken, String clientId, int page, int pageSize) {
+
+    int offset = (page - 1) * pageSize;
 
     return Single.fromCallable(() -> tokenVerifier.verifyAccessToken(accessToken, tenantId))
         .map(claims -> validateClientIdAndExtractUserId(claims, clientId))
         .flatMap(
-            userId -> refreshTokenDao.getActiveRefreshTokensForUser(tenantId, userId, clientId))
-        .map(
-            tokens ->
-                UserRefreshTokensResponseDto.builder()
-                    .refreshTokens(tokens)
-                    .totalCount(tokens.size())
-                    .build());
+            userId ->
+                Single.zip(
+                    refreshTokenDao.getActiveRefreshTokensCountForUser(tenantId, userId, clientId),
+                    refreshTokenDao.getActiveRefreshTokensForUser(
+                        tenantId, userId, clientId, pageSize, offset),
+                    (totalCount, tokens) ->
+                        UserRefreshTokensResponseDto.builder()
+                            .refreshTokens(tokens)
+                            .totalCount(totalCount)
+                            .build()));
   }
 
   private String validateClientIdAndExtractUserId(Map<String, Object> claims, String clientId) {
