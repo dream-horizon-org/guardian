@@ -234,4 +234,105 @@ public final class Constants {
   public static final String BIOMETRIC_BINDING_TYPE_APPKEY = "appkey";
   public static final Integer BIOMETRIC_ALG_ES256 =
       -7; // COSE algorithm identifier for ES256 (ECDSA with SHA-256)
+
+  // Changelog Column Names
+  public static final String CHANGELOG_COLUMN_TOTAL = "total";
+
+  // Config Changelog Operation Types
+  public static final String OPERATION_INSERT = "INSERT";
+  public static final String OPERATION_UPDATE = "UPDATE";
+  public static final String OPERATION_DELETE = "DELETE";
+
+  // Config Types
+  public static final String CONFIG_TYPE_TENANT = "tenant";
+  public static final String CONFIG_TYPE_USER_CONFIG = "user_config";
+  public static final String CONFIG_TYPE_TOKEN_CONFIG = "token_config";
+  public static final String CONFIG_TYPE_EMAIL_CONFIG = "email_config";
+  public static final String CONFIG_TYPE_SMS_CONFIG = "sms_config";
+  public static final String CONFIG_TYPE_FB_CONFIG = "fb_config";
+  public static final String CONFIG_TYPE_GOOGLE_CONFIG = "google_config";
+  public static final String CONFIG_TYPE_AUTH_CODE_CONFIG = "auth_code_config";
+  public static final String CONFIG_TYPE_OTP_CONFIG = "otp_config";
+  public static final String CONFIG_TYPE_CONTACT_VERIFY_CONFIG = "contact_verify_config";
+  public static final String CONFIG_TYPE_OIDC_PROVIDER_CONFIG = "oidc_provider_config";
+  public static final String CONFIG_TYPE_ADMIN_CONFIG = "admin_config";
+  public static final String CONFIG_TYPE_OIDC_CONFIG = "oidc_config";
+  public static final String CONFIG_TYPE_GUEST_CONFIG = "guest_config";
+
+  // MySQL Error Codes
+  public static final int MYSQL_ERROR_CODE_DUPLICATE_ENTRY = 1062;
+
+  // Database Constraint Names
+  public static final String TENANT_NAME = "tenant_name";
+
+  // Default User Config Values
+  public static final String DEFAULT_USER_CONFIG_HOST = "api.example.com";
+  public static final int DEFAULT_USER_CONFIG_PORT = 80;
+  public static final String DEFAULT_USER_CONFIG_GET_USER_PATH = "/users/validate";
+  public static final String DEFAULT_USER_CONFIG_CREATE_USER_PATH = "/users";
+  public static final String DEFAULT_USER_CONFIG_AUTHENTICATE_USER_PATH = "/api/user/validate";
+  public static final String DEFAULT_USER_CONFIG_ADD_PROVIDER_PATH = "";
+  public static final String DEFAULT_USER_CONFIG_UPDATE_USER_PATH = "";
+  public static final boolean DEFAULT_USER_CONFIG_IS_SSL_ENABLED = false;
+  public static final boolean DEFAULT_USER_CONFIG_SEND_PROVIDER_DETAILS = false;
+
+  // Default Token Config Values
+  public static final String DEFAULT_TOKEN_CONFIG_ALGORITHM = "RS512";
+  public static final String DEFAULT_TOKEN_CONFIG_ISSUER = "https://example.com";
+  public static final int DEFAULT_TOKEN_CONFIG_ACCESS_TOKEN_EXPIRY = 900;
+  public static final int DEFAULT_TOKEN_CONFIG_REFRESH_TOKEN_EXPIRY = 2592000;
+  public static final int DEFAULT_TOKEN_CONFIG_ID_TOKEN_EXPIRY = 36000;
+  public static final String DEFAULT_TOKEN_CONFIG_COOKIE_SAME_SITE = "NONE";
+  public static final String DEFAULT_TOKEN_CONFIG_COOKIE_DOMAIN = "";
+  public static final String DEFAULT_TOKEN_CONFIG_COOKIE_PATH = "/";
+  public static final boolean DEFAULT_TOKEN_CONFIG_COOKIE_SECURE = false;
+  public static final boolean DEFAULT_TOKEN_CONFIG_COOKIE_HTTP_ONLY = true;
+  public static final String DEFAULT_ID_TOKEN_CLAIM_USER_ID = "userId";
+  public static final String DEFAULT_ID_TOKEN_CLAIM_EMAIL_ID = "emailId";
+
+  // RSA Key Generation Constants
+  public static final int DEFAULT_RSA_KEY_SIZE = 2048;
+  public static final int DEFAULT_RSA_KEY_COUNT = 3;
+  public static final int FIRST_RSA_KEY_INDEX = 0;
+
+  // Default Boolean Values for Config Updates
+  public static final boolean DEFAULT_IS_SSL_ENABLED = false;
+  public static final boolean DEFAULT_SEND_APP_SECRET = true;
+  public static final boolean DEFAULT_IS_ENCRYPTED = true;
+
+  // Default Email Config Values
+  public static final int DEFAULT_EMAIL_CONFIG_PORT = 80;
+
+  // Default OTP Config Values (used by otp_config and contact_verify_config)
+  public static final boolean DEFAULT_IS_OTP_MOCKED = false;
+  public static final int DEFAULT_OTP_LENGTH = 6;
+  public static final int DEFAULT_TRY_LIMIT = 5;
+  public static final int DEFAULT_RESEND_LIMIT = 5;
+  public static final int DEFAULT_OTP_RESEND_INTERVAL = 30;
+  public static final int DEFAULT_OTP_VALIDITY = 900;
+  public static final int DEFAULT_OTP_SEND_WINDOW_SECONDS = 86400;
+  public static final int DEFAULT_OTP_SEND_WINDOW_MAX_COUNT = 10;
+  public static final int DEFAULT_OTP_SEND_BLOCK_SECONDS = 86400;
+
+  // Default OIDC Provider Config Values
+  public static final String DEFAULT_USER_IDENTIFIER = "email";
+  public static final boolean DEFAULT_OIDC_PROVIDER_IS_SSL_ENABLED = true;
+
+  // Duplicate Entry Message Formats
+  public static final String DUPLICATE_ENTRY_MESSAGE_ADMIN_CONFIG = "Admin config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_AUTH_CODE_CONFIG =
+      "Auth code config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_EMAIL_CONFIG = "Email config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_SMS_CONFIG = "SMS config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_FB_CONFIG = "FB config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_GOOGLE_CONFIG = "Google config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_GUEST_CONFIG = "Guest config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_OIDC_CONFIG = "OIDC config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_OTP_CONFIG = "OTP config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_CONTACT_VERIFY_CONFIG =
+      "Contact verify config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_OIDC_PROVIDER_CONFIG =
+      "OIDC provider config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_TENANT_NAME = "Tenant name already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_TENANT_ID = "Tenant ID already exists";
 }
