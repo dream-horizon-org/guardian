@@ -1,42 +1,99 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_SMS_CONFIG;
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_SMS_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.SmsConfigQuery.CREATE_SMS_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.SmsConfigQuery.DELETE_SMS_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.SmsConfigQuery.GET_SMS_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.SmsConfigQuery.UPDATE_SMS_CONFIG;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.SMS_CONFIG_ALREADY_EXISTS;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.SMS_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
-import com.dreamsportslabs.guardian.dao.config.SmsConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.SmsConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateSmsConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateSmsConfigRequestDto;
 import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.service.ChangelogService;
+import com.dreamsportslabs.guardian.utils.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SmsConfigService
     extends BaseConfigService<
         SmsConfigModel, CreateSmsConfigRequestDto, UpdateSmsConfigRequestDto> {
-  private final SmsConfigDao smsConfigDao;
+  private final BaseConfigDao<SmsConfigModel> dao;
 
   @Inject
   public SmsConfigService(
       ChangelogService changelogService,
       MysqlClient mysqlClient,
       TenantCache tenantCache,
-      SmsConfigDao smsConfigDao) {
+      ObjectMapper objectMapper) {
     super(changelogService, mysqlClient, tenantCache);
-    this.smsConfigDao = smsConfigDao;
+    this.dao =
+        new BaseConfigDao<SmsConfigModel>(mysqlClient) {
+          @Override
+          protected String getCreateQuery() {
+            return CREATE_SMS_CONFIG;
+          }
+
+          @Override
+          protected String getGetQuery() {
+            return GET_SMS_CONFIG;
+          }
+
+          @Override
+          protected String getUpdateQuery() {
+            return UPDATE_SMS_CONFIG;
+          }
+
+          @Override
+          protected String getDeleteQuery() {
+            return DELETE_SMS_CONFIG;
+          }
+
+          @Override
+          protected ErrorEnum getDuplicateEntryError() {
+            return SMS_CONFIG_ALREADY_EXISTS;
+          }
+
+          @Override
+          protected String getDuplicateEntryMessageFormat() {
+            return DUPLICATE_ENTRY_MESSAGE_SMS_CONFIG;
+          }
+
+          @Override
+          protected Class<SmsConfigModel> getModelClass() {
+            return SmsConfigModel.class;
+          }
+
+          @Override
+          protected Tuple buildParams(String tenantId, SmsConfigModel smsConfig) {
+            return Tuple.tuple()
+                .addValue(smsConfig.getIsSslEnabled())
+                .addString(smsConfig.getHost())
+                .addInteger(smsConfig.getPort())
+                .addString(smsConfig.getSendSmsPath())
+                .addString(smsConfig.getTemplateName())
+                .addString(
+                    JsonUtils.serializeToJsonString(smsConfig.getTemplateParams(), objectMapper))
+                .addString(tenantId);
+          }
+        };
   }
 
   @Override
   protected BaseConfigDao<SmsConfigModel> getDao() {
-    return smsConfigDao;
+    return dao;
   }
 
   @Override

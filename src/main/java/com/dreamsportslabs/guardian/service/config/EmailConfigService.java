@@ -1,42 +1,99 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.EmailConfigQuery.CREATE_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.EmailConfigQuery.DELETE_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.EmailConfigQuery.GET_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.EmailConfigQuery.UPDATE_EMAIL_CONFIG;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.EMAIL_CONFIG_ALREADY_EXISTS;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.EMAIL_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
-import com.dreamsportslabs.guardian.dao.config.EmailConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.EmailConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateEmailConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateEmailConfigRequestDto;
 import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.service.ChangelogService;
+import com.dreamsportslabs.guardian.utils.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class EmailConfigService
     extends BaseConfigService<
         EmailConfigModel, CreateEmailConfigRequestDto, UpdateEmailConfigRequestDto> {
-  private final EmailConfigDao emailConfigDao;
+  private final BaseConfigDao<EmailConfigModel> dao;
 
   @Inject
   public EmailConfigService(
       ChangelogService changelogService,
       MysqlClient mysqlClient,
       TenantCache tenantCache,
-      EmailConfigDao emailConfigDao) {
+      ObjectMapper objectMapper) {
     super(changelogService, mysqlClient, tenantCache);
-    this.emailConfigDao = emailConfigDao;
+    this.dao =
+        new BaseConfigDao<EmailConfigModel>(mysqlClient) {
+          @Override
+          protected String getCreateQuery() {
+            return CREATE_EMAIL_CONFIG;
+          }
+
+          @Override
+          protected String getGetQuery() {
+            return GET_EMAIL_CONFIG;
+          }
+
+          @Override
+          protected String getUpdateQuery() {
+            return UPDATE_EMAIL_CONFIG;
+          }
+
+          @Override
+          protected String getDeleteQuery() {
+            return DELETE_EMAIL_CONFIG;
+          }
+
+          @Override
+          protected ErrorEnum getDuplicateEntryError() {
+            return EMAIL_CONFIG_ALREADY_EXISTS;
+          }
+
+          @Override
+          protected String getDuplicateEntryMessageFormat() {
+            return DUPLICATE_ENTRY_MESSAGE_EMAIL_CONFIG;
+          }
+
+          @Override
+          protected Class<EmailConfigModel> getModelClass() {
+            return EmailConfigModel.class;
+          }
+
+          @Override
+          protected Tuple buildParams(String tenantId, EmailConfigModel emailConfig) {
+            return Tuple.tuple()
+                .addValue(emailConfig.getIsSslEnabled())
+                .addString(emailConfig.getHost())
+                .addInteger(emailConfig.getPort())
+                .addString(emailConfig.getSendEmailPath())
+                .addString(emailConfig.getTemplateName())
+                .addString(
+                    JsonUtils.serializeToJsonString(emailConfig.getTemplateParams(), objectMapper))
+                .addString(tenantId);
+          }
+        };
   }
 
   @Override
   protected BaseConfigDao<EmailConfigModel> getDao() {
-    return emailConfigDao;
+    return dao;
   }
 
   @Override

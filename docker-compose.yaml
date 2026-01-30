@@ -17,8 +17,6 @@ services:
       GUARDIAN_REDIS_HOST: redis
       GUARDIAN_REDIS_PORT: 6379
       GUARDIAN_REDIS_TYPE: STANDALONE
-      GUARDIAN_DEFAULT_TOKEN_CONFIG_ISSUER: https://example.com
-      GUARDIAN_DEFAULT_USER_CONFIG_HOST: api.example.com
       LOGBACK_FILE: logback/logback-development.xml
     depends_on:
       db:

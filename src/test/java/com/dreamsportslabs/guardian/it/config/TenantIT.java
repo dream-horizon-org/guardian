@@ -16,6 +16,8 @@ import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_ACCESS_TOKEN
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_ID_TOKEN_CLAIMS;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_RSA_KEYS;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_ISSUER;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_CONFIG_HOST;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.deleteTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.getTenant;
@@ -99,7 +101,7 @@ public class TenantIT {
     assertThat(userConfig, org.hamcrest.Matchers.notNullValue());
     assertThat(userConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(userConfig.getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(userConfig.getString("host"), equalTo("localhost"));
+    assertThat(userConfig.getString("host"), equalTo(DEFAULT_USER_CONFIG_HOST));
     assertThat(userConfig.getInteger("port"), equalTo(80));
     assertThat(userConfig.getString("get_user_path"), equalTo("/users/validate"));
     assertThat(userConfig.getString("create_user_path"), equalTo("/users"));
@@ -124,7 +126,7 @@ public class TenantIT {
     assertThat(tokenConfig, org.hamcrest.Matchers.notNullValue());
     assertThat(tokenConfig.getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(tokenConfig.getString("algorithm"), equalTo("RS512"));
-    assertThat(tokenConfig.getString("issuer"), equalTo("localhost"));
+    assertThat(tokenConfig.getString("issuer"), equalTo(DEFAULT_TOKEN_CONFIG_ISSUER));
     assertThat(tokenConfig.getInteger("access_token_expiry"), equalTo(900));
     assertThat(tokenConfig.getInteger("refresh_token_expiry"), equalTo(2592000));
     assertThat(tokenConfig.getInteger("id_token_expiry"), equalTo(36000));

@@ -1,6 +1,5 @@
 package com.dreamsportslabs.guardian.service.config;
 
-import static com.dreamsportslabs.guardian.constant.Constants.APPLICATION_CONFIG;
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_ID_TOKEN_CLAIM_EMAIL_ID;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_ID_TOKEN_CLAIM_USER_ID;
@@ -14,6 +13,7 @@ import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONF
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_COOKIE_SAME_SITE;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_COOKIE_SECURE;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_ID_TOKEN_EXPIRY;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_ISSUER;
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_REFRESH_TOKEN_EXPIRY;
 import static com.dreamsportslabs.guardian.constant.Constants.FIRST_RSA_KEY_INDEX;
 import static com.dreamsportslabs.guardian.constant.Constants.FORMAT_PEM;
@@ -30,12 +30,9 @@ import com.dreamsportslabs.guardian.dao.model.config.TokenConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTokenConfigRequestDto;
 import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.dreamsportslabs.guardian.service.RsaKeyPairGeneratorService;
-import com.dreamsportslabs.guardian.utils.SharedDataUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.sqlclient.SqlConnection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +49,6 @@ public class TokenConfigService {
   private final ChangelogService changelogService;
   private final RsaKeyPairGeneratorService rsaKeyPairGeneratorService;
   private final MysqlClient mysqlClient;
-  private final Vertx vertx;
   private final TenantCache tenantCache;
 
   public Completable createDefaultTokenConfig(SqlConnection client, String tenantId) {
@@ -122,10 +118,9 @@ public class TokenConfigService {
   }
 
   TokenConfigModel buildDefaultTokenConfig(String tenantId) {
-    JsonObject config = SharedDataUtils.get(vertx, JsonObject.class, APPLICATION_CONFIG);
     return TokenConfigModel.builder()
         .algorithm(DEFAULT_TOKEN_CONFIG_ALGORITHM)
-        .issuer(config.getString("default_token_config_issuer"))
+        .issuer(DEFAULT_TOKEN_CONFIG_ISSUER)
         .rsaKeys(
             generateRsaKeys(
                 rsaKeyPairGeneratorService,

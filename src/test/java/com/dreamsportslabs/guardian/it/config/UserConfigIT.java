@@ -13,6 +13,7 @@ import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ID;
 import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_NAME;
 import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_PORT;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_USER_CONFIG_HOST;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.getUserConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.updateUserConfig;
@@ -67,7 +68,7 @@ public class UserConfigIT {
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
-    assertThat(response.jsonPath().getString("host"), equalTo("localhost"));
+    assertThat(response.jsonPath().getString("host"), equalTo(DEFAULT_USER_CONFIG_HOST));
     assertThat(response.jsonPath().getInt("port"), equalTo(80));
     assertThat(response.jsonPath().getString("get_user_path"), equalTo("/users/validate"));
     assertThat(response.jsonPath().getString("create_user_path"), equalTo("/users"));
@@ -143,7 +144,7 @@ public class UserConfigIT {
 
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getInt("port"), equalTo(8080));
-    assertThat(response.jsonPath().getString("host"), equalTo("localhost"));
+    assertThat(response.jsonPath().getString("host"), equalTo(DEFAULT_USER_CONFIG_HOST));
     assertThat(response.jsonPath().getBoolean("is_ssl_enabled"), equalTo(false));
   }
 

@@ -15,6 +15,7 @@ import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_ACCESS_TOKEN
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_ID_TOKEN_CLAIMS;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_RSA_KEYS;
 import static com.dreamsportslabs.guardian.Constants.RESPONSE_FIELD_TENANT_ID;
+import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_ISSUER;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.createTenant;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.getTokenConfig;
 import static com.dreamsportslabs.guardian.utils.ApplicationIoUtils.updateTokenConfig;
@@ -71,7 +72,7 @@ public class TokenConfigIT {
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getString(RESPONSE_FIELD_TENANT_ID), equalTo(testTenantId));
     assertThat(response.jsonPath().getString("algorithm"), equalTo("RS512"));
-    assertThat(response.jsonPath().getString("issuer"), equalTo("localhost"));
+    assertThat(response.jsonPath().getString("issuer"), equalTo(DEFAULT_TOKEN_CONFIG_ISSUER));
     assertThat(response.jsonPath().getInt("access_token_expiry"), equalTo(900));
     assertThat(response.jsonPath().getInt("refresh_token_expiry"), equalTo(2592000));
     assertThat(response.jsonPath().getInt("id_token_expiry"), equalTo(36000));
@@ -224,7 +225,7 @@ public class TokenConfigIT {
     response.then().statusCode(SC_OK);
     assertThat(response.jsonPath().getInt("access_token_expiry"), equalTo(3600));
     assertThat(response.jsonPath().getString("algorithm"), equalTo("RS512"));
-    assertThat(response.jsonPath().getString("issuer"), equalTo("localhost"));
+    assertThat(response.jsonPath().getString("issuer"), equalTo(DEFAULT_TOKEN_CONFIG_ISSUER));
   }
 
   @Test

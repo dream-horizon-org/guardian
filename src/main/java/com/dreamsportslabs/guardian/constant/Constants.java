@@ -265,6 +265,7 @@ public final class Constants {
   public static final String TENANT_NAME = "tenant_name";
 
   // Default User Config Values
+  public static final String DEFAULT_USER_CONFIG_HOST = "api.example.com";
   public static final int DEFAULT_USER_CONFIG_PORT = 80;
   public static final String DEFAULT_USER_CONFIG_GET_USER_PATH = "/users/validate";
   public static final String DEFAULT_USER_CONFIG_CREATE_USER_PATH = "/users";
@@ -276,6 +277,7 @@ public final class Constants {
 
   // Default Token Config Values
   public static final String DEFAULT_TOKEN_CONFIG_ALGORITHM = "RS512";
+  public static final String DEFAULT_TOKEN_CONFIG_ISSUER = "https://example.com";
   public static final int DEFAULT_TOKEN_CONFIG_ACCESS_TOKEN_EXPIRY = 900;
   public static final int DEFAULT_TOKEN_CONFIG_REFRESH_TOKEN_EXPIRY = 2592000;
   public static final int DEFAULT_TOKEN_CONFIG_ID_TOKEN_EXPIRY = 36000;

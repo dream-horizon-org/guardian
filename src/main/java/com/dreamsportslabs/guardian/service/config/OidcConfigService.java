@@ -1,42 +1,116 @@
 package com.dreamsportslabs.guardian.service.config;
 
 import static com.dreamsportslabs.guardian.constant.Constants.CONFIG_TYPE_OIDC_CONFIG;
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_OIDC_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.OidcConfigQuery.CREATE_OIDC_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.OidcConfigQuery.DELETE_OIDC_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.OidcConfigQuery.GET_OIDC_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.OidcConfigQuery.UPDATE_OIDC_CONFIG;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.OIDC_CONFIG_ALREADY_EXISTS;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.OIDC_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
 import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
-import com.dreamsportslabs.guardian.dao.config.OidcConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.OidcConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateOidcConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateOidcConfigRequestDto;
 import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.service.ChangelogService;
+import com.dreamsportslabs.guardian.utils.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class OidcConfigService
     extends BaseConfigService<
         OidcConfigModel, CreateOidcConfigRequestDto, UpdateOidcConfigRequestDto> {
-  private final OidcConfigDao oidcConfigDao;
+  private final BaseConfigDao<OidcConfigModel> dao;
 
   @Inject
   public OidcConfigService(
       ChangelogService changelogService,
       MysqlClient mysqlClient,
       TenantCache tenantCache,
-      OidcConfigDao oidcConfigDao) {
+      ObjectMapper objectMapper) {
     super(changelogService, mysqlClient, tenantCache);
-    this.oidcConfigDao = oidcConfigDao;
+    this.dao =
+        new BaseConfigDao<OidcConfigModel>(mysqlClient) {
+          @Override
+          protected String getCreateQuery() {
+            return CREATE_OIDC_CONFIG;
+          }
+
+          @Override
+          protected String getGetQuery() {
+            return GET_OIDC_CONFIG;
+          }
+
+          @Override
+          protected String getUpdateQuery() {
+            return UPDATE_OIDC_CONFIG;
+          }
+
+          @Override
+          protected String getDeleteQuery() {
+            return DELETE_OIDC_CONFIG;
+          }
+
+          @Override
+          protected ErrorEnum getDuplicateEntryError() {
+            return OIDC_CONFIG_ALREADY_EXISTS;
+          }
+
+          @Override
+          protected String getDuplicateEntryMessageFormat() {
+            return DUPLICATE_ENTRY_MESSAGE_OIDC_CONFIG;
+          }
+
+          @Override
+          protected Class<OidcConfigModel> getModelClass() {
+            return OidcConfigModel.class;
+          }
+
+          @Override
+          protected Tuple buildParams(String tenantId, OidcConfigModel oidcConfig) {
+            return Tuple.tuple()
+                .addString(oidcConfig.getIssuer())
+                .addString(oidcConfig.getAuthorizationEndpoint())
+                .addString(oidcConfig.getTokenEndpoint())
+                .addString(oidcConfig.getUserinfoEndpoint())
+                .addString(oidcConfig.getRevocationEndpoint())
+                .addString(oidcConfig.getJwksUri())
+                .addString(
+                    JsonUtils.serializeToJsonString(
+                        oidcConfig.getGrantTypesSupported(), objectMapper))
+                .addString(
+                    JsonUtils.serializeToJsonString(
+                        oidcConfig.getResponseTypesSupported(), objectMapper))
+                .addString(
+                    JsonUtils.serializeToJsonString(
+                        oidcConfig.getSubjectTypesSupported(), objectMapper))
+                .addString(
+                    JsonUtils.serializeToJsonString(
+                        oidcConfig.getIdTokenSigningAlgValuesSupported(), objectMapper))
+                .addString(
+                    JsonUtils.serializeToJsonString(
+                        oidcConfig.getTokenEndpointAuthMethodsSupported(), objectMapper))
+                .addString(oidcConfig.getLoginPageUri())
+                .addString(oidcConfig.getConsentPageUri())
+                .addInteger(oidcConfig.getAuthorizeTtl())
+                .addString(tenantId);
+          }
+        };
   }
 
   @Override
   protected BaseConfigDao<OidcConfigModel> getDao() {
-    return oidcConfigDao;
+    return dao;
   }
 
   @Override
