@@ -13,6 +13,7 @@ import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +24,73 @@ public abstract class BaseConfigService<TModel, TCreateDto, TUpdateDto> {
   protected final MysqlClient mysqlClient;
   protected final TenantCache tenantCache;
 
-  protected abstract BaseConfigDao<TModel> getDao();
+  // Abstract methods for DAO configuration (implemented by service classes)
+  protected abstract String getCreateQuery();
+
+  protected abstract String getGetQuery();
+
+  protected abstract String getUpdateQuery();
+
+  protected abstract String getDeleteQuery();
+
+  protected abstract Tuple buildParams(String tenantId, TModel model);
+
+  protected abstract ErrorEnum getDuplicateEntryError();
+
+  protected abstract String getDuplicateEntryMessageFormat();
+
+  protected abstract Class<TModel> getModelClass();
+
+  // Lazy initialization of DAO
+  private BaseConfigDao<TModel> dao;
+
+  protected BaseConfigDao<TModel> getDao() {
+    if (dao == null) {
+      dao =
+          new BaseConfigDao<TModel>(mysqlClient) {
+            @Override
+            protected String getCreateQuery() {
+              return BaseConfigService.this.getCreateQuery();
+            }
+
+            @Override
+            protected String getGetQuery() {
+              return BaseConfigService.this.getGetQuery();
+            }
+
+            @Override
+            protected String getUpdateQuery() {
+              return BaseConfigService.this.getUpdateQuery();
+            }
+
+            @Override
+            protected String getDeleteQuery() {
+              return BaseConfigService.this.getDeleteQuery();
+            }
+
+            @Override
+            protected Tuple buildParams(String tenantId, TModel model) {
+              return BaseConfigService.this.buildParams(tenantId, model);
+            }
+
+            @Override
+            protected ErrorEnum getDuplicateEntryError() {
+              return BaseConfigService.this.getDuplicateEntryError();
+            }
+
+            @Override
+            protected String getDuplicateEntryMessageFormat() {
+              return BaseConfigService.this.getDuplicateEntryMessageFormat();
+            }
+
+            @Override
+            protected Class<TModel> getModelClass() {
+              return BaseConfigService.this.getModelClass();
+            }
+          };
+    }
+    return dao;
+  }
 
   protected abstract String getConfigType();
 

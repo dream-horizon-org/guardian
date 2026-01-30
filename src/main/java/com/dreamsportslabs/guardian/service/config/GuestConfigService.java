@@ -12,7 +12,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.GuestConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateGuestConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateGuestConfigRequestDto;
@@ -30,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GuestConfigService
     extends BaseConfigService<
         GuestConfigModel, CreateGuestConfigRequestDto, UpdateGuestConfigRequestDto> {
-  private final BaseConfigDao<GuestConfigModel> dao;
+  private final ObjectMapper objectMapper;
 
   @Inject
   public GuestConfigService(
@@ -39,58 +38,52 @@ public class GuestConfigService
       TenantCache tenantCache,
       ObjectMapper objectMapper) {
     super(changelogService, mysqlClient, tenantCache);
-    this.dao =
-        new BaseConfigDao<GuestConfigModel>(mysqlClient) {
-          @Override
-          protected String getCreateQuery() {
-            return CREATE_GUEST_CONFIG;
-          }
+    this.objectMapper = objectMapper;
+  }
 
-          @Override
-          protected String getGetQuery() {
-            return GET_GUEST_CONFIG;
-          }
-
-          @Override
-          protected String getUpdateQuery() {
-            return UPDATE_GUEST_CONFIG;
-          }
-
-          @Override
-          protected String getDeleteQuery() {
-            return DELETE_GUEST_CONFIG;
-          }
-
-          @Override
-          protected ErrorEnum getDuplicateEntryError() {
-            return GUEST_CONFIG_ALREADY_EXISTS;
-          }
-
-          @Override
-          protected String getDuplicateEntryMessageFormat() {
-            return DUPLICATE_ENTRY_MESSAGE_GUEST_CONFIG;
-          }
-
-          @Override
-          protected Class<GuestConfigModel> getModelClass() {
-            return GuestConfigModel.class;
-          }
-
-          @Override
-          protected Tuple buildParams(String tenantId, GuestConfigModel guestConfig) {
-            return Tuple.tuple()
-                .addValue(guestConfig.getIsEncrypted())
-                .addString(guestConfig.getSecretKey())
-                .addString(
-                    JsonUtils.serializeToJsonString(guestConfig.getAllowedScopes(), objectMapper))
-                .addString(tenantId);
-          }
-        };
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_GUEST_CONFIG;
   }
 
   @Override
-  protected BaseConfigDao<GuestConfigModel> getDao() {
-    return dao;
+  protected String getGetQuery() {
+    return GET_GUEST_CONFIG;
+  }
+
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_GUEST_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_GUEST_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, GuestConfigModel guestConfig) {
+    return Tuple.tuple()
+        .addValue(guestConfig.getIsEncrypted())
+        .addString(guestConfig.getSecretKey())
+        .addString(JsonUtils.serializeToJsonString(guestConfig.getAllowedScopes(), objectMapper))
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return GUEST_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_GUEST_CONFIG;
+  }
+
+  @Override
+  protected Class<GuestConfigModel> getModelClass() {
+    return GuestConfigModel.class;
   }
 
   @Override

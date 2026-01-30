@@ -17,7 +17,10 @@ import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONF
 import static com.dreamsportslabs.guardian.constant.Constants.DEFAULT_TOKEN_CONFIG_REFRESH_TOKEN_EXPIRY;
 import static com.dreamsportslabs.guardian.constant.Constants.FIRST_RSA_KEY_INDEX;
 import static com.dreamsportslabs.guardian.constant.Constants.FORMAT_PEM;
-import static com.dreamsportslabs.guardian.constant.Constants.OPERATION_UPDATE;
+import static com.dreamsportslabs.guardian.dao.config.query.TokenConfigQuery.CREATE_TOKEN_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.TokenConfigQuery.DELETE_TOKEN_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.TokenConfigQuery.GET_TOKEN_CONFIG;
+import static com.dreamsportslabs.guardian.dao.config.query.TokenConfigQuery.UPDATE_TOKEN_CONFIG;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.TOKEN_CONFIG_NOT_FOUND;
 import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
@@ -25,77 +28,136 @@ import static com.dreamsportslabs.guardian.utils.Utils.generateRsaKeys;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.TokenConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.TokenConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTokenConfigRequestDto;
+import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.dreamsportslabs.guardian.service.ChangelogService;
 import com.dreamsportslabs.guardian.service.RsaKeyPairGeneratorService;
+import com.dreamsportslabs.guardian.utils.JsonUtils;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.sqlclient.SqlConnection;
+import io.vertx.rxjava3.sqlclient.Tuple;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class TokenConfigService {
+public class TokenConfigService
+    extends BaseConfigService<TokenConfigModel, TokenConfigModel, UpdateTokenConfigRequestDto> {
   private static final List<String> EMPTY_STRING_LIST = List.of();
   private static final List<String> DEFAULT_ID_TOKEN_CLAIMS_LIST =
       List.of(DEFAULT_ID_TOKEN_CLAIM_USER_ID, DEFAULT_ID_TOKEN_CLAIM_EMAIL_ID);
 
-  private final TokenConfigDao tokenConfigDao;
-  private final ChangelogService changelogService;
   private final RsaKeyPairGeneratorService rsaKeyPairGeneratorService;
-  private final MysqlClient mysqlClient;
-  private final TenantCache tenantCache;
 
+  @Inject
+  public TokenConfigService(
+      ChangelogService changelogService,
+      MysqlClient mysqlClient,
+      TenantCache tenantCache,
+      RsaKeyPairGeneratorService rsaKeyPairGeneratorService) {
+    super(changelogService, mysqlClient, tenantCache);
+    this.rsaKeyPairGeneratorService = rsaKeyPairGeneratorService;
+  }
+
+  // Special method for creating default token config (used internally during tenant creation)
   public Completable createDefaultTokenConfig(SqlConnection client, String tenantId) {
     TokenConfigModel tokenConfigModel = buildDefaultTokenConfig(tenantId);
-    return tokenConfigDao.createTokenConfig(client, tenantId, tokenConfigModel).ignoreElement();
+    return getDao().createConfig(client, tenantId, tokenConfigModel).ignoreElement();
   }
 
-  public Single<TokenConfigModel> getTokenConfig(String tenantId) {
-    return tokenConfigDao
-        .getTokenConfig(tenantId)
-        .switchIfEmpty(Single.error(TOKEN_CONFIG_NOT_FOUND.getException()));
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_TOKEN_CONFIG;
   }
 
-  public Single<TokenConfigModel> updateTokenConfig(
-      String tenantId, UpdateTokenConfigRequestDto requestDto) {
-    return tokenConfigDao
-        .getTokenConfig(tenantId)
-        .switchIfEmpty(Single.error(TOKEN_CONFIG_NOT_FOUND.getException()))
-        .flatMap(
-            oldConfig -> {
-              TokenConfigModel updatedConfig = mergeTokenConfig(requestDto, oldConfig);
-              return mysqlClient
-                  .getWriterPool()
-                  .rxWithTransaction(
-                      client ->
-                          tokenConfigDao
-                              .updateTokenConfig(client, tenantId, updatedConfig)
-                              .andThen(
-                                  changelogService.logConfigChange(
-                                      client,
-                                      tenantId,
-                                      CONFIG_TYPE_TOKEN_CONFIG,
-                                      OPERATION_UPDATE,
-                                      oldConfig,
-                                      updatedConfig,
-                                      tenantId))
-                              .andThen(Single.just(updatedConfig))
-                              .toMaybe())
-                  .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
-                  .switchIfEmpty(
-                      Single.<TokenConfigModel>error(
-                          INTERNAL_SERVER_ERROR.getCustomException(
-                              "Failed to update token config")));
-            });
+  @Override
+  protected String getGetQuery() {
+    return GET_TOKEN_CONFIG;
   }
 
-  private TokenConfigModel mergeTokenConfig(
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_TOKEN_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_TOKEN_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, TokenConfigModel tokenConfig) {
+    return Tuple.tuple()
+        .addString(tokenConfig.getAlgorithm())
+        .addString(tokenConfig.getIssuer())
+        .addString(
+            JsonUtils.serializeToJsonString(
+                tokenConfig.getRsaKeys(), JsonUtils.snakeCaseObjectMapper))
+        .addInteger(tokenConfig.getAccessTokenExpiry())
+        .addInteger(tokenConfig.getRefreshTokenExpiry())
+        .addInteger(tokenConfig.getIdTokenExpiry())
+        .addString(
+            JsonUtils.serializeToJsonString(
+                tokenConfig.getIdTokenClaims(), JsonUtils.snakeCaseObjectMapper))
+        .addString(tokenConfig.getCookieSameSite())
+        .addString(tokenConfig.getCookieDomain())
+        .addString(tokenConfig.getCookiePath())
+        .addValue(tokenConfig.getCookieSecure())
+        .addValue(tokenConfig.getCookieHttpOnly())
+        .addString(
+            JsonUtils.serializeToJsonString(
+                tokenConfig.getAccessTokenClaims(), JsonUtils.snakeCaseObjectMapper))
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return INTERNAL_SERVER_ERROR; // Token config doesn't have a public create endpoint
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return "Token config already exists"; // Not used since no public create endpoint
+  }
+
+  @Override
+  protected Class<TokenConfigModel> getModelClass() {
+    return TokenConfigModel.class;
+  }
+
+  // Config type and error handling methods
+  @Override
+  protected String getConfigType() {
+    return CONFIG_TYPE_TOKEN_CONFIG;
+  }
+
+  @Override
+  protected ErrorEnum getNotFoundError() {
+    return TOKEN_CONFIG_NOT_FOUND;
+  }
+
+  @Override
+  protected String getCreateErrorMessage() {
+    return "Failed to create token config";
+  }
+
+  @Override
+  protected String getUpdateErrorMessage() {
+    return "Failed to update token config";
+  }
+
+  // Model mapping methods
+  @Override
+  protected TokenConfigModel mapToModel(TokenConfigModel requestDto) {
+    // TokenConfigModel is used as both DTO and Model since there's no CreateTokenConfigRequestDto
+    return requestDto;
+  }
+
+  @Override
+  protected TokenConfigModel mergeModel(
       UpdateTokenConfigRequestDto requestDto, TokenConfigModel oldConfig) {
     return TokenConfigModel.builder()
         .algorithm(coalesce(requestDto.getAlgorithm(), oldConfig.getAlgorithm()))
@@ -117,6 +179,21 @@ public class TokenConfigService {
         .build();
   }
 
+  // Public service methods
+  public Single<TokenConfigModel> getTokenConfig(String tenantId) {
+    return getConfig(tenantId);
+  }
+
+  public Single<TokenConfigModel> updateTokenConfig(
+      String tenantId, UpdateTokenConfigRequestDto requestDto) {
+    return updateConfig(tenantId, requestDto);
+  }
+
+  public Completable deleteTokenConfig(String tenantId) {
+    return deleteConfig(tenantId);
+  }
+
+  // Internal helper method for building default token config
   TokenConfigModel buildDefaultTokenConfig(String tenantId) {
     return TokenConfigModel.builder()
         .algorithm(DEFAULT_TOKEN_CONFIG_ALGORITHM)

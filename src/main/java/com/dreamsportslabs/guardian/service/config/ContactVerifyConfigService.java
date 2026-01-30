@@ -12,7 +12,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.ContactVerifyConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateContactVerifyConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateContactVerifyConfigRequestDto;
@@ -32,7 +31,7 @@ public class ContactVerifyConfigService
         ContactVerifyConfigModel,
         CreateContactVerifyConfigRequestDto,
         UpdateContactVerifyConfigRequestDto> {
-  private final BaseConfigDao<ContactVerifyConfigModel> dao;
+  private final ObjectMapper objectMapper;
 
   @Inject
   public ContactVerifyConfigService(
@@ -41,64 +40,58 @@ public class ContactVerifyConfigService
       TenantCache tenantCache,
       ObjectMapper objectMapper) {
     super(changelogService, mysqlClient, tenantCache);
-    this.dao =
-        new BaseConfigDao<ContactVerifyConfigModel>(mysqlClient) {
-          @Override
-          protected String getCreateQuery() {
-            return CREATE_CONTACT_VERIFY_CONFIG;
-          }
+    this.objectMapper = objectMapper;
+  }
 
-          @Override
-          protected String getGetQuery() {
-            return GET_CONTACT_VERIFY_CONFIG;
-          }
-
-          @Override
-          protected String getUpdateQuery() {
-            return UPDATE_CONTACT_VERIFY_CONFIG;
-          }
-
-          @Override
-          protected String getDeleteQuery() {
-            return DELETE_CONTACT_VERIFY_CONFIG;
-          }
-
-          @Override
-          protected ErrorEnum getDuplicateEntryError() {
-            return CONTACT_VERIFY_CONFIG_ALREADY_EXISTS;
-          }
-
-          @Override
-          protected String getDuplicateEntryMessageFormat() {
-            return DUPLICATE_ENTRY_MESSAGE_CONTACT_VERIFY_CONFIG;
-          }
-
-          @Override
-          protected Class<ContactVerifyConfigModel> getModelClass() {
-            return ContactVerifyConfigModel.class;
-          }
-
-          @Override
-          protected Tuple buildParams(
-              String tenantId, ContactVerifyConfigModel contactVerifyConfig) {
-            return Tuple.tuple()
-                .addValue(contactVerifyConfig.getIsOtpMocked())
-                .addValue(contactVerifyConfig.getOtpLength())
-                .addValue(contactVerifyConfig.getTryLimit())
-                .addValue(contactVerifyConfig.getResendLimit())
-                .addValue(contactVerifyConfig.getOtpResendInterval())
-                .addValue(contactVerifyConfig.getOtpValidity())
-                .addString(
-                    JsonUtils.serializeToJsonString(
-                        contactVerifyConfig.getWhitelistedInputs(), objectMapper))
-                .addString(tenantId);
-          }
-        };
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_CONTACT_VERIFY_CONFIG;
   }
 
   @Override
-  protected BaseConfigDao<ContactVerifyConfigModel> getDao() {
-    return dao;
+  protected String getGetQuery() {
+    return GET_CONTACT_VERIFY_CONFIG;
+  }
+
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_CONTACT_VERIFY_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_CONTACT_VERIFY_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, ContactVerifyConfigModel contactVerifyConfig) {
+    return Tuple.tuple()
+        .addValue(contactVerifyConfig.getIsOtpMocked())
+        .addValue(contactVerifyConfig.getOtpLength())
+        .addValue(contactVerifyConfig.getTryLimit())
+        .addValue(contactVerifyConfig.getResendLimit())
+        .addValue(contactVerifyConfig.getOtpResendInterval())
+        .addValue(contactVerifyConfig.getOtpValidity())
+        .addString(
+            JsonUtils.serializeToJsonString(
+                contactVerifyConfig.getWhitelistedInputs(), objectMapper))
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return CONTACT_VERIFY_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_CONTACT_VERIFY_CONFIG;
+  }
+
+  @Override
+  protected Class<ContactVerifyConfigModel> getModelClass() {
+    return ContactVerifyConfigModel.class;
   }
 
   @Override

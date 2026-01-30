@@ -12,7 +12,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.AdminConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateAdminConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateAdminConfigRequestDto;
@@ -28,62 +27,55 @@ import lombok.extern.slf4j.Slf4j;
 public class AdminConfigService
     extends BaseConfigService<
         AdminConfigModel, CreateAdminConfigRequestDto, UpdateAdminConfigRequestDto> {
-  private final BaseConfigDao<AdminConfigModel> dao;
 
   @Inject
   public AdminConfigService(
       ChangelogService changelogService, MysqlClient mysqlClient, TenantCache tenantCache) {
     super(changelogService, mysqlClient, tenantCache);
-    this.dao =
-        new BaseConfigDao<AdminConfigModel>(mysqlClient) {
-          @Override
-          protected String getCreateQuery() {
-            return CREATE_ADMIN_CONFIG;
-          }
+  }
 
-          @Override
-          protected String getGetQuery() {
-            return GET_ADMIN_CONFIG;
-          }
-
-          @Override
-          protected String getUpdateQuery() {
-            return UPDATE_ADMIN_CONFIG;
-          }
-
-          @Override
-          protected String getDeleteQuery() {
-            return DELETE_ADMIN_CONFIG;
-          }
-
-          @Override
-          protected ErrorEnum getDuplicateEntryError() {
-            return ADMIN_CONFIG_ALREADY_EXISTS;
-          }
-
-          @Override
-          protected String getDuplicateEntryMessageFormat() {
-            return DUPLICATE_ENTRY_MESSAGE_ADMIN_CONFIG;
-          }
-
-          @Override
-          protected Class<AdminConfigModel> getModelClass() {
-            return AdminConfigModel.class;
-          }
-
-          @Override
-          protected Tuple buildParams(String tenantId, AdminConfigModel adminConfig) {
-            return Tuple.tuple()
-                .addString(adminConfig.getUsername())
-                .addString(adminConfig.getPassword())
-                .addString(tenantId);
-          }
-        };
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_ADMIN_CONFIG;
   }
 
   @Override
-  protected BaseConfigDao<AdminConfigModel> getDao() {
-    return dao;
+  protected String getGetQuery() {
+    return GET_ADMIN_CONFIG;
+  }
+
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_ADMIN_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_ADMIN_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, AdminConfigModel adminConfig) {
+    return Tuple.tuple()
+        .addString(adminConfig.getUsername())
+        .addString(adminConfig.getPassword())
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return ADMIN_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_ADMIN_CONFIG;
+  }
+
+  @Override
+  protected Class<AdminConfigModel> getModelClass() {
+    return AdminConfigModel.class;
   }
 
   @Override

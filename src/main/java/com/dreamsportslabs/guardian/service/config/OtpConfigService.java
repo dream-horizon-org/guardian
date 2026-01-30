@@ -12,7 +12,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.OtpConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateOtpConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateOtpConfigRequestDto;
@@ -30,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OtpConfigService
     extends BaseConfigService<
         OtpConfigModel, CreateOtpConfigRequestDto, UpdateOtpConfigRequestDto> {
-  private final BaseConfigDao<OtpConfigModel> dao;
+  private final ObjectMapper objectMapper;
 
   @Inject
   public OtpConfigService(
@@ -39,65 +38,59 @@ public class OtpConfigService
       TenantCache tenantCache,
       ObjectMapper objectMapper) {
     super(changelogService, mysqlClient, tenantCache);
-    this.dao =
-        new BaseConfigDao<OtpConfigModel>(mysqlClient) {
-          @Override
-          protected String getCreateQuery() {
-            return CREATE_OTP_CONFIG;
-          }
+    this.objectMapper = objectMapper;
+  }
 
-          @Override
-          protected String getGetQuery() {
-            return GET_OTP_CONFIG;
-          }
-
-          @Override
-          protected String getUpdateQuery() {
-            return UPDATE_OTP_CONFIG;
-          }
-
-          @Override
-          protected String getDeleteQuery() {
-            return DELETE_OTP_CONFIG;
-          }
-
-          @Override
-          protected ErrorEnum getDuplicateEntryError() {
-            return OTP_CONFIG_ALREADY_EXISTS;
-          }
-
-          @Override
-          protected String getDuplicateEntryMessageFormat() {
-            return DUPLICATE_ENTRY_MESSAGE_OTP_CONFIG;
-          }
-
-          @Override
-          protected Class<OtpConfigModel> getModelClass() {
-            return OtpConfigModel.class;
-          }
-
-          @Override
-          protected Tuple buildParams(String tenantId, OtpConfigModel otpConfig) {
-            return Tuple.tuple()
-                .addValue(otpConfig.getIsOtpMocked())
-                .addInteger(otpConfig.getOtpLength())
-                .addInteger(otpConfig.getTryLimit())
-                .addInteger(otpConfig.getResendLimit())
-                .addInteger(otpConfig.getOtpResendInterval())
-                .addInteger(otpConfig.getOtpValidity())
-                .addInteger(otpConfig.getOtpSendWindowSeconds())
-                .addInteger(otpConfig.getOtpSendWindowMaxCount())
-                .addInteger(otpConfig.getOtpSendBlockSeconds())
-                .addString(
-                    JsonUtils.serializeToJsonString(otpConfig.getWhitelistedInputs(), objectMapper))
-                .addString(tenantId);
-          }
-        };
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_OTP_CONFIG;
   }
 
   @Override
-  protected BaseConfigDao<OtpConfigModel> getDao() {
-    return dao;
+  protected String getGetQuery() {
+    return GET_OTP_CONFIG;
+  }
+
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_OTP_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_OTP_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, OtpConfigModel otpConfig) {
+    return Tuple.tuple()
+        .addValue(otpConfig.getIsOtpMocked())
+        .addInteger(otpConfig.getOtpLength())
+        .addInteger(otpConfig.getTryLimit())
+        .addInteger(otpConfig.getResendLimit())
+        .addInteger(otpConfig.getOtpResendInterval())
+        .addInteger(otpConfig.getOtpValidity())
+        .addInteger(otpConfig.getOtpSendWindowSeconds())
+        .addInteger(otpConfig.getOtpSendWindowMaxCount())
+        .addInteger(otpConfig.getOtpSendBlockSeconds())
+        .addString(JsonUtils.serializeToJsonString(otpConfig.getWhitelistedInputs(), objectMapper))
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return OTP_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_OTP_CONFIG;
+  }
+
+  @Override
+  protected Class<OtpConfigModel> getModelClass() {
+    return OtpConfigModel.class;
   }
 
   @Override
@@ -156,11 +149,6 @@ public class OtpConfigService
         .whitelistedInputs(
             coalesce(requestDto.getWhitelistedInputs(), oldConfig.getWhitelistedInputs()))
         .build();
-  }
-
-  public Single<OtpConfigModel> createOtpConfig(
-      String tenantId, CreateOtpConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
   }
 
   public Single<OtpConfigModel> getOtpConfig(String tenantId) {

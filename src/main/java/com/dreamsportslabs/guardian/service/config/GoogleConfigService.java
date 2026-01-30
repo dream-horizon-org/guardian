@@ -12,7 +12,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.GoogleConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateGoogleConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateGoogleConfigRequestDto;
@@ -28,62 +27,55 @@ import lombok.extern.slf4j.Slf4j;
 public class GoogleConfigService
     extends BaseConfigService<
         GoogleConfigModel, CreateGoogleConfigRequestDto, UpdateGoogleConfigRequestDto> {
-  private final BaseConfigDao<GoogleConfigModel> dao;
 
   @Inject
   public GoogleConfigService(
       ChangelogService changelogService, MysqlClient mysqlClient, TenantCache tenantCache) {
     super(changelogService, mysqlClient, tenantCache);
-    this.dao =
-        new BaseConfigDao<GoogleConfigModel>(mysqlClient) {
-          @Override
-          protected String getCreateQuery() {
-            return CREATE_GOOGLE_CONFIG;
-          }
+  }
 
-          @Override
-          protected String getGetQuery() {
-            return GET_GOOGLE_CONFIG;
-          }
-
-          @Override
-          protected String getUpdateQuery() {
-            return UPDATE_GOOGLE_CONFIG;
-          }
-
-          @Override
-          protected String getDeleteQuery() {
-            return DELETE_GOOGLE_CONFIG;
-          }
-
-          @Override
-          protected ErrorEnum getDuplicateEntryError() {
-            return GOOGLE_CONFIG_ALREADY_EXISTS;
-          }
-
-          @Override
-          protected String getDuplicateEntryMessageFormat() {
-            return DUPLICATE_ENTRY_MESSAGE_GOOGLE_CONFIG;
-          }
-
-          @Override
-          protected Class<GoogleConfigModel> getModelClass() {
-            return GoogleConfigModel.class;
-          }
-
-          @Override
-          protected Tuple buildParams(String tenantId, GoogleConfigModel googleConfig) {
-            return Tuple.tuple()
-                .addString(googleConfig.getClientId())
-                .addString(googleConfig.getClientSecret())
-                .addString(tenantId);
-          }
-        };
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_GOOGLE_CONFIG;
   }
 
   @Override
-  protected BaseConfigDao<GoogleConfigModel> getDao() {
-    return dao;
+  protected String getGetQuery() {
+    return GET_GOOGLE_CONFIG;
+  }
+
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_GOOGLE_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_GOOGLE_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, GoogleConfigModel googleConfig) {
+    return Tuple.tuple()
+        .addString(googleConfig.getClientId())
+        .addString(googleConfig.getClientSecret())
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return GOOGLE_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_GOOGLE_CONFIG;
+  }
+
+  @Override
+  protected Class<GoogleConfigModel> getModelClass() {
+    return GoogleConfigModel.class;
   }
 
   @Override

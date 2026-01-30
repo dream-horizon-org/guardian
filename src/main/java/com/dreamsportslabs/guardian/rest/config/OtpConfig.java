@@ -35,7 +35,7 @@ public class OtpConfig {
       @HeaderParam("tenant-id") String tenantId,
       @Valid @NotNull CreateOtpConfigRequestDto requestDto) {
     return otpConfigService
-        .createOtpConfig(tenantId, requestDto)
+        .createConfig(tenantId, requestDto)
         .map(config -> OtpConfigResponseDto.from(tenantId, config))
         .map(response -> Response.status(Response.Status.CREATED).entity(response).build())
         .toCompletionStage();

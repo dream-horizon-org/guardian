@@ -12,7 +12,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.FbConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateFbConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateFbConfigRequestDto;
@@ -27,63 +26,56 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FbConfigService
     extends BaseConfigService<FbConfigModel, CreateFbConfigRequestDto, UpdateFbConfigRequestDto> {
-  private final BaseConfigDao<FbConfigModel> dao;
 
   @Inject
   public FbConfigService(
       ChangelogService changelogService, MysqlClient mysqlClient, TenantCache tenantCache) {
     super(changelogService, mysqlClient, tenantCache);
-    this.dao =
-        new BaseConfigDao<FbConfigModel>(mysqlClient) {
-          @Override
-          protected String getCreateQuery() {
-            return CREATE_FB_CONFIG;
-          }
+  }
 
-          @Override
-          protected String getGetQuery() {
-            return GET_FB_CONFIG;
-          }
-
-          @Override
-          protected String getUpdateQuery() {
-            return UPDATE_FB_CONFIG;
-          }
-
-          @Override
-          protected String getDeleteQuery() {
-            return DELETE_FB_CONFIG;
-          }
-
-          @Override
-          protected ErrorEnum getDuplicateEntryError() {
-            return FB_CONFIG_ALREADY_EXISTS;
-          }
-
-          @Override
-          protected String getDuplicateEntryMessageFormat() {
-            return DUPLICATE_ENTRY_MESSAGE_FB_CONFIG;
-          }
-
-          @Override
-          protected Class<FbConfigModel> getModelClass() {
-            return FbConfigModel.class;
-          }
-
-          @Override
-          protected Tuple buildParams(String tenantId, FbConfigModel fbConfig) {
-            return Tuple.tuple()
-                .addString(fbConfig.getAppId())
-                .addString(fbConfig.getAppSecret())
-                .addValue(fbConfig.getSendAppSecret())
-                .addString(tenantId);
-          }
-        };
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_FB_CONFIG;
   }
 
   @Override
-  protected BaseConfigDao<FbConfigModel> getDao() {
-    return dao;
+  protected String getGetQuery() {
+    return GET_FB_CONFIG;
+  }
+
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_FB_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_FB_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, FbConfigModel fbConfig) {
+    return Tuple.tuple()
+        .addString(fbConfig.getAppId())
+        .addString(fbConfig.getAppSecret())
+        .addValue(fbConfig.getSendAppSecret())
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return FB_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_FB_CONFIG;
+  }
+
+  @Override
+  protected Class<FbConfigModel> getModelClass() {
+    return FbConfigModel.class;
   }
 
   @Override

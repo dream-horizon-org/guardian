@@ -12,7 +12,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.EmailConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateEmailConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateEmailConfigRequestDto;
@@ -30,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailConfigService
     extends BaseConfigService<
         EmailConfigModel, CreateEmailConfigRequestDto, UpdateEmailConfigRequestDto> {
-  private final BaseConfigDao<EmailConfigModel> dao;
+  private final ObjectMapper objectMapper;
 
   @Inject
   public EmailConfigService(
@@ -39,61 +38,55 @@ public class EmailConfigService
       TenantCache tenantCache,
       ObjectMapper objectMapper) {
     super(changelogService, mysqlClient, tenantCache);
-    this.dao =
-        new BaseConfigDao<EmailConfigModel>(mysqlClient) {
-          @Override
-          protected String getCreateQuery() {
-            return CREATE_EMAIL_CONFIG;
-          }
+    this.objectMapper = objectMapper;
+  }
 
-          @Override
-          protected String getGetQuery() {
-            return GET_EMAIL_CONFIG;
-          }
-
-          @Override
-          protected String getUpdateQuery() {
-            return UPDATE_EMAIL_CONFIG;
-          }
-
-          @Override
-          protected String getDeleteQuery() {
-            return DELETE_EMAIL_CONFIG;
-          }
-
-          @Override
-          protected ErrorEnum getDuplicateEntryError() {
-            return EMAIL_CONFIG_ALREADY_EXISTS;
-          }
-
-          @Override
-          protected String getDuplicateEntryMessageFormat() {
-            return DUPLICATE_ENTRY_MESSAGE_EMAIL_CONFIG;
-          }
-
-          @Override
-          protected Class<EmailConfigModel> getModelClass() {
-            return EmailConfigModel.class;
-          }
-
-          @Override
-          protected Tuple buildParams(String tenantId, EmailConfigModel emailConfig) {
-            return Tuple.tuple()
-                .addValue(emailConfig.getIsSslEnabled())
-                .addString(emailConfig.getHost())
-                .addInteger(emailConfig.getPort())
-                .addString(emailConfig.getSendEmailPath())
-                .addString(emailConfig.getTemplateName())
-                .addString(
-                    JsonUtils.serializeToJsonString(emailConfig.getTemplateParams(), objectMapper))
-                .addString(tenantId);
-          }
-        };
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_EMAIL_CONFIG;
   }
 
   @Override
-  protected BaseConfigDao<EmailConfigModel> getDao() {
-    return dao;
+  protected String getGetQuery() {
+    return GET_EMAIL_CONFIG;
+  }
+
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_EMAIL_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_EMAIL_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, EmailConfigModel emailConfig) {
+    return Tuple.tuple()
+        .addValue(emailConfig.getIsSslEnabled())
+        .addString(emailConfig.getHost())
+        .addInteger(emailConfig.getPort())
+        .addString(emailConfig.getSendEmailPath())
+        .addString(emailConfig.getTemplateName())
+        .addString(JsonUtils.serializeToJsonString(emailConfig.getTemplateParams(), objectMapper))
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return EMAIL_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_EMAIL_CONFIG;
+  }
+
+  @Override
+  protected Class<EmailConfigModel> getModelClass() {
+    return EmailConfigModel.class;
   }
 
   @Override

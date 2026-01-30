@@ -44,4 +44,10 @@ public final class TokenConfigQuery {
           access_token_claims = ?
       WHERE tenant_id = ?
       """;
+
+  public static final String DELETE_TOKEN_CONFIG =
+      """
+      DELETE FROM token_config
+      WHERE tenant_id = ?
+      """;
 }

@@ -12,7 +12,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.OidcConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateOidcConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateOidcConfigRequestDto;
@@ -30,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OidcConfigService
     extends BaseConfigService<
         OidcConfigModel, CreateOidcConfigRequestDto, UpdateOidcConfigRequestDto> {
-  private final BaseConfigDao<OidcConfigModel> dao;
+  private final ObjectMapper objectMapper;
 
   @Inject
   public OidcConfigService(
@@ -39,78 +38,70 @@ public class OidcConfigService
       TenantCache tenantCache,
       ObjectMapper objectMapper) {
     super(changelogService, mysqlClient, tenantCache);
-    this.dao =
-        new BaseConfigDao<OidcConfigModel>(mysqlClient) {
-          @Override
-          protected String getCreateQuery() {
-            return CREATE_OIDC_CONFIG;
-          }
+    this.objectMapper = objectMapper;
+  }
 
-          @Override
-          protected String getGetQuery() {
-            return GET_OIDC_CONFIG;
-          }
-
-          @Override
-          protected String getUpdateQuery() {
-            return UPDATE_OIDC_CONFIG;
-          }
-
-          @Override
-          protected String getDeleteQuery() {
-            return DELETE_OIDC_CONFIG;
-          }
-
-          @Override
-          protected ErrorEnum getDuplicateEntryError() {
-            return OIDC_CONFIG_ALREADY_EXISTS;
-          }
-
-          @Override
-          protected String getDuplicateEntryMessageFormat() {
-            return DUPLICATE_ENTRY_MESSAGE_OIDC_CONFIG;
-          }
-
-          @Override
-          protected Class<OidcConfigModel> getModelClass() {
-            return OidcConfigModel.class;
-          }
-
-          @Override
-          protected Tuple buildParams(String tenantId, OidcConfigModel oidcConfig) {
-            return Tuple.tuple()
-                .addString(oidcConfig.getIssuer())
-                .addString(oidcConfig.getAuthorizationEndpoint())
-                .addString(oidcConfig.getTokenEndpoint())
-                .addString(oidcConfig.getUserinfoEndpoint())
-                .addString(oidcConfig.getRevocationEndpoint())
-                .addString(oidcConfig.getJwksUri())
-                .addString(
-                    JsonUtils.serializeToJsonString(
-                        oidcConfig.getGrantTypesSupported(), objectMapper))
-                .addString(
-                    JsonUtils.serializeToJsonString(
-                        oidcConfig.getResponseTypesSupported(), objectMapper))
-                .addString(
-                    JsonUtils.serializeToJsonString(
-                        oidcConfig.getSubjectTypesSupported(), objectMapper))
-                .addString(
-                    JsonUtils.serializeToJsonString(
-                        oidcConfig.getIdTokenSigningAlgValuesSupported(), objectMapper))
-                .addString(
-                    JsonUtils.serializeToJsonString(
-                        oidcConfig.getTokenEndpointAuthMethodsSupported(), objectMapper))
-                .addString(oidcConfig.getLoginPageUri())
-                .addString(oidcConfig.getConsentPageUri())
-                .addInteger(oidcConfig.getAuthorizeTtl())
-                .addString(tenantId);
-          }
-        };
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_OIDC_CONFIG;
   }
 
   @Override
-  protected BaseConfigDao<OidcConfigModel> getDao() {
-    return dao;
+  protected String getGetQuery() {
+    return GET_OIDC_CONFIG;
+  }
+
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_OIDC_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_OIDC_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, OidcConfigModel oidcConfig) {
+    return Tuple.tuple()
+        .addString(oidcConfig.getIssuer())
+        .addString(oidcConfig.getAuthorizationEndpoint())
+        .addString(oidcConfig.getTokenEndpoint())
+        .addString(oidcConfig.getUserinfoEndpoint())
+        .addString(oidcConfig.getRevocationEndpoint())
+        .addString(oidcConfig.getJwksUri())
+        .addString(
+            JsonUtils.serializeToJsonString(oidcConfig.getGrantTypesSupported(), objectMapper))
+        .addString(
+            JsonUtils.serializeToJsonString(oidcConfig.getResponseTypesSupported(), objectMapper))
+        .addString(
+            JsonUtils.serializeToJsonString(oidcConfig.getSubjectTypesSupported(), objectMapper))
+        .addString(
+            JsonUtils.serializeToJsonString(
+                oidcConfig.getIdTokenSigningAlgValuesSupported(), objectMapper))
+        .addString(
+            JsonUtils.serializeToJsonString(
+                oidcConfig.getTokenEndpointAuthMethodsSupported(), objectMapper))
+        .addString(oidcConfig.getLoginPageUri())
+        .addString(oidcConfig.getConsentPageUri())
+        .addInteger(oidcConfig.getAuthorizeTtl())
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return OIDC_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_OIDC_CONFIG;
+  }
+
+  @Override
+  protected Class<OidcConfigModel> getModelClass() {
+    return OidcConfigModel.class;
   }
 
   @Override

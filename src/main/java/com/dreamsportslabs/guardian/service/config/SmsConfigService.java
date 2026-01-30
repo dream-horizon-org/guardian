@@ -12,7 +12,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.coalesce;
 
 import com.dreamsportslabs.guardian.cache.TenantCache;
 import com.dreamsportslabs.guardian.client.MysqlClient;
-import com.dreamsportslabs.guardian.dao.config.BaseConfigDao;
 import com.dreamsportslabs.guardian.dao.model.config.SmsConfigModel;
 import com.dreamsportslabs.guardian.dto.request.config.CreateSmsConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateSmsConfigRequestDto;
@@ -30,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SmsConfigService
     extends BaseConfigService<
         SmsConfigModel, CreateSmsConfigRequestDto, UpdateSmsConfigRequestDto> {
-  private final BaseConfigDao<SmsConfigModel> dao;
+  private final ObjectMapper objectMapper;
 
   @Inject
   public SmsConfigService(
@@ -39,61 +38,55 @@ public class SmsConfigService
       TenantCache tenantCache,
       ObjectMapper objectMapper) {
     super(changelogService, mysqlClient, tenantCache);
-    this.dao =
-        new BaseConfigDao<SmsConfigModel>(mysqlClient) {
-          @Override
-          protected String getCreateQuery() {
-            return CREATE_SMS_CONFIG;
-          }
+    this.objectMapper = objectMapper;
+  }
 
-          @Override
-          protected String getGetQuery() {
-            return GET_SMS_CONFIG;
-          }
-
-          @Override
-          protected String getUpdateQuery() {
-            return UPDATE_SMS_CONFIG;
-          }
-
-          @Override
-          protected String getDeleteQuery() {
-            return DELETE_SMS_CONFIG;
-          }
-
-          @Override
-          protected ErrorEnum getDuplicateEntryError() {
-            return SMS_CONFIG_ALREADY_EXISTS;
-          }
-
-          @Override
-          protected String getDuplicateEntryMessageFormat() {
-            return DUPLICATE_ENTRY_MESSAGE_SMS_CONFIG;
-          }
-
-          @Override
-          protected Class<SmsConfigModel> getModelClass() {
-            return SmsConfigModel.class;
-          }
-
-          @Override
-          protected Tuple buildParams(String tenantId, SmsConfigModel smsConfig) {
-            return Tuple.tuple()
-                .addValue(smsConfig.getIsSslEnabled())
-                .addString(smsConfig.getHost())
-                .addInteger(smsConfig.getPort())
-                .addString(smsConfig.getSendSmsPath())
-                .addString(smsConfig.getTemplateName())
-                .addString(
-                    JsonUtils.serializeToJsonString(smsConfig.getTemplateParams(), objectMapper))
-                .addString(tenantId);
-          }
-        };
+  // DAO configuration methods (implemented directly in service class)
+  @Override
+  protected String getCreateQuery() {
+    return CREATE_SMS_CONFIG;
   }
 
   @Override
-  protected BaseConfigDao<SmsConfigModel> getDao() {
-    return dao;
+  protected String getGetQuery() {
+    return GET_SMS_CONFIG;
+  }
+
+  @Override
+  protected String getUpdateQuery() {
+    return UPDATE_SMS_CONFIG;
+  }
+
+  @Override
+  protected String getDeleteQuery() {
+    return DELETE_SMS_CONFIG;
+  }
+
+  @Override
+  protected Tuple buildParams(String tenantId, SmsConfigModel smsConfig) {
+    return Tuple.tuple()
+        .addValue(smsConfig.getIsSslEnabled())
+        .addString(smsConfig.getHost())
+        .addInteger(smsConfig.getPort())
+        .addString(smsConfig.getSendSmsPath())
+        .addString(smsConfig.getTemplateName())
+        .addString(JsonUtils.serializeToJsonString(smsConfig.getTemplateParams(), objectMapper))
+        .addString(tenantId);
+  }
+
+  @Override
+  protected ErrorEnum getDuplicateEntryError() {
+    return SMS_CONFIG_ALREADY_EXISTS;
+  }
+
+  @Override
+  protected String getDuplicateEntryMessageFormat() {
+    return DUPLICATE_ENTRY_MESSAGE_SMS_CONFIG;
+  }
+
+  @Override
+  protected Class<SmsConfigModel> getModelClass() {
+    return SmsConfigModel.class;
   }
 
   @Override
