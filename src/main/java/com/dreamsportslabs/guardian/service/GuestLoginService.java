@@ -44,7 +44,7 @@ public class GuestLoginService {
     scopes.forEach(
         scope -> {
           if (!guestAllowedScopes.contains(scope)) {
-            throw INVALID_SCOPE.getCustomException("Invalid scope '" + scope + "'");
+            throw INVALID_SCOPE.getCustomException(String.format("Invalid scope '%s'", scope));
           }
         });
 
@@ -81,7 +81,8 @@ public class GuestLoginService {
               requestedScopes.forEach(
                   scope -> {
                     if (!allowedClientScopes.contains(scope)) {
-                      throw INVALID_SCOPE.getCustomException("Invalid scope '" + scope + "'");
+                      throw INVALID_SCOPE.getCustomException(
+                          String.format("Invalid scope '%s'", scope));
                     }
                   });
               return Completable.complete();

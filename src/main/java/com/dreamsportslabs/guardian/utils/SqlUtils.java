@@ -1,9 +1,19 @@
 package com.dreamsportslabs.guardian.utils;
 
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_TENANT_ID;
+import static com.dreamsportslabs.guardian.constant.Constants.DUPLICATE_ENTRY_MESSAGE_TENANT_NAME;
+import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
+import static com.dreamsportslabs.guardian.constant.Constants.TENANT_NAME;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.INTERNAL_SERVER_ERROR;
 import static com.dreamsportslabs.guardian.exception.ErrorEnum.NO_FIELDS_TO_UPDATE;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.TENANT_ALREADY_EXISTS;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.TENANT_NAME_ALREADY_EXISTS;
 
+import com.dreamsportslabs.guardian.exception.ErrorEnum;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
+import io.vertx.mysqlclient.MySQLException;
 import io.vertx.rxjava3.sqlclient.Tuple;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,5 +56,34 @@ public class SqlUtils {
         new PropertyNamingStrategies.SnakeCaseStrategy();
 
     return snakeCaseStrategy.translate(camelCaseString);
+  }
+
+  public static <T> Single<T> handleMySqlError(
+      Throwable error, ErrorEnum customError, String message, ErrorEnum defaultError) {
+
+    if (error instanceof MySQLException mySqlException) {
+      int errorCode = mySqlException.getErrorCode();
+
+      if (errorCode == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
+        return Single.error(customError.getCustomException(message));
+      }
+    }
+    return Single.error(defaultError.getException(error));
+  }
+
+  public static <T> Single<T> handleTenantError(Throwable err, String name, String tenantId) {
+    if (err instanceof MySQLException mySQLException
+        && mySQLException.getErrorCode() == MYSQL_ERROR_CODE_DUPLICATE_ENTRY) {
+      String errorMessage = mySQLException.getMessage();
+      if (errorMessage != null && errorMessage.contains(TENANT_NAME)) {
+        return Single.error(
+            TENANT_NAME_ALREADY_EXISTS.getCustomException(
+                String.format("%s: %s", DUPLICATE_ENTRY_MESSAGE_TENANT_NAME, name)));
+      }
+      return Single.error(
+          TENANT_ALREADY_EXISTS.getCustomException(
+              String.format("%s: %s", DUPLICATE_ENTRY_MESSAGE_TENANT_ID, tenantId)));
+    }
+    return Single.error(INTERNAL_SERVER_ERROR.getException(err));
   }
 }

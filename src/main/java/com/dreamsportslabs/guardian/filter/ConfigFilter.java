@@ -32,7 +32,10 @@ public class ConfigFilter implements ContainerRequestFilter {
   public void filter(ContainerRequestContext requestContext) {
     // Todo: create a filter annotation instead of filtering out routes here, @Config
     String path = requestContext.getUriInfo().getPath();
-    if (path.equalsIgnoreCase("/healthcheck") || path.equalsIgnoreCase("/v1/keys/generate")) {
+    if (path.equalsIgnoreCase("/healthcheck")
+        || path.equalsIgnoreCase("/v1/keys/generate")
+        || path.startsWith("/v1/admin/config/tenant")
+        || path.startsWith("/v1/admin/config/changelog")) {
       return;
     }
 
