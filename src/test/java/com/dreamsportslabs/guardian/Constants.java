@@ -749,6 +749,10 @@ public class Constants {
       "oidc_provider_config_not_found";
   public static final String ERROR_CODE_OIDC_PROVIDER_CONFIG_ALREADY_EXISTS =
       "oidc_provider_config_already_exists";
+  public static final String ERROR_CODE_PASSWORD_PIN_BLOCK_CONFIG_NOT_FOUND =
+      "password_pin_block_config_not_found";
+  public static final String ERROR_CODE_PASSWORD_PIN_BLOCK_CONFIG_ALREADY_EXISTS =
+      "password_pin_block_config_already_exists";
 
   // Error Messages
   public static final String ERROR_MSG_ID_REQUIRED = "id cannot be null";
@@ -871,6 +875,9 @@ public class Constants {
   public static final String REQUEST_FIELD_IS_ENCRYPTED = "is_encrypted";
   public static final String REQUEST_FIELD_SECRET_KEY = "secret_key";
   public static final String REQUEST_FIELD_ALLOWED_SCOPES = "allowed_scopes";
+  public static final String REQUEST_FIELD_ATTEMPTS_ALLOWED = "attempts_allowed";
+  public static final String REQUEST_FIELD_ATTEMPTS_WINDOW_SECONDS = "attempts_window_seconds";
+  public static final String REQUEST_FIELD_BLOCK_INTERVAL_SECONDS = "block_interval_seconds";
 
   // Response Field Names
   public static final String RESPONSE_FIELD_TENANT_ID = "tenant_id";
