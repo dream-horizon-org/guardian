@@ -1,5 +1,6 @@
 package com.dreamsportslabs.guardian.dao;
 
+import static com.dreamsportslabs.guardian.constant.Constants.MYSQL_ERROR_CODE_DUPLICATE_ENTRY;
 import static com.dreamsportslabs.guardian.dao.query.ScopeQuery.DELETE_SCOPE;
 import static com.dreamsportslabs.guardian.dao.query.ScopeQuery.GET_OIDC_SCOPES;
 import static com.dreamsportslabs.guardian.dao.query.ScopeQuery.GET_SCOPES_BY_NAMES_TEMPLATE;
@@ -75,7 +76,7 @@ public class ScopeDao {
                 log.error("Error saving scope: {}", err.getMessage());
 
                 switch (sqlState) {
-                  case 1062:
+                  case MYSQL_ERROR_CODE_DUPLICATE_ENTRY:
                     return Single.error(
                         SCOPE_ALREADY_EXISTS.getCustomException("scope already exists for tenant"));
                 }
