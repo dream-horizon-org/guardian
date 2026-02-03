@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.dreamsportslabs.guardian.utils.DbUtils;
@@ -73,6 +74,8 @@ public class V2UserRefreshTokensIT {
   private static final String TEST_SOURCE_1 = "mobile";
   private static final String TEST_SOURCE_2 = "web";
   private static final String TEST_AUTH_METHOD = "[\"PASSWORD\"]";
+  private static final String CREATED_AT = "created_at";
+  private static final String CREATED_AT_FORMAT = "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}";
 
   private static String firstPartyClientId;
   private static String secondClientId;
@@ -250,6 +253,8 @@ public class V2UserRefreshTokensIT {
     assertThat(token.get(BODY_PARAM_LOCATION), equalTo(TEST_LOCATION_1));
     assertThat(token.get("ip"), equalTo(TEST_IP_1));
     assertThat(token.get(SOURCE_VALUE), equalTo(TEST_SOURCE_1));
+    assertThat(token.get(CREATED_AT), notNullValue());
+    assertThat((String) token.get(CREATED_AT), matchesPattern(CREATED_AT_FORMAT));
   }
 
   @Test
@@ -319,6 +324,8 @@ public class V2UserRefreshTokensIT {
     assertThat(refreshTokens, hasSize(1));
     Map<String, Object> token = refreshTokens.get(0);
     assertThat(token.get(OIDC_BODY_PARAM_REFRESH_TOKEN), equalTo(activeRefreshToken));
+    assertThat(token.get(CREATED_AT), notNullValue());
+    assertThat((String) token.get(CREATED_AT), matchesPattern(CREATED_AT_FORMAT));
   }
 
   @Test
@@ -556,6 +563,8 @@ public class V2UserRefreshTokensIT {
     assertThat(token1.get("ip"), equalTo(TEST_IP_1));
     assertThat(token1.get(SOURCE_VALUE), equalTo(TEST_SOURCE_1));
     assertThat(token1.get(BODY_PARAM_LOCATION), equalTo(TEST_LOCATION_1));
+    assertThat(token1.get(CREATED_AT), notNullValue());
+    assertThat((String) token1.get(CREATED_AT), matchesPattern(CREATED_AT_FORMAT));
 
     Map<String, Object> token2 =
         refreshTokens.stream()
@@ -567,6 +576,8 @@ public class V2UserRefreshTokensIT {
     assertThat(token2.get("ip"), equalTo(TEST_IP_2));
     assertThat(token2.get(SOURCE_VALUE), equalTo(TEST_SOURCE_2));
     assertThat(token2.get(BODY_PARAM_LOCATION), equalTo(TEST_LOCATION_2));
+    assertThat(token2.get(CREATED_AT), notNullValue());
+    assertThat((String) token2.get(CREATED_AT), matchesPattern(CREATED_AT_FORMAT));
   }
 
   @Test
@@ -678,6 +689,8 @@ public class V2UserRefreshTokensIT {
     assertThat(totalCount, equalTo(1));
     assertThat(refreshTokens, hasSize(1));
     assertThat(refreshTokens.get(0).get(OIDC_BODY_PARAM_REFRESH_TOKEN), equalTo(userRefreshToken));
+    assertThat(refreshTokens.get(0).get(CREATED_AT), notNullValue());
+    assertThat((String) refreshTokens.get(0).get(CREATED_AT), matchesPattern(CREATED_AT_FORMAT));
   }
 
   @Test
@@ -724,7 +737,13 @@ public class V2UserRefreshTokensIT {
     Response page1 = getUserRefreshTokens(TENANT_ID, accessToken, firstPartyClientId, 1, 2);
     page1.then().statusCode(SC_OK);
     assertThat(page1.jsonPath().getLong(TOTAL_COUNT), equalTo(5L));
-    assertThat(getRefreshTokensList(page1), hasSize(2));
+    List<Map<String, Object>> page1Tokens = getRefreshTokensList(page1);
+    assertThat(page1Tokens, hasSize(2));
+    page1Tokens.forEach(
+        token -> {
+          assertThat(token.get(CREATED_AT), notNullValue());
+          assertThat((String) token.get(CREATED_AT), matchesPattern(CREATED_AT_FORMAT));
+        });
 
     // Act & Assert - page 2, page_size 2
     Response page2 = getUserRefreshTokens(TENANT_ID, accessToken, firstPartyClientId, 2, 2);
