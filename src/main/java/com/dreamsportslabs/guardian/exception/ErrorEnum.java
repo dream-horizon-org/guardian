@@ -138,13 +138,9 @@ public enum ErrorEnum {
   GUEST_CONFIG_NOT_FOUND("guest_config_not_found", "Guest config not found", 404),
   GUEST_CONFIG_ALREADY_EXISTS("guest_config_already_exists", "Guest config already exists", 400),
   PASSWORD_PIN_BLOCK_CONFIG_NOT_FOUND(
-      "password_pin_block_config_not_found",
-      "Password pin block config not found",
-      404),
+      "password_pin_block_config_not_found", "Password pin block config not found", 404),
   PASSWORD_PIN_BLOCK_CONFIG_ALREADY_EXISTS(
-      "password_pin_block_config_already_exists",
-      "Password pin block config already exists",
-      400);
+      "password_pin_block_config_already_exists", "Password pin block config already exists", 400);
 
   private final String code;
   private final String message;

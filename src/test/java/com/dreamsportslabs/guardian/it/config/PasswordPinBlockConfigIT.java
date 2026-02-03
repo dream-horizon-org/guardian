@@ -4,9 +4,9 @@ import static com.dreamsportslabs.guardian.Constants.CODE;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
 import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_PASSWORD_PIN_BLOCK_CONFIG_ALREADY_EXISTS;
 import static com.dreamsportslabs.guardian.Constants.ERROR_CODE_PASSWORD_PIN_BLOCK_CONFIG_NOT_FOUND;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_NO_FIELDS_TO_UPDATE;
 import static com.dreamsportslabs.guardian.Constants.INVALID_REQUEST;
 import static com.dreamsportslabs.guardian.Constants.MESSAGE;
-import static com.dreamsportslabs.guardian.Constants.ERROR_MSG_NO_FIELDS_TO_UPDATE;
 import static com.dreamsportslabs.guardian.Constants.NO_FIELDS_TO_UPDATE;
 import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ATTEMPTS_ALLOWED;
 import static com.dreamsportslabs.guardian.Constants.REQUEST_FIELD_ATTEMPTS_WINDOW_SECONDS;
@@ -187,7 +187,11 @@ public class PasswordPinBlockConfigIT {
 
     Response response = updatePasswordPinBlockConfig(testTenantId, new HashMap<>());
 
-    response.then().statusCode(SC_BAD_REQUEST).rootPath(ERROR).body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
+    response
+        .then()
+        .statusCode(SC_BAD_REQUEST)
+        .rootPath(ERROR)
+        .body(CODE, equalTo(NO_FIELDS_TO_UPDATE));
     assertThat(
         response.jsonPath().getString(ERROR + "." + MESSAGE),
         equalTo(ERROR_MSG_NO_FIELDS_TO_UPDATE));

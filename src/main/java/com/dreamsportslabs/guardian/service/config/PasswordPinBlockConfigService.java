@@ -32,9 +32,7 @@ public class PasswordPinBlockConfigService
 
   @Inject
   public PasswordPinBlockConfigService(
-      ChangelogService changelogService,
-      MysqlClient mysqlClient,
-      TenantCache tenantCache) {
+      ChangelogService changelogService, MysqlClient mysqlClient, TenantCache tenantCache) {
     super(changelogService, mysqlClient, tenantCache);
   }
 
@@ -114,18 +112,13 @@ public class PasswordPinBlockConfigService
 
   @Override
   protected PasswordPinBlockConfigModel mergeModel(
-      UpdatePasswordPinBlockConfigRequestDto requestDto,
-      PasswordPinBlockConfigModel oldConfig) {
+      UpdatePasswordPinBlockConfigRequestDto requestDto, PasswordPinBlockConfigModel oldConfig) {
     return PasswordPinBlockConfigModel.builder()
         .attemptsAllowed(coalesce(requestDto.getAttemptsAllowed(), oldConfig.getAttemptsAllowed()))
         .attemptsWindowSeconds(
-            coalesce(
-                requestDto.getAttemptsWindowSeconds(),
-                oldConfig.getAttemptsWindowSeconds()))
+            coalesce(requestDto.getAttemptsWindowSeconds(), oldConfig.getAttemptsWindowSeconds()))
         .blockIntervalSeconds(
-            coalesce(
-                requestDto.getBlockIntervalSeconds(),
-                oldConfig.getBlockIntervalSeconds()))
+            coalesce(requestDto.getBlockIntervalSeconds(), oldConfig.getBlockIntervalSeconds()))
         .build();
   }
 
