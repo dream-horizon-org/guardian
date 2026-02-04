@@ -1259,7 +1259,8 @@ paths:
         
         **Logout Types:**
         - **Token Logout**: Invalidates only the provided refresh token (default)
-        - **Universal Logout**: If `logout_type` is set to `universal`, invalidates all refresh tokens for the user
+        - **Client Logout**: If `logout_type` is set to `client`, invalidates all refresh tokens for the user for the specific client
+        - **Tenant Logout**: If `logout_type` is set to `tenant`, invalidates all refresh tokens for the user for the tenant (requires first-party client)
         
         **Behavior:**
         - Validates the provided refresh token (can be in request body or cookie)
@@ -1269,7 +1270,7 @@ paths:
         
         **Request Body:**
         - `refresh_token` (optional): The refresh token to invalidate (can also be provided as cookie)
-        - `logout_type` (optional): Type of logout - `token` (default) or `universal`
+        - `logout_type` (optional): Type of logout - `token` (default), `client`, or `tenant`
         - `client_id` (optional): Client ID for the logout operation
       parameters:
         - $ref: '#/components/parameters/TenantIdHeader'
@@ -1415,8 +1416,18 @@ paths:
         
         This endpoint allows administrators to perform logout operations
         that may include additional administrative tasks beyond regular user logout.
+        
+        **Authentication:**
+        - Requires Basic authentication in the Authorization header (admin credentials)
       parameters:
         - $ref: '#/components/parameters/TenantIdHeader'
+        - name: Authorization
+          in: header
+          required: true
+          description: Basic authentication (Base64 encoded admin credentials)
+          schema:
+            type: string
+            example: "Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ="
       requestBody:
         content:
           application/json:
@@ -3813,7 +3824,7 @@ components:
         logout_type:
           type: string
           description: Type of logout
-          enum: ["token", "universal"]
+          enum: ["token", "client", "tenant"]
           default: "token"
           example: "token"
         client_id:
