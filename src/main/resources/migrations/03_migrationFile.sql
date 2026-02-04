@@ -1,7 +1,7 @@
 -- liquibase formatted sql
 -- changeset guardian:4
 
--- Password/PIN block config for MFA signin (blocks only password and PIN methods, not entire MFA API).
+-- Password/PIN block config for signin APIs.
 CREATE TABLE password_pin_block_config
 (
     tenant_id                CHAR(10) PRIMARY KEY,
