@@ -1217,6 +1217,29 @@ public class DbUtils {
     return null;
   }
 
+  public static JsonObject getPasswordPinBlockConfig(String tenantId) {
+    String selectQuery =
+        "SELECT tenant_id, attempts_allowed, attempts_window_seconds, block_interval_seconds "
+            + "FROM password_pin_block_config WHERE tenant_id = ?";
+
+    try (Connection conn = mysqlConnectionPool.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+      stmt.setString(1, tenantId);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) {
+        JsonObject config = new JsonObject();
+        config.put("tenant_id", rs.getString("tenant_id"));
+        config.put("attempts_allowed", rs.getInt("attempts_allowed"));
+        config.put("attempts_window_seconds", rs.getInt("attempts_window_seconds"));
+        config.put("block_interval_seconds", rs.getInt("block_interval_seconds"));
+        return config;
+      }
+    } catch (Exception e) {
+      log.error("Error while getting password_pin_block_config", e);
+    }
+    return null;
+  }
+
   public static JsonObject getOidcProviderConfig(String tenantId, String providerName) {
     String selectQuery =
         "SELECT tenant_id, provider_name, issuer, jwks_url, token_url, client_id, client_secret, redirect_uri, client_auth_method, is_ssl_enabled, user_identifier, audience_claims "

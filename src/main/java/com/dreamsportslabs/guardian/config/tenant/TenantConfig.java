@@ -34,6 +34,7 @@ public class TenantConfig {
   private OtpConfig otpConfig;
   private OidcConfig oidcConfig;
   private ContactVerifyConfig contactVerifyConfig;
+  private PasswordPinBlockConfig passwordPinBlockConfig;
   private Map<String, OidcProviderConfig> oidcProviderConfig;
   private AdminConfig adminConfig;
   private GuestConfig guestConfig;
@@ -121,5 +122,9 @@ public class TenantConfig {
 
   public Optional<GoogleConfig> findGoogleConfig() {
     return Optional.ofNullable(googleConfig);
+  }
+
+  public Optional<PasswordPinBlockConfig> findPasswordPinBlockConfig() {
+    return Optional.ofNullable(passwordPinBlockConfig);
   }
 }

@@ -13,6 +13,7 @@ import static com.dreamsportslabs.guardian.exception.ErrorEnum.UNAUTHORIZED;
 
 import com.dreamsportslabs.guardian.constant.AuthMethod;
 import com.dreamsportslabs.guardian.constant.AuthMethodCategory;
+import com.dreamsportslabs.guardian.constant.BlockFlow;
 import com.dreamsportslabs.guardian.constant.MfaFactor;
 import com.dreamsportslabs.guardian.dao.model.RefreshTokenModel;
 import com.dreamsportslabs.guardian.dto.UserDto;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -42,6 +44,7 @@ public class MfaService {
   private final AuthorizationService authorizationService;
   private final ClientService clientService;
   private final UserService userService;
+  private final PasswordAuth passwordAuth;
 
   public Single<TokenResponseDto> mfaEnroll(
       V2MfaSignInRequestDto requestDto, MultivaluedMap<String, String> headers, String tenantId) {
@@ -107,21 +110,80 @@ public class MfaService {
                 requestDto.getRefreshToken(),
                 requestDto.getFactor()))
         .flatMap(
-            refreshTokenModel ->
-                authenticateAndGetUserDetails(
-                        requestDto, headers, refreshTokenModel.getUserId(), tenantId)
-                    .flatMap(
-                        user ->
-                            updateRefreshToken(
-                                user,
-                                requestDto.getRefreshToken(),
-                                getMergedScopes(
-                                    refreshTokenModel.getScope(), requestDto.getScopes()),
-                                getMergedAuthMethods(
-                                    refreshTokenModel.getAuthMethod(),
-                                    requestDto.getFactor().getAuthMethod()),
-                                requestDto.getClientId(),
-                                tenantId)));
+            refreshTokenModel -> runMfaSignIn(requestDto, headers, tenantId, refreshTokenModel));
+  }
+
+  /**
+   * Block only for password and PIN methods as only they are supported; Use username/email/phone
+   * from request for block (consistent with signin APIs). Delegates to PasswordAuth for unified
+   * block flow; on success updates refresh token instead of generating new tokens.
+   */
+  private Single<TokenResponseDto> runMfaSignIn(
+      V2MfaSignInRequestDto requestDto,
+      MultivaluedMap<String, String> headers,
+      String tenantId,
+      RefreshTokenModel refreshTokenModel) {
+    MfaFactor factor = requestDto.getFactor();
+    if (factor != MfaFactor.PASSWORD && factor != MfaFactor.PIN) {
+      return Single.error(MFA_FACTOR_NOT_SUPPORTED.getException());
+    }
+
+    String userIdentifier = extractUserIdentifier(requestDto);
+    BlockFlow blockFlow = factor == MfaFactor.PASSWORD ? BlockFlow.PASSWORD : BlockFlow.PIN;
+
+    Single<JsonObject> authenticateAction =
+        authenticateForMfa(requestDto, headers, refreshTokenModel.getUserId(), tenantId);
+    return passwordAuth
+        .authenticateWithBlockFlow(tenantId, userIdentifier, blockFlow, authenticateAction)
+        .flatMap(
+            user ->
+                updateRefreshToken(
+                    user,
+                    requestDto.getRefreshToken(),
+                    getMergedScopes(refreshTokenModel.getScope(), requestDto.getScopes()),
+                    getMergedAuthMethods(
+                        refreshTokenModel.getAuthMethod(), requestDto.getFactor().getAuthMethod()),
+                    requestDto.getClientId(),
+                    tenantId));
+  }
+
+  /** Authenticate for MFA sign-in: validates user matches refresh token userId. */
+  private Single<JsonObject> authenticateForMfa(
+      V2MfaSignInRequestDto requestDto,
+      MultivaluedMap<String, String> headers,
+      String userId,
+      String tenantId) {
+    UserDto userDto = buildUserDtoFromMfaRequest(requestDto);
+    return userService
+        .authenticate(userDto, headers, tenantId)
+        .filter(user -> user.getString(USERID).equals(userId))
+        .switchIfEmpty(
+            Single.error(
+                UNAUTHORIZED.getCustomException("User identifier does not match refresh token")));
+  }
+
+  private static UserDto buildUserDtoFromMfaRequest(V2MfaSignInRequestDto requestDto) {
+    UserDto.UserDtoBuilder userDtoBuilder = UserDto.builder();
+    if (StringUtils.isNotBlank(requestDto.getUsername())) {
+      userDtoBuilder.username(requestDto.getUsername());
+    } else if (StringUtils.isNotBlank(requestDto.getEmail())) {
+      userDtoBuilder.email(requestDto.getEmail());
+    } else {
+      userDtoBuilder.phoneNumber(requestDto.getPhoneNumber());
+    }
+    if (StringUtils.isNotBlank(requestDto.getPassword())) {
+      userDtoBuilder.password(requestDto.getPassword());
+    } else {
+      userDtoBuilder.pin(requestDto.getPin());
+    }
+    return userDtoBuilder.build();
+  }
+
+  private static String extractUserIdentifier(V2MfaSignInRequestDto requestDto) {
+    return Stream.of(requestDto.getUsername(), requestDto.getEmail(), requestDto.getPhoneNumber())
+        .filter(StringUtils::isNotBlank)
+        .findFirst()
+        .orElse(requestDto.getUsername());
   }
 
   private Single<RefreshTokenModel> validateRefreshToken(
@@ -140,32 +202,6 @@ public class MfaService {
         user, refreshToken, scopes, authMethods, clientId, tenantId);
   }
 
-  private Single<JsonObject> authenticateAndGetUserDetails(
-      V2MfaSignInRequestDto requestDto,
-      MultivaluedMap<String, String> headers,
-      String userId,
-      String tenantId) {
-    return switch (requestDto.getFactor()) {
-      case PASSWORD, PIN -> authenticateUser(requestDto, headers, userId, tenantId);
-      default -> Single.error(MFA_FACTOR_NOT_SUPPORTED.getException());
-    };
-  }
-
-  private Single<JsonObject> authenticateUser(
-      V2MfaSignInRequestDto requestDto,
-      MultivaluedMap<String, String> headers,
-      String userId,
-      String tenantId) {
-    UserDto userDto = buildUserDto(requestDto);
-
-    return userService
-        .authenticate(userDto, headers, tenantId)
-        .filter(user -> user.getString(USERID).equals(userId))
-        .switchIfEmpty(
-            Single.error(
-                UNAUTHORIZED.getCustomException("User identifier does not match refresh token")));
-  }
-
   private List<String> getMergedScopes(List<String> existingScopes, List<String> newScopes) {
     LinkedHashSet<String> mergedScopes = new LinkedHashSet<>(existingScopes);
     mergedScopes.addAll(newScopes);
@@ -177,26 +213,6 @@ public class MfaService {
     List<AuthMethod> mergedAuthMethods = new ArrayList<>(authMethods);
     mergedAuthMethods.add(newAuthMethod);
     return mergedAuthMethods;
-  }
-
-  private UserDto buildUserDto(V2MfaSignInRequestDto requestDto) {
-    UserDto.UserDtoBuilder userDtoBuilder = UserDto.builder();
-
-    if (StringUtils.isNotBlank(requestDto.getUsername())) {
-      userDtoBuilder.username(requestDto.getUsername());
-    } else if (StringUtils.isNotBlank(requestDto.getEmail())) {
-      userDtoBuilder.email(requestDto.getEmail());
-    } else {
-      userDtoBuilder.phoneNumber(requestDto.getPhoneNumber());
-    }
-
-    if (StringUtils.isNotBlank(requestDto.getPassword())) {
-      userDtoBuilder.password(requestDto.getPassword());
-    } else {
-      userDtoBuilder.pin(requestDto.getPin());
-    }
-
-    return userDtoBuilder.build();
   }
 
   private Completable validateIfFactorIsEnrolled(

@@ -16,4 +16,5 @@ public class UserRefreshTokenModel {
   private String location;
   private String ip;
   private String source;
+  private String createdAt;
 }

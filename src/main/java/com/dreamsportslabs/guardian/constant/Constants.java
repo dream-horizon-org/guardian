@@ -150,6 +150,8 @@ public final class Constants {
   public static final String CACHE_KEY_AUTH_SESSION = "AUTH_SESSION";
   public static final String CACHE_KEY_BIOMETRIC_CHALLENGE = "BIOMETRIC_CHALLENGE";
   public static final String CACHE_KEY_OTP_RESEND_COUNT = "otp_resend_count";
+  public static final String CACHE_KEY_PASSWORD_ATTEMPTS = "password_attempts";
+  public static final String CACHE_KEY_PIN_ATTEMPTS = "pin_attempts";
 
   public static final String TOKEN_TYPE = "Bearer";
 
@@ -258,6 +260,7 @@ public final class Constants {
   public static final String CONFIG_TYPE_ADMIN_CONFIG = "admin_config";
   public static final String CONFIG_TYPE_OIDC_CONFIG = "oidc_config";
   public static final String CONFIG_TYPE_GUEST_CONFIG = "guest_config";
+  public static final String CONFIG_TYPE_PASSWORD_PIN_BLOCK_CONFIG = "password_pin_block_config";
 
   // MySQL Error Codes
   public static final int MYSQL_ERROR_CODE_DUPLICATE_ENTRY = 1062;
@@ -333,6 +336,8 @@ public final class Constants {
       "Contact verify config already exists";
   public static final String DUPLICATE_ENTRY_MESSAGE_OIDC_PROVIDER_CONFIG =
       "OIDC provider config already exists";
+  public static final String DUPLICATE_ENTRY_MESSAGE_PASSWORD_PIN_BLOCK_CONFIG =
+      "Password pin block config already exists";
   public static final String DUPLICATE_ENTRY_MESSAGE_TENANT_NAME = "Tenant name already exists";
   public static final String DUPLICATE_ENTRY_MESSAGE_TENANT_ID = "Tenant ID already exists";
 }

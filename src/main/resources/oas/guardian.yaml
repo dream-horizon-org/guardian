@@ -943,6 +943,10 @@ paths:
       description: |
         API to unblock previously blocked authentication flows for a user identifier.
         This allows the user to use the specified authentication methods again.
+        For password/PIN block (wrong attempts from signin or MFA signin), use unblockFlows
+        ["password"] and/or ["pin"] to unblock. user_identifier must be the username, email, or
+        phone number (the identifier used when signing in) for password/PIN blocks. Lifts the
+        block before the block interval expires (e.g. after reset).
       parameters:
         - $ref: '#/components/parameters/TenantIdHeader'
       requestBody:
@@ -3475,6 +3479,10 @@ components:
         source:
           type: string
           description: Source (e.g. mobile, web)
+        created_at:
+          type: string
+          description: When the refresh token was created (format yyyy-MM-dd HH:mm:ss)
+          example: "2022-09-30 12:25:26"
     UserRefreshTokensResponse:
       type: object
       description: Paginated list of user's active refresh tokens
@@ -3498,11 +3506,13 @@ components:
             location: "New York, USA"
             ip: "192.168.1.1"
             source: "mobile"
+            created_at: "2022-09-30 12:25:26"
           - refresh_token: "def456..."
             device_name: "MacBook Pro"
             location: "San Francisco, USA"
             ip: "10.0.0.1"
             source: "web"
+            created_at: "2022-09-29 14:20:00"
         total_count: 2
     MetaInfo:
       type: object
@@ -4451,12 +4461,14 @@ components:
           type: array
           items:
             type: string
-            enum: [passwordless, password, social_auth, otp_verify]
-          description: List of flow types to unblock
-          example: ["passwordless", "social_auth"]
+            enum: [passwordless, password, social_auth, otp_verify, pin]
+          description: |
+            List of flow types to unblock. Use "password" or "pin" to unblock when
+            blocked due to wrong attempts (user_identifier must be username, email, or phone).
+          example: ["password", "pin"]
       example:
-        userIdentifier: "user@example.com"
-        unblockFlows: ["passwordless", "social_auth"]
+        userIdentifier: "john@example.com"
+        unblockFlows: ["password"]
 
 
 
@@ -4471,9 +4483,9 @@ components:
           type: array
           items:
             type: string
-            enum: [passwordless, password, social_auth, otp_verify]
+            enum: [passwordless, password, social_auth, otp_verify, pin]
           description: List of currently blocked flow types
-          example: ["passwordless", "social_auth"]
+          example: ["passwordless", "password"]
         totalCount:
           type: integer
           description: Total number of blocked flows

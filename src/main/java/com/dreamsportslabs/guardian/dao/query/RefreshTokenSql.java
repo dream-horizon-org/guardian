@@ -84,7 +84,8 @@ public class RefreshTokenSql {
           device_name,
           location,
           INET6_NTOA(ip) AS ip,
-          source
+          source,
+          DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at
       FROM refresh_tokens
       WHERE tenant_id = ?
           AND client_id = ?

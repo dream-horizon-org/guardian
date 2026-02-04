@@ -34,6 +34,8 @@ public enum ErrorEnum {
       "max_resend_limit_exceeded",
       "Maximum OTP limit exceeded. Try again after the cooldown period.",
       400),
+  MAX_LOGIN_ATTEMPTS_EXCEEDED(
+      "max_login_attempts_exceeded", "Maximum password/PIN login attempts limit exceeded", 400),
   INCORRECT_OTP("incorrect_otp", "Incorrect otp", 400),
   RETRIES_EXHAUSTED("retries_exhausted", "Retries exhausted", 400),
 
@@ -134,7 +136,11 @@ public enum ErrorEnum {
   OIDC_CONFIG_NOT_FOUND("oidc_config_not_found", "OIDC config not found", 404),
   OIDC_CONFIG_ALREADY_EXISTS("oidc_config_already_exists", "OIDC config already exists", 400),
   GUEST_CONFIG_NOT_FOUND("guest_config_not_found", "Guest config not found", 404),
-  GUEST_CONFIG_ALREADY_EXISTS("guest_config_already_exists", "Guest config already exists", 400);
+  GUEST_CONFIG_ALREADY_EXISTS("guest_config_already_exists", "Guest config already exists", 400),
+  PASSWORD_PIN_BLOCK_CONFIG_NOT_FOUND(
+      "password_pin_block_config_not_found", "Password pin block config not found", 404),
+  PASSWORD_PIN_BLOCK_CONFIG_ALREADY_EXISTS(
+      "password_pin_block_config_already_exists", "Password pin block config already exists", 400);
 
   private final String code;
   private final String message;
