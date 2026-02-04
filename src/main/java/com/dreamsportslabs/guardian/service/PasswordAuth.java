@@ -1,7 +1,7 @@
 package com.dreamsportslabs.guardian.service;
 
 import static com.dreamsportslabs.guardian.constant.Constants.SCOPE_DELIMITER;
-import static com.dreamsportslabs.guardian.exception.ErrorEnum.MAX_RESEND_LIMIT_EXCEEDED;
+import static com.dreamsportslabs.guardian.exception.ErrorEnum.MAX_LOGIN_ATTEMPTS_EXCEEDED;
 import static com.dreamsportslabs.guardian.utils.Utils.getCurrentTimeInSeconds;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 
@@ -267,7 +267,8 @@ public class PasswordAuth {
         .andThen(passwordPinDao.deleteWrongAttemptsCount(tenantId, userIdentifier, blockFlow))
         .andThen(
             Single.error(
-                MAX_RESEND_LIMIT_EXCEEDED.getCustomException(Map.of("retry_after", unblockedAt))));
+                MAX_LOGIN_ATTEMPTS_EXCEEDED.getCustomException(
+                    Map.of("retry_after", unblockedAt))));
   }
 
   private record BlockConfig(int maxAttempts, int windowSeconds, int blockIntervalSeconds) {}
