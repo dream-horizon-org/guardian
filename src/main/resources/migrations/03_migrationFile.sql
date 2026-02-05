@@ -1,12 +1,12 @@
 -- liquibase formatted sql
--- changeset guardian:4
+-- changeset guardian:3
 
 -- Password/PIN block config for signin APIs.
 CREATE TABLE password_pin_block_config
 (
     tenant_id                CHAR(10) PRIMARY KEY,
     attempts_allowed         INT         NOT NULL DEFAULT 5 COMMENT 'Max wrong attempts per (userId, deviceId)',
-    attempts_window_seconds  INT         NOT NULL DEFAULT 3600 COMMENT 'Duration after which attempts counter resets',
+    attempts_window_seconds  INT         NOT NULL DEFAULT 86400 COMMENT 'Duration after which attempts counter resets',
     block_interval_seconds  INT         NOT NULL DEFAULT 86400 COMMENT 'Block duration from block initiated time (e.g. 24 hrs)',
     created_at               TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at               TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
