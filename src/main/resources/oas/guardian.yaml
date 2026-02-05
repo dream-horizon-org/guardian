@@ -156,6 +156,82 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /v2/signin:
+    post:
+      tags:
+        - Password
+      summary: Sign in using user identifier with password or PIN
+      description: |
+        Authenticates a user using a user identifier (username, email, or phone number) with either
+        password or PIN. Supports both token and code response types. On success, returns tokens
+        and optionally sets authentication cookies.
+
+        **Authentication methods:**
+        - **Password:** Provide `password` with user identifier. Uses client's post authenticate
+          user API for validation.
+        - **PIN:** Provide `pin` with user identifier for PIN/pattern authentication.
+
+        **Response types:**
+        - `token`: Returns access_token, refresh_token, id_token, sso_token in response body and
+          optionally as Set-Cookie headers.
+        - `code`: Returns authorization code for OAuth code flow.
+
+        **User flow block:** After too many failed attempts, the user's flow may be blocked. A 403
+        response with `error.code: "flow_blocked"` indicates the block. Use `metadata.retryAfter`
+        (Unix timestamp) to know when the block expires. To manage blocks, see:
+        - `POST /v1/user/flow/block` - Block a user's flow
+        - `POST /v1/user/flow/unblock` - Unblock a user's flow
+        - `GET /v1/user/flow/blocked` - Check if a user's flow is blocked
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V2SignInUpRequestBody'
+        required: true
+      responses:
+        '200':
+          description: User is successfully signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2TokenResponse'
+          headers:
+            Set-Cookie:
+              description: Sets authentication cookies (access token, refresh token, SSO token)
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request due to missing parameters or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - User's flow is blocked due to too many failed attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                flow_blocked:
+                  summary: User flow blocked
+                  value:
+                    error:
+                      code: "flow_blocked"
+                      message: "Too many failed attempts. Please try again later."
+                      metadata:
+                        retryAfter: 1640995230
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /v1/otp/send:
     post:
       tags:
@@ -3692,6 +3768,52 @@ components:
           type: string
           example: token
         metaInfo:
+          $ref: '#/components/schemas/MetaInfo'
+    V2SignInUpRequestBody:
+      type: object
+      required:
+        - client_id
+        - response_type
+      description: |
+        Exactly one of username, email, or phone_number is required.
+        Exactly one of password or pin is required.
+      properties:
+        username:
+          type: string
+          description: User identifier (username)
+          example: "JohnTheMan"
+        email:
+          type: string
+          description: User identifier (email)
+          example: "user@example.com"
+        phone_number:
+          type: string
+          description: User identifier (phone number)
+          example: "+1234567890"
+        password:
+          type: string
+          description: Password for authentication (use with password flow)
+          example: "wordpass@1234"
+        pin:
+          type: string
+          description: PIN for authentication (use with PIN flow)
+          example: "1234"
+        response_type:
+          type: string
+          description: Desired response type
+          enum: ["code", "token"]
+          example: "token"
+        client_id:
+          type: string
+          description: Client identifier
+          example: "my-client-id"
+        scopes:
+          type: array
+          description: List of scopes to request
+          items:
+            type: string
+          example: ["openid", "email", "profile"]
+        meta_info:
           $ref: '#/components/schemas/MetaInfo'
     V1AuthGoogleRequestBody:
       type: object
