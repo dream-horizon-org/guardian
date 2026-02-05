@@ -1,5 +1,7 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.USER_IDENTIFIER_HEADER_REQUIRED;
+
 import com.dreamsportslabs.guardian.dto.request.config.CreateOidcConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateOidcConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.OidcConfigResponseDto;
@@ -7,6 +9,7 @@ import com.dreamsportslabs.guardian.service.config.OidcConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -33,9 +36,11 @@ public class OidcConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createOidcConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull CreateOidcConfigRequestDto requestDto) {
     return oidcConfigService
-        .createOidcConfig(tenantId, requestDto)
+        .createOidcConfig(tenantId, requestDto, userIdentifier)
         .map(config -> OidcConfigResponseDto.from(tenantId, config))
         .map(response -> Response.status(Response.Status.CREATED).entity(response).build())
         .toCompletionStage();
@@ -56,19 +61,24 @@ public class OidcConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateOidcConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull UpdateOidcConfigRequestDto requestDto) {
     requestDto.validate();
     return oidcConfigService
-        .updateOidcConfig(tenantId, requestDto)
+        .updateOidcConfig(tenantId, requestDto, userIdentifier)
         .map(config -> OidcConfigResponseDto.from(tenantId, config))
         .map(response -> Response.ok(response).build())
         .toCompletionStage();
   }
 
   @DELETE
-  public CompletionStage<Response> deleteOidcConfig(@HeaderParam("tenant-id") String tenantId) {
+  public CompletionStage<Response> deleteOidcConfig(
+      @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier) {
     return oidcConfigService
-        .deleteOidcConfig(tenantId)
+        .deleteOidcConfig(tenantId, userIdentifier)
         .andThen(Single.just(Response.noContent().build()))
         .toCompletionStage();
   }

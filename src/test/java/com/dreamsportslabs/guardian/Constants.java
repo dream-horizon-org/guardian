@@ -3,6 +3,7 @@ package com.dreamsportslabs.guardian;
 public class Constants {
   // Header Params
   public static final String HEADER_TENANT_ID = "tenant-id";
+  public static final String HEADER_USER_IDENTIFIER = "user-identifier";
 
   // Request Body Params
   public static final String BODY_PARAM_USERNAME = "username";

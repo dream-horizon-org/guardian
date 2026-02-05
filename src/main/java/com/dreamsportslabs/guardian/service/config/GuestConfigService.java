@@ -125,8 +125,8 @@ public class GuestConfigService
   }
 
   public Single<GuestConfigModel> createGuestConfig(
-      String tenantId, CreateGuestConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
+      String tenantId, CreateGuestConfigRequestDto requestDto, String userIdentifier) {
+    return createConfig(tenantId, requestDto, userIdentifier);
   }
 
   public Single<GuestConfigModel> getGuestConfig(String tenantId) {
@@ -134,11 +134,11 @@ public class GuestConfigService
   }
 
   public Single<GuestConfigModel> updateGuestConfig(
-      String tenantId, UpdateGuestConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateGuestConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteGuestConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteGuestConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

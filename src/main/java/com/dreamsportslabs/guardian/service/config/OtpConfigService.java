@@ -155,11 +155,11 @@ public class OtpConfigService
   }
 
   public Single<OtpConfigModel> updateOtpConfig(
-      String tenantId, UpdateOtpConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateOtpConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteOtpConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteOtpConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

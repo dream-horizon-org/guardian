@@ -116,8 +116,8 @@ public class FbConfigService
   }
 
   public Single<FbConfigModel> createFbConfig(
-      String tenantId, CreateFbConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
+      String tenantId, CreateFbConfigRequestDto requestDto, String userIdentifier) {
+    return createConfig(tenantId, requestDto, userIdentifier);
   }
 
   public Single<FbConfigModel> getFbConfig(String tenantId) {
@@ -125,11 +125,11 @@ public class FbConfigService
   }
 
   public Single<FbConfigModel> updateFbConfig(
-      String tenantId, UpdateFbConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateFbConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteFbConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteFbConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

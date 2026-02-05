@@ -163,7 +163,7 @@ public class OidcProviderConfigService
   }
 
   public Single<OidcProviderConfigModel> createOidcProviderConfig(
-      String tenantId, CreateOidcProviderConfigRequestDto requestDto) {
+      String tenantId, CreateOidcProviderConfigRequestDto requestDto, String userIdentifier) {
     OidcProviderConfigModel oidcProviderConfig = mapToModel(requestDto);
     String providerName = requestDto.getProviderName();
     return mysqlClient
@@ -182,7 +182,7 @@ public class OidcProviderConfigService
                                     OPERATION_INSERT,
                                     null,
                                     createdConfig,
-                                    tenantId)
+                                    userIdentifier)
                                 .andThen(Single.just(createdConfig)))
                     .toMaybe())
         .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
@@ -198,7 +198,10 @@ public class OidcProviderConfigService
   }
 
   public Single<OidcProviderConfigModel> updateOidcProviderConfig(
-      String tenantId, String providerName, UpdateOidcProviderConfigRequestDto requestDto) {
+      String tenantId,
+      String providerName,
+      UpdateOidcProviderConfigRequestDto requestDto,
+      String userIdentifier) {
     return oidcProviderConfigDao
         .getConfig(tenantId, providerName)
         .switchIfEmpty(Single.error(getNotFoundError().getException()))
@@ -219,7 +222,7 @@ public class OidcProviderConfigService
                                       OPERATION_UPDATE,
                                       oldConfig,
                                       updatedConfig,
-                                      tenantId))
+                                      userIdentifier))
                               .andThen(Single.just(updatedConfig))
                               .toMaybe())
                   .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
@@ -229,7 +232,8 @@ public class OidcProviderConfigService
             });
   }
 
-  public Completable deleteOidcProviderConfig(String tenantId, String providerName) {
+  public Completable deleteOidcProviderConfig(
+      String tenantId, String providerName, String userIdentifier) {
     return oidcProviderConfigDao
         .getConfig(tenantId, providerName)
         .switchIfEmpty(Single.error(getNotFoundError().getException()))
@@ -253,7 +257,7 @@ public class OidcProviderConfigService
                                           OPERATION_DELETE,
                                           oldConfig,
                                           null,
-                                          tenantId);
+                                          userIdentifier);
                                     })
                                 .toMaybe())
                     .doOnComplete(() -> tenantCache.invalidateCache(tenantId))

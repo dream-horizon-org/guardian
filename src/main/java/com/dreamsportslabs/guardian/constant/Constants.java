@@ -340,4 +340,7 @@ public final class Constants {
       "Password pin block config already exists";
   public static final String DUPLICATE_ENTRY_MESSAGE_TENANT_NAME = "Tenant name already exists";
   public static final String DUPLICATE_ENTRY_MESSAGE_TENANT_ID = "Tenant ID already exists";
+
+  // Header Validation Messages
+  public static final String USER_IDENTIFIER_HEADER_REQUIRED = "user-identifier header is required";
 }
