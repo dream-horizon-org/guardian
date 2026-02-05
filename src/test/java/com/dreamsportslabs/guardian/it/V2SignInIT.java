@@ -2,9 +2,12 @@ package com.dreamsportslabs.guardian.it;
 
 import static com.dreamsportslabs.guardian.Constants.AUTH_RESPONSE_TYPE_CODE;
 import static com.dreamsportslabs.guardian.Constants.AUTH_RESPONSE_TYPE_TOKEN;
+import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_UNBLOCK_FLOWS;
+import static com.dreamsportslabs.guardian.Constants.BODY_PARAM_USER_IDENTIFIER;
 import static com.dreamsportslabs.guardian.Constants.ERROR;
 import static com.dreamsportslabs.guardian.Constants.ERROR_INVALID_CLIENT;
 import static com.dreamsportslabs.guardian.Constants.ERROR_INVALID_REQUEST;
+import static com.dreamsportslabs.guardian.Constants.ERROR_MAX_LOGIN_ATTEMPTS_EXCEEDED;
 import static com.dreamsportslabs.guardian.Constants.JWT_CLAIMS_AMR;
 import static com.dreamsportslabs.guardian.Constants.JWT_CLAIM_CLIENT_ID;
 import static com.dreamsportslabs.guardian.Constants.JWT_CLAIM_EXP;
@@ -39,6 +42,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -58,6 +62,7 @@ import io.vertx.core.json.JsonObject;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -992,6 +997,122 @@ public class V2SignInIT {
         .body("meta_data.error.message", equalTo(V2_SIGNIN_ERROR_UNAUTHORIZED));
 
     // Clean up
+    wireMockServer.removeStub(stub);
+  }
+
+  @Test
+  @DisplayName(
+      "V2SignIn - Return max_login_attempts_exceeded (not max_resend_limit_exceeded) when password/PIN attempts are exhausted")
+  public void returnMaxLoginAttemptsExceededWhenPasswordAttemptsExhausted() {
+    // Arrange - tenant1 has password_pin_block_config with attempts_allowed=5 (from test.sql seed)
+    String username = RandomStringUtils.randomAlphanumeric(10);
+    StubMapping stub = stubAuthenticateUserIncorrectCredentials();
+
+    // Act - make 5 wrong sign-in attempts to exhaust the limit
+    Response firstAttempt =
+        ApplicationIoUtils.v2SignIn(
+            TENANT_ID,
+            username,
+            null,
+            null,
+            "wrongpassword",
+            null,
+            AUTH_RESPONSE_TYPE_TOKEN,
+            List.of(TEST_SCOPE),
+            null,
+            firstPartyClientId);
+
+    Response secondAttempt =
+        ApplicationIoUtils.v2SignIn(
+            TENANT_ID,
+            username,
+            null,
+            null,
+            "wrongpassword",
+            null,
+            AUTH_RESPONSE_TYPE_TOKEN,
+            List.of(TEST_SCOPE),
+            null,
+            firstPartyClientId);
+
+    Response thirdAttempt =
+        ApplicationIoUtils.v2SignIn(
+            TENANT_ID,
+            username,
+            null,
+            null,
+            "wrongpassword",
+            null,
+            AUTH_RESPONSE_TYPE_TOKEN,
+            List.of(TEST_SCOPE),
+            null,
+            firstPartyClientId);
+
+    Response fourthAttempt =
+        ApplicationIoUtils.v2SignIn(
+            TENANT_ID,
+            username,
+            null,
+            null,
+            "wrongpassword",
+            null,
+            AUTH_RESPONSE_TYPE_TOKEN,
+            List.of(TEST_SCOPE),
+            null,
+            firstPartyClientId);
+
+    Response fifthAttempt =
+        ApplicationIoUtils.v2SignIn(
+            TENANT_ID,
+            username,
+            null,
+            null,
+            "wrongpassword",
+            null,
+            AUTH_RESPONSE_TYPE_TOKEN,
+            List.of(TEST_SCOPE),
+            null,
+            firstPartyClientId);
+
+    // Assert - first 4 attempts return user_service_error (incorrect credentials)
+    firstAttempt
+        .then()
+        .statusCode(SC_BAD_REQUEST)
+        .rootPath("error")
+        .body("code", equalTo("user_service_error"));
+    secondAttempt
+        .then()
+        .statusCode(SC_BAD_REQUEST)
+        .rootPath("error")
+        .body("code", equalTo("user_service_error"));
+    thirdAttempt
+        .then()
+        .statusCode(SC_BAD_REQUEST)
+        .rootPath("error")
+        .body("code", equalTo("user_service_error"));
+    fourthAttempt
+        .then()
+        .statusCode(SC_BAD_REQUEST)
+        .rootPath("error")
+        .body("code", equalTo("user_service_error"));
+
+    // Assert - 5th attempt (when limit exceeded) must return max_login_attempts_exceeded,
+    // NOT max_resend_limit_exceeded (which was the bug)
+    fifthAttempt
+        .then()
+        .statusCode(SC_BAD_REQUEST)
+        .rootPath("error")
+        .body("code", equalTo(ERROR_MAX_LOGIN_ATTEMPTS_EXCEEDED))
+        .body("metadata.retry_after", org.hamcrest.Matchers.notNullValue());
+
+    // Unblock user after 5th attempt
+    Map<String, Object> unblockBody = new HashMap<>();
+    unblockBody.put(BODY_PARAM_USER_IDENTIFIER, username);
+    unblockBody.put(BODY_PARAM_UNBLOCK_FLOWS, new String[] {"password"});
+    Response unblockResponse = ApplicationIoUtils.unblockUserFlows(TENANT_ID, unblockBody);
+    unblockResponse.then().statusCode(SC_NO_CONTENT);
+
+    // Cleanup
     wireMockServer.removeStub(stub);
   }
 
