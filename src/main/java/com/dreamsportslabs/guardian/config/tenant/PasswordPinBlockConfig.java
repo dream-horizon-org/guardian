@@ -2,9 +2,11 @@ package com.dreamsportslabs.guardian.config.tenant;
 
 import lombok.Builder;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 @Value
 @Builder
+@Jacksonized
 public class PasswordPinBlockConfig {
 
   public static final int DEFAULT_ATTEMPTS_ALLOWED = 5;
