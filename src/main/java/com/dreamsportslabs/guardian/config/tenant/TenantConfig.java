@@ -124,7 +124,10 @@ public class TenantConfig {
     return Optional.ofNullable(googleConfig);
   }
 
-  public Optional<PasswordPinBlockConfig> findPasswordPinBlockConfig() {
-    return Optional.ofNullable(passwordPinBlockConfig);
+  public PasswordPinBlockConfig findPasswordPinBlockConfig() {
+    if (passwordPinBlockConfig == null) {
+      return new PasswordPinBlockConfig();
+    }
+    return passwordPinBlockConfig;
   }
 }
