@@ -109,7 +109,7 @@ public class ConfigDao {
         .ignoreElement()
         .onErrorResumeNext(
             e -> {
-              log.warn(
+              log.info(
                   "Failed to load password_pin_block_config for tenant {}: {}",
                   tenantId,
                   e.getMessage());

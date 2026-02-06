@@ -6,7 +6,6 @@ import static com.dreamsportslabs.guardian.utils.Utils.getCurrentTimeInSeconds;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 
 import com.dreamsportslabs.guardian.cache.DefaultClientScopesCache;
-import com.dreamsportslabs.guardian.config.tenant.PasswordPinBlockConfig;
 import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
 import com.dreamsportslabs.guardian.constant.AuthMethod;
 import com.dreamsportslabs.guardian.constant.BlockFlow;
@@ -33,6 +32,10 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
 public class PasswordAuth {
+
+  private static final int DEFAULT_ATTEMPTS_ALLOWED = 5;
+  private static final int DEFAULT_ATTEMPTS_WINDOW_SECONDS = 86400;
+  private static final int DEFAULT_BLOCK_INTERVAL_SECONDS = 86400;
 
   private final UserService userService;
   private final AuthorizationService authorizationService;
@@ -217,15 +220,27 @@ public class PasswordAuth {
   }
 
   private BlockConfig resolveBlockConfig(String tenantId) {
-    PasswordPinBlockConfig config =
-        registry
-            .get(tenantId, TenantConfig.class)
-            .findPasswordPinBlockConfig()
-            .orElseGet(() -> PasswordPinBlockConfig.builder().build());
-    return new BlockConfig(
-        config.getAttemptsAllowed(),
-        config.getAttemptsWindowSeconds(),
-        config.getBlockIntervalSeconds());
+    return registry
+        .get(tenantId, TenantConfig.class)
+        .findPasswordPinBlockConfig()
+        .map(
+            config ->
+                new BlockConfig(
+                    config.getAttemptsAllowed() != null
+                        ? config.getAttemptsAllowed()
+                        : DEFAULT_ATTEMPTS_ALLOWED,
+                    config.getAttemptsWindowSeconds() != null
+                        ? config.getAttemptsWindowSeconds()
+                        : DEFAULT_ATTEMPTS_WINDOW_SECONDS,
+                    config.getBlockIntervalSeconds() != null
+                        ? config.getBlockIntervalSeconds()
+                        : DEFAULT_BLOCK_INTERVAL_SECONDS))
+        .orElseGet(
+            () ->
+                new BlockConfig(
+                    DEFAULT_ATTEMPTS_ALLOWED,
+                    DEFAULT_ATTEMPTS_WINDOW_SECONDS,
+                    DEFAULT_BLOCK_INTERVAL_SECONDS));
   }
 
   private <T> Single<T> handleWrongAttemptAndMaybeBlock(
