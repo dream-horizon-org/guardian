@@ -1,5 +1,7 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.USER_IDENTIFIER_HEADER_REQUIRED;
+
 import com.dreamsportslabs.guardian.dto.request.config.CreateEmailConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateEmailConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.EmailConfigResponseDto;
@@ -7,6 +9,7 @@ import com.dreamsportslabs.guardian.service.config.EmailConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -33,9 +36,11 @@ public class EmailConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createEmailConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull CreateEmailConfigRequestDto requestDto) {
     return emailConfigService
-        .createEmailConfig(tenantId, requestDto)
+        .createEmailConfig(tenantId, requestDto, userIdentifier)
         .map(config -> EmailConfigResponseDto.from(tenantId, config))
         .map(response -> Response.status(Response.Status.CREATED).entity(response).build())
         .toCompletionStage();
@@ -56,19 +61,24 @@ public class EmailConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateEmailConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull UpdateEmailConfigRequestDto requestDto) {
     requestDto.validate();
     return emailConfigService
-        .updateEmailConfig(tenantId, requestDto)
+        .updateEmailConfig(tenantId, requestDto, userIdentifier)
         .map(config -> EmailConfigResponseDto.from(tenantId, config))
         .map(response -> Response.ok(response).build())
         .toCompletionStage();
   }
 
   @DELETE
-  public CompletionStage<Response> deleteEmailConfig(@HeaderParam("tenant-id") String tenantId) {
+  public CompletionStage<Response> deleteEmailConfig(
+      @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier) {
     return emailConfigService
-        .deleteEmailConfig(tenantId)
+        .deleteEmailConfig(tenantId, userIdentifier)
         .andThen(Single.just(Response.noContent().build()))
         .toCompletionStage();
   }

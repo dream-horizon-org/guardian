@@ -1,5 +1,7 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.USER_IDENTIFIER_HEADER_REQUIRED;
+
 import com.dreamsportslabs.guardian.dto.request.config.CreatePasswordPinBlockConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdatePasswordPinBlockConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.PasswordPinBlockConfigResponseDto;
@@ -7,6 +9,7 @@ import com.dreamsportslabs.guardian.service.config.PasswordPinBlockConfigService
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -33,9 +36,11 @@ public class PasswordPinBlockConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createPasswordPinBlockConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull CreatePasswordPinBlockConfigRequestDto requestDto) {
     return passwordPinBlockConfigService
-        .createConfig(tenantId, requestDto)
+        .createConfig(tenantId, requestDto, userIdentifier)
         .map(config -> PasswordPinBlockConfigResponseDto.from(tenantId, config))
         .map(response -> Response.status(Response.Status.CREATED).entity(response).build())
         .toCompletionStage();
@@ -57,10 +62,12 @@ public class PasswordPinBlockConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updatePasswordPinBlockConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull UpdatePasswordPinBlockConfigRequestDto requestDto) {
     requestDto.validate();
     return passwordPinBlockConfigService
-        .updatePasswordPinBlockConfig(tenantId, requestDto)
+        .updatePasswordPinBlockConfig(tenantId, requestDto, userIdentifier)
         .map(config -> PasswordPinBlockConfigResponseDto.from(tenantId, config))
         .map(response -> Response.ok(response).build())
         .toCompletionStage();
@@ -68,9 +75,11 @@ public class PasswordPinBlockConfig {
 
   @DELETE
   public CompletionStage<Response> deletePasswordPinBlockConfig(
-      @HeaderParam("tenant-id") String tenantId) {
+      @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier) {
     return passwordPinBlockConfigService
-        .deletePasswordPinBlockConfig(tenantId)
+        .deletePasswordPinBlockConfig(tenantId, userIdentifier)
         .andThen(Single.just(Response.noContent().build()))
         .toCompletionStage();
   }

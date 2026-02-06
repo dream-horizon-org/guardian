@@ -1,5 +1,7 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.USER_IDENTIFIER_HEADER_REQUIRED;
+
 import com.dreamsportslabs.guardian.dto.request.config.CreateContactVerifyConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateContactVerifyConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.ContactVerifyConfigResponseDto;
@@ -7,6 +9,7 @@ import com.dreamsportslabs.guardian.service.config.ContactVerifyConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -33,9 +36,11 @@ public class ContactVerifyConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createContactVerifyConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull CreateContactVerifyConfigRequestDto requestDto) {
     return contactVerifyConfigService
-        .createContactVerifyConfig(tenantId, requestDto)
+        .createContactVerifyConfig(tenantId, requestDto, userIdentifier)
         .map(config -> ContactVerifyConfigResponseDto.from(tenantId, config))
         .map(response -> Response.status(Response.Status.CREATED).entity(response).build())
         .toCompletionStage();
@@ -57,10 +62,12 @@ public class ContactVerifyConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateContactVerifyConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull UpdateContactVerifyConfigRequestDto requestDto) {
     requestDto.validate();
     return contactVerifyConfigService
-        .updateContactVerifyConfig(tenantId, requestDto)
+        .updateContactVerifyConfig(tenantId, requestDto, userIdentifier)
         .map(config -> ContactVerifyConfigResponseDto.from(tenantId, config))
         .map(response -> Response.ok(response).build())
         .toCompletionStage();
@@ -68,9 +75,11 @@ public class ContactVerifyConfig {
 
   @DELETE
   public CompletionStage<Response> deleteContactVerifyConfig(
-      @HeaderParam("tenant-id") String tenantId) {
+      @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier) {
     return contactVerifyConfigService
-        .deleteContactVerifyConfig(tenantId)
+        .deleteContactVerifyConfig(tenantId, userIdentifier)
         .andThen(Single.just(Response.noContent().build()))
         .toCompletionStage();
   }

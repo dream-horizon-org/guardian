@@ -115,8 +115,8 @@ public class AdminConfigService
   }
 
   public Single<AdminConfigModel> createAdminConfig(
-      String tenantId, CreateAdminConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
+      String tenantId, CreateAdminConfigRequestDto requestDto, String userIdentifier) {
+    return createConfig(tenantId, requestDto, userIdentifier);
   }
 
   public Single<AdminConfigModel> getAdminConfig(String tenantId) {
@@ -124,11 +124,11 @@ public class AdminConfigService
   }
 
   public Single<AdminConfigModel> updateAdminConfig(
-      String tenantId, UpdateAdminConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateAdminConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteAdminConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteAdminConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

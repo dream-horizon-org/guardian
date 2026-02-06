@@ -143,8 +143,8 @@ public class ContactVerifyConfigService
   }
 
   public Single<ContactVerifyConfigModel> createContactVerifyConfig(
-      String tenantId, CreateContactVerifyConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
+      String tenantId, CreateContactVerifyConfigRequestDto requestDto, String userIdentifier) {
+    return createConfig(tenantId, requestDto, userIdentifier);
   }
 
   public Single<ContactVerifyConfigModel> getContactVerifyConfig(String tenantId) {
@@ -152,11 +152,11 @@ public class ContactVerifyConfigService
   }
 
   public Single<ContactVerifyConfigModel> updateContactVerifyConfig(
-      String tenantId, UpdateContactVerifyConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateContactVerifyConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteContactVerifyConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteContactVerifyConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

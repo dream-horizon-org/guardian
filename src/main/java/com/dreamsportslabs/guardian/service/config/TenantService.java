@@ -127,7 +127,8 @@ public class TenantService
   }
 
   @Override
-  public Single<TenantModel> createConfig(String tenantId, CreateTenantRequestDto requestDto) {
+  public Single<TenantModel> createConfig(
+      String tenantId, CreateTenantRequestDto requestDto, String userIdentifier) {
     TenantModel tenantModel = mapToModel(requestDto);
     return mysqlClient
         .getWriterPool()
@@ -157,7 +158,7 @@ public class TenantService
                                           OPERATION_INSERT,
                                           null,
                                           createdTenant,
-                                          createdTenantId)
+                                          userIdentifier)
                                       .andThen(
                                           changelogService.logConfigChange(
                                               client,
@@ -166,7 +167,7 @@ public class TenantService
                                               OPERATION_INSERT,
                                               null,
                                               userConfigModel,
-                                              createdTenantId))
+                                              userIdentifier))
                                       .andThen(
                                           changelogService.logConfigChange(
                                               client,
@@ -175,7 +176,7 @@ public class TenantService
                                               OPERATION_INSERT,
                                               null,
                                               tokenConfigModel,
-                                              createdTenantId))
+                                              userIdentifier))
                                       .andThen(Single.just(createdTenant)));
                         })
                     .toMaybe())
@@ -184,8 +185,9 @@ public class TenantService
             Single.error(INTERNAL_SERVER_ERROR.getCustomException(getCreateErrorMessage())));
   }
 
-  public Single<TenantModel> createTenant(CreateTenantRequestDto requestDto) {
-    return createConfig(requestDto.getId(), requestDto);
+  public Single<TenantModel> createTenant(
+      CreateTenantRequestDto requestDto, String userIdentifier) {
+    return createConfig(requestDto.getId(), requestDto, userIdentifier);
   }
 
   public Single<TenantModel> getTenant(String tenantId) {
@@ -198,11 +200,12 @@ public class TenantService
         .switchIfEmpty(Single.error(TENANT_NOT_FOUND.getException()));
   }
 
-  public Single<TenantModel> updateTenant(String tenantId, UpdateTenantRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+  public Single<TenantModel> updateTenant(
+      String tenantId, UpdateTenantRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteTenant(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteTenant(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

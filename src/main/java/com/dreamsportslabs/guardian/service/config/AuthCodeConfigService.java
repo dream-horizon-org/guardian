@@ -115,8 +115,8 @@ public class AuthCodeConfigService
   }
 
   public Single<AuthCodeConfigModel> createAuthCodeConfig(
-      String tenantId, CreateAuthCodeConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
+      String tenantId, CreateAuthCodeConfigRequestDto requestDto, String userIdentifier) {
+    return createConfig(tenantId, requestDto, userIdentifier);
   }
 
   public Single<AuthCodeConfigModel> getAuthCodeConfig(String tenantId) {
@@ -124,11 +124,11 @@ public class AuthCodeConfigService
   }
 
   public Single<AuthCodeConfigModel> updateAuthCodeConfig(
-      String tenantId, UpdateAuthCodeConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateAuthCodeConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteAuthCodeConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteAuthCodeConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

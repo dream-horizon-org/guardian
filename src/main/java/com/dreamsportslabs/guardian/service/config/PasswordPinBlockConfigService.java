@@ -127,11 +127,11 @@ public class PasswordPinBlockConfigService
   }
 
   public Single<PasswordPinBlockConfigModel> updatePasswordPinBlockConfig(
-      String tenantId, UpdatePasswordPinBlockConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdatePasswordPinBlockConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deletePasswordPinBlockConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deletePasswordPinBlockConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

@@ -1,5 +1,7 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.USER_IDENTIFIER_HEADER_REQUIRED;
+
 import com.dreamsportslabs.guardian.dto.request.config.CreateOtpConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateOtpConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.OtpConfigResponseDto;
@@ -7,6 +9,7 @@ import com.dreamsportslabs.guardian.service.config.OtpConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -33,9 +36,11 @@ public class OtpConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createOtpConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull CreateOtpConfigRequestDto requestDto) {
     return otpConfigService
-        .createConfig(tenantId, requestDto)
+        .createConfig(tenantId, requestDto, userIdentifier)
         .map(config -> OtpConfigResponseDto.from(tenantId, config))
         .map(response -> Response.status(Response.Status.CREATED).entity(response).build())
         .toCompletionStage();
@@ -56,19 +61,24 @@ public class OtpConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateOtpConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull UpdateOtpConfigRequestDto requestDto) {
     requestDto.validate();
     return otpConfigService
-        .updateOtpConfig(tenantId, requestDto)
+        .updateOtpConfig(tenantId, requestDto, userIdentifier)
         .map(config -> OtpConfigResponseDto.from(tenantId, config))
         .map(response -> Response.ok(response).build())
         .toCompletionStage();
   }
 
   @DELETE
-  public CompletionStage<Response> deleteOtpConfig(@HeaderParam("tenant-id") String tenantId) {
+  public CompletionStage<Response> deleteOtpConfig(
+      @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier) {
     return otpConfigService
-        .deleteOtpConfig(tenantId)
+        .deleteOtpConfig(tenantId, userIdentifier)
         .andThen(Single.just(Response.noContent().build()))
         .toCompletionStage();
   }

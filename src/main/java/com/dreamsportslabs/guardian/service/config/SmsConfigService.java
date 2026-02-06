@@ -134,8 +134,8 @@ public class SmsConfigService
   }
 
   public Single<SmsConfigModel> createSmsConfig(
-      String tenantId, CreateSmsConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
+      String tenantId, CreateSmsConfigRequestDto requestDto, String userIdentifier) {
+    return createConfig(tenantId, requestDto, userIdentifier);
   }
 
   public Single<SmsConfigModel> getSmsConfig(String tenantId) {
@@ -143,11 +143,11 @@ public class SmsConfigService
   }
 
   public Single<SmsConfigModel> updateSmsConfig(
-      String tenantId, UpdateSmsConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateSmsConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteSmsConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteSmsConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

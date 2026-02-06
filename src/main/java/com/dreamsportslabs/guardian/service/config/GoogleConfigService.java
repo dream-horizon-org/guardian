@@ -115,8 +115,8 @@ public class GoogleConfigService
   }
 
   public Single<GoogleConfigModel> createGoogleConfig(
-      String tenantId, CreateGoogleConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
+      String tenantId, CreateGoogleConfigRequestDto requestDto, String userIdentifier) {
+    return createConfig(tenantId, requestDto, userIdentifier);
   }
 
   public Single<GoogleConfigModel> getGoogleConfig(String tenantId) {
@@ -124,11 +124,11 @@ public class GoogleConfigService
   }
 
   public Single<GoogleConfigModel> updateGoogleConfig(
-      String tenantId, UpdateGoogleConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateGoogleConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteGoogleConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteGoogleConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

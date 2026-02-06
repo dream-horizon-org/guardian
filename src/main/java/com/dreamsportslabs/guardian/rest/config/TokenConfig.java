@@ -1,10 +1,13 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.USER_IDENTIFIER_HEADER_REQUIRED;
+
 import com.dreamsportslabs.guardian.dto.request.config.UpdateTokenConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.TokenConfigResponseDto;
 import com.dreamsportslabs.guardian.service.config.TokenConfigService;
 import com.google.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -39,10 +42,12 @@ public class TokenConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateTokenConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull UpdateTokenConfigRequestDto requestDto) {
     requestDto.validate();
     return tokenConfigService
-        .updateTokenConfig(tenantId, requestDto)
+        .updateTokenConfig(tenantId, requestDto, userIdentifier)
         .map(config -> TokenConfigResponseDto.from(tenantId, config))
         .map(response -> Response.ok(response).build())
         .toCompletionStage();

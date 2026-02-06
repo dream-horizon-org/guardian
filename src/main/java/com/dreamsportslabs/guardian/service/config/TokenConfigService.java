@@ -178,8 +178,8 @@ public class TokenConfigService
   }
 
   public Single<TokenConfigModel> updateTokenConfig(
-      String tenantId, UpdateTokenConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateTokenConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
   TokenConfigModel buildDefaultTokenConfig(String tenantId) {

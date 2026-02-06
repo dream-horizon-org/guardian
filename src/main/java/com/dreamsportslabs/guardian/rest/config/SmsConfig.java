@@ -1,5 +1,7 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.USER_IDENTIFIER_HEADER_REQUIRED;
+
 import com.dreamsportslabs.guardian.dto.request.config.CreateSmsConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateSmsConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.SmsConfigResponseDto;
@@ -7,6 +9,7 @@ import com.dreamsportslabs.guardian.service.config.SmsConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -33,9 +36,11 @@ public class SmsConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createSmsConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull CreateSmsConfigRequestDto requestDto) {
     return smsConfigService
-        .createSmsConfig(tenantId, requestDto)
+        .createSmsConfig(tenantId, requestDto, userIdentifier)
         .map(config -> SmsConfigResponseDto.from(tenantId, config))
         .map(response -> Response.status(Response.Status.CREATED).entity(response).build())
         .toCompletionStage();
@@ -56,19 +61,24 @@ public class SmsConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateSmsConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull UpdateSmsConfigRequestDto requestDto) {
     requestDto.validate();
     return smsConfigService
-        .updateSmsConfig(tenantId, requestDto)
+        .updateSmsConfig(tenantId, requestDto, userIdentifier)
         .map(config -> SmsConfigResponseDto.from(tenantId, config))
         .map(response -> Response.ok(response).build())
         .toCompletionStage();
   }
 
   @DELETE
-  public CompletionStage<Response> deleteSmsConfig(@HeaderParam("tenant-id") String tenantId) {
+  public CompletionStage<Response> deleteSmsConfig(
+      @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier) {
     return smsConfigService
-        .deleteSmsConfig(tenantId)
+        .deleteSmsConfig(tenantId, userIdentifier)
         .andThen(Single.just(Response.noContent().build()))
         .toCompletionStage();
   }

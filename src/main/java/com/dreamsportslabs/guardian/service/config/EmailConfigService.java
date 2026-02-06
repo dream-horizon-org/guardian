@@ -134,8 +134,8 @@ public class EmailConfigService
   }
 
   public Single<EmailConfigModel> createEmailConfig(
-      String tenantId, CreateEmailConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
+      String tenantId, CreateEmailConfigRequestDto requestDto, String userIdentifier) {
+    return createConfig(tenantId, requestDto, userIdentifier);
   }
 
   public Single<EmailConfigModel> getEmailConfig(String tenantId) {
@@ -143,11 +143,11 @@ public class EmailConfigService
   }
 
   public Single<EmailConfigModel> updateEmailConfig(
-      String tenantId, UpdateEmailConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateEmailConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteEmailConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteEmailConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

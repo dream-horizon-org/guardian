@@ -102,7 +102,8 @@ public abstract class BaseConfigService<TModel, TCreateDto, TUpdateDto> {
 
   protected abstract String getUpdateErrorMessage();
 
-  public Single<TModel> createConfig(String tenantId, TCreateDto requestDto) {
+  public Single<TModel> createConfig(
+      String tenantId, TCreateDto requestDto, String userIdentifier) {
     TModel model = mapToModel(requestDto);
     return mysqlClient
         .getWriterPool()
@@ -120,7 +121,7 @@ public abstract class BaseConfigService<TModel, TCreateDto, TUpdateDto> {
                                     OPERATION_INSERT,
                                     null,
                                     createdConfig,
-                                    tenantId)
+                                    userIdentifier)
                                 .andThen(Single.just(createdConfig)))
                     .toMaybe())
         .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
@@ -134,7 +135,8 @@ public abstract class BaseConfigService<TModel, TCreateDto, TUpdateDto> {
         .switchIfEmpty(Single.error(getNotFoundError().getException()));
   }
 
-  public Single<TModel> updateConfig(String tenantId, TUpdateDto requestDto) {
+  public Single<TModel> updateConfig(
+      String tenantId, TUpdateDto requestDto, String userIdentifier) {
     return getDao()
         .getConfig(tenantId)
         .switchIfEmpty(Single.error(getNotFoundError().getException()))
@@ -155,7 +157,7 @@ public abstract class BaseConfigService<TModel, TCreateDto, TUpdateDto> {
                                       OPERATION_UPDATE,
                                       oldConfig,
                                       updatedConfig,
-                                      tenantId))
+                                      userIdentifier))
                               .andThen(Single.just(updatedConfig))
                               .toMaybe())
                   .doOnSuccess(config -> tenantCache.invalidateCache(tenantId))
@@ -165,7 +167,7 @@ public abstract class BaseConfigService<TModel, TCreateDto, TUpdateDto> {
             });
   }
 
-  public Completable deleteConfig(String tenantId) {
+  public Completable deleteConfig(String tenantId, String userIdentifier) {
     return getDao()
         .getConfig(tenantId)
         .switchIfEmpty(Single.error(getNotFoundError().getException()))
@@ -189,7 +191,7 @@ public abstract class BaseConfigService<TModel, TCreateDto, TUpdateDto> {
                                           OPERATION_DELETE,
                                           oldConfig,
                                           null,
-                                          tenantId);
+                                          userIdentifier);
                                     })
                                 .toMaybe())
                     .doOnComplete(() -> tenantCache.invalidateCache(tenantId))

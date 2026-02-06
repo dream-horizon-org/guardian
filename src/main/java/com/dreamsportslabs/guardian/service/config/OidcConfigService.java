@@ -177,8 +177,8 @@ public class OidcConfigService
   }
 
   public Single<OidcConfigModel> createOidcConfig(
-      String tenantId, CreateOidcConfigRequestDto requestDto) {
-    return createConfig(tenantId, requestDto);
+      String tenantId, CreateOidcConfigRequestDto requestDto, String userIdentifier) {
+    return createConfig(tenantId, requestDto, userIdentifier);
   }
 
   public Single<OidcConfigModel> getOidcConfig(String tenantId) {
@@ -186,11 +186,11 @@ public class OidcConfigService
   }
 
   public Single<OidcConfigModel> updateOidcConfig(
-      String tenantId, UpdateOidcConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateOidcConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
-  public Completable deleteOidcConfig(String tenantId) {
-    return deleteConfig(tenantId);
+  public Completable deleteOidcConfig(String tenantId, String userIdentifier) {
+    return deleteConfig(tenantId, userIdentifier);
   }
 }

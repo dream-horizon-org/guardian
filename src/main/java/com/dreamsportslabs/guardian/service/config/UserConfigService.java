@@ -143,8 +143,8 @@ public class UserConfigService
   }
 
   public Single<UserConfigModel> updateUserConfig(
-      String tenantId, UpdateUserConfigRequestDto requestDto) {
-    return updateConfig(tenantId, requestDto);
+      String tenantId, UpdateUserConfigRequestDto requestDto, String userIdentifier) {
+    return updateConfig(tenantId, requestDto, userIdentifier);
   }
 
   UserConfigModel buildDefaultUserConfig(String tenantId) {

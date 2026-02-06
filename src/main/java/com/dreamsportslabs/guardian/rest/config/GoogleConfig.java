@@ -1,5 +1,7 @@
 package com.dreamsportslabs.guardian.rest.config;
 
+import static com.dreamsportslabs.guardian.constant.Constants.USER_IDENTIFIER_HEADER_REQUIRED;
+
 import com.dreamsportslabs.guardian.dto.request.config.CreateGoogleConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.request.config.UpdateGoogleConfigRequestDto;
 import com.dreamsportslabs.guardian.dto.response.config.GoogleConfigResponseDto;
@@ -7,6 +9,7 @@ import com.dreamsportslabs.guardian.service.config.GoogleConfigService;
 import com.google.inject.Inject;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -33,9 +36,11 @@ public class GoogleConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> createGoogleConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull CreateGoogleConfigRequestDto requestDto) {
     return googleConfigService
-        .createGoogleConfig(tenantId, requestDto)
+        .createGoogleConfig(tenantId, requestDto, userIdentifier)
         .map(config -> GoogleConfigResponseDto.from(tenantId, config))
         .map(response -> Response.status(Response.Status.CREATED).entity(response).build())
         .toCompletionStage();
@@ -56,19 +61,24 @@ public class GoogleConfig {
   @Produces(MediaType.APPLICATION_JSON)
   public CompletionStage<Response> updateGoogleConfig(
       @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier,
       @Valid @NotNull UpdateGoogleConfigRequestDto requestDto) {
     requestDto.validate();
     return googleConfigService
-        .updateGoogleConfig(tenantId, requestDto)
+        .updateGoogleConfig(tenantId, requestDto, userIdentifier)
         .map(config -> GoogleConfigResponseDto.from(tenantId, config))
         .map(response -> Response.ok(response).build())
         .toCompletionStage();
   }
 
   @DELETE
-  public CompletionStage<Response> deleteGoogleConfig(@HeaderParam("tenant-id") String tenantId) {
+  public CompletionStage<Response> deleteGoogleConfig(
+      @HeaderParam("tenant-id") String tenantId,
+      @HeaderParam("user-identifier") @NotBlank(message = USER_IDENTIFIER_HEADER_REQUIRED)
+          String userIdentifier) {
     return googleConfigService
-        .deleteGoogleConfig(tenantId)
+        .deleteGoogleConfig(tenantId, userIdentifier)
         .andThen(Single.just(Response.noContent().build()))
         .toCompletionStage();
   }
