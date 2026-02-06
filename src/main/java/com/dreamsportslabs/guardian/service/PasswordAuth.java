@@ -226,15 +226,9 @@ public class PasswordAuth {
         .map(
             config ->
                 new BlockConfig(
-                    config.getAttemptsAllowed() != null
-                        ? config.getAttemptsAllowed()
-                        : DEFAULT_ATTEMPTS_ALLOWED,
-                    config.getAttemptsWindowSeconds() != null
-                        ? config.getAttemptsWindowSeconds()
-                        : DEFAULT_ATTEMPTS_WINDOW_SECONDS,
-                    config.getBlockIntervalSeconds() != null
-                        ? config.getBlockIntervalSeconds()
-                        : DEFAULT_BLOCK_INTERVAL_SECONDS))
+                    config.getAttemptsAllowed(),
+                    config.getAttemptsWindowSeconds(),
+                    config.getBlockIntervalSeconds()))
         .orElseGet(
             () ->
                 new BlockConfig(
