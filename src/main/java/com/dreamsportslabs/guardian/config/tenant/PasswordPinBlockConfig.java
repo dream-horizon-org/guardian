@@ -1,10 +1,10 @@
 package com.dreamsportslabs.guardian.config.tenant;
 
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
-@Value
+@Data
 @Builder
 @Jacksonized
 public class PasswordPinBlockConfig {
