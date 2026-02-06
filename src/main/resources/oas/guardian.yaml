@@ -205,11 +205,18 @@ paths:
                 items:
                   type: string
         '400':
-          description: Bad Request due to missing parameters or invalid data
+          description: Bad Request due to missing parameters, invalid data, or missing config
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                password_pin_block_not_configured:
+                  summary: Password pin block not configured
+                  value:
+                    error:
+                      code: "password_pin_block_not_configured"
+                      message: "Password pin block is not configured"
         '403':
           description: Forbidden - User's flow is blocked due to too many failed attempts
           content:
@@ -497,11 +504,18 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/TokenResponse'
         '400':
-          description: Bad Request due to missing parameters or invalid data
+          description: Bad Request due to missing parameters, invalid data, or missing config
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                password_pin_block_not_configured:
+                  summary: Password pin block not configured
+                  value:
+                    error:
+                      code: "password_pin_block_not_configured"
+                      message: "Password pin block is not configured"
         '500':
           description: Internal Server Error
           content:

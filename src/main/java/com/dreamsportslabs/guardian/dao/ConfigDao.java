@@ -106,15 +106,7 @@ public class ConfigDao {
     return getOptionalConfigFromDb(
             tenantId, PasswordPinBlockConfig.class, PASSWORD_PIN_BLOCK_CONFIG)
         .map(builder::passwordPinBlockConfig)
-        .ignoreElement()
-        .onErrorResumeNext(
-            e -> {
-              log.info(
-                  "Failed to load password_pin_block_config for tenant {}: {}",
-                  tenantId,
-                  e.getMessage());
-              return Completable.complete();
-            });
+        .ignoreElement();
   }
 
   private Completable appendUserConfig(String tenantId, TenantConfig.TenantConfigBuilder builder) {

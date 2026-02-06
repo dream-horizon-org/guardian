@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class PasswordPinBlockConfig {
 
-  private Integer attemptsAllowed;
-  private Integer attemptsWindowSeconds;
-  private Integer blockIntervalSeconds;
+  private int attemptsAllowed;
+  private int attemptsWindowSeconds;
+  private int blockIntervalSeconds;
 }

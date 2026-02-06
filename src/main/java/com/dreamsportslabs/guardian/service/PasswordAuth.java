@@ -6,6 +6,7 @@ import static com.dreamsportslabs.guardian.utils.Utils.getCurrentTimeInSeconds;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 
 import com.dreamsportslabs.guardian.cache.DefaultClientScopesCache;
+import com.dreamsportslabs.guardian.config.tenant.PasswordPinBlockConfig;
 import com.dreamsportslabs.guardian.config.tenant.TenantConfig;
 import com.dreamsportslabs.guardian.constant.AuthMethod;
 import com.dreamsportslabs.guardian.constant.BlockFlow;
@@ -33,10 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
 public class PasswordAuth {
 
-  private static final int DEFAULT_ATTEMPTS_ALLOWED = 5;
-  private static final int DEFAULT_ATTEMPTS_WINDOW_SECONDS = 86400;
-  private static final int DEFAULT_BLOCK_INTERVAL_SECONDS = 86400;
-
   private final UserService userService;
   private final AuthorizationService authorizationService;
   private final ClientService clientService;
@@ -48,14 +45,15 @@ public class PasswordAuth {
 
   /**
    * Common block flow for sign-in and MFA sign-in: check block → authenticate → clear wrong
-   * attempts on success → handle wrong credentials on error. Returns authenticated user.
+   * attempts on success → handle wrong credentials on error. Requires password_pin_block_config.
    */
   public Single<JsonObject> authenticateWithBlockFlow(
       String tenantId,
       String userIdentifier,
       BlockFlow blockFlow,
       Single<JsonObject> authenticateAction) {
-    BlockConfig config = resolveBlockConfig(tenantId);
+    PasswordPinBlockConfig config =
+        registry.get(tenantId, TenantConfig.class).getPasswordPinBlockConfig();
     return userFlowBlockService
         .isFlowBlocked(tenantId, List.of(userIdentifier), blockFlow)
         .andThen(authenticateAction)
@@ -76,7 +74,7 @@ public class PasswordAuth {
       String tenantId,
       String userIdentifier,
       BlockFlow blockFlow,
-      BlockConfig config,
+      PasswordPinBlockConfig config,
       Throwable error) {
     if (!isWrongCredentialsError(error)) {
       return Single.error(error);
@@ -219,38 +217,21 @@ public class PasswordAuth {
     return wae.getResponse().getStatus() == SC_BAD_REQUEST;
   }
 
-  private BlockConfig resolveBlockConfig(String tenantId) {
-    return registry
-        .get(tenantId, TenantConfig.class)
-        .findPasswordPinBlockConfig()
-        .map(
-            config ->
-                new BlockConfig(
-                    config.getAttemptsAllowed(),
-                    config.getAttemptsWindowSeconds(),
-                    config.getBlockIntervalSeconds()))
-        .orElseGet(
-            () ->
-                new BlockConfig(
-                    DEFAULT_ATTEMPTS_ALLOWED,
-                    DEFAULT_ATTEMPTS_WINDOW_SECONDS,
-                    DEFAULT_BLOCK_INTERVAL_SECONDS));
-  }
-
   private <T> Single<T> handleWrongAttemptAndMaybeBlock(
       String tenantId,
       String userIdentifier,
       BlockFlow blockFlow,
-      BlockConfig config,
+      PasswordPinBlockConfig config,
       Throwable error) {
     return passwordPinDao
-        .incrementWrongAttemptsCount(tenantId, userIdentifier, config.windowSeconds, blockFlow)
+        .incrementWrongAttemptsCount(
+            tenantId, userIdentifier, config.getAttemptsWindowSeconds(), blockFlow)
         .andThen(passwordPinDao.getWrongAttemptsCount(tenantId, userIdentifier, blockFlow))
         .flatMap(
             newWrongAttemptsCount -> {
-              if (newWrongAttemptsCount >= config.maxAttempts) {
+              if (newWrongAttemptsCount >= config.getAttemptsAllowed()) {
                 return blockUserAndCleanup(
-                    userIdentifier, tenantId, blockFlow, config.blockIntervalSeconds);
+                    userIdentifier, tenantId, blockFlow, config.getBlockIntervalSeconds());
               }
               return Single.error(error);
             });
@@ -279,8 +260,6 @@ public class PasswordAuth {
                 MAX_LOGIN_ATTEMPTS_EXCEEDED.getCustomException(
                     Map.of("retry_after", unblockedAt))));
   }
-
-  private record BlockConfig(int maxAttempts, int windowSeconds, int blockIntervalSeconds) {}
 
   private UserDto buildUserDto(V2SignInUpRequestDto requestDto) {
     UserDto.UserDtoBuilder userDtoBuilder = UserDto.builder();
