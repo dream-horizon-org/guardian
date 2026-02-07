@@ -88,6 +88,8 @@ public enum ErrorEnum {
       400),
   GUEST_LOGIN_NOT_CONFIGURED(
       "guest_login_not_configured", "Guest login is not configured for this tenant", 400),
+  PASSWORD_PIN_BLOCK_NOT_CONFIGURED(
+      "password_pin_block_not_configured", "Password pin block is not configured", 400),
   AUTH_CODE_NOT_CONFIGURED(
       "auth_code_not_configured",
       "Authorization code feature is not configured for this tenant",

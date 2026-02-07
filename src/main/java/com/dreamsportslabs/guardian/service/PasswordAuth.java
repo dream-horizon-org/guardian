@@ -45,14 +45,15 @@ public class PasswordAuth {
 
   /**
    * Common block flow for sign-in and MFA sign-in: check block → authenticate → clear wrong
-   * attempts on success → handle wrong credentials on error. Returns authenticated user.
+   * attempts on success → handle wrong credentials on error. Requires password_pin_block_config.
    */
   public Single<JsonObject> authenticateWithBlockFlow(
       String tenantId,
       String userIdentifier,
       BlockFlow blockFlow,
       Single<JsonObject> authenticateAction) {
-    BlockConfig config = resolveBlockConfig(tenantId);
+    PasswordPinBlockConfig config =
+        registry.get(tenantId, TenantConfig.class).getPasswordPinBlockConfig();
     return userFlowBlockService
         .isFlowBlocked(tenantId, List.of(userIdentifier), blockFlow)
         .andThen(authenticateAction)
@@ -73,7 +74,7 @@ public class PasswordAuth {
       String tenantId,
       String userIdentifier,
       BlockFlow blockFlow,
-      BlockConfig config,
+      PasswordPinBlockConfig config,
       Throwable error) {
     if (!isWrongCredentialsError(error)) {
       return Single.error(error);
@@ -216,32 +217,21 @@ public class PasswordAuth {
     return wae.getResponse().getStatus() == SC_BAD_REQUEST;
   }
 
-  private BlockConfig resolveBlockConfig(String tenantId) {
-    PasswordPinBlockConfig config =
-        registry
-            .get(tenantId, TenantConfig.class)
-            .findPasswordPinBlockConfig()
-            .orElseGet(() -> PasswordPinBlockConfig.builder().build());
-    return new BlockConfig(
-        config.getAttemptsAllowed(),
-        config.getAttemptsWindowSeconds(),
-        config.getBlockIntervalSeconds());
-  }
-
   private <T> Single<T> handleWrongAttemptAndMaybeBlock(
       String tenantId,
       String userIdentifier,
       BlockFlow blockFlow,
-      BlockConfig config,
+      PasswordPinBlockConfig config,
       Throwable error) {
     return passwordPinDao
-        .incrementWrongAttemptsCount(tenantId, userIdentifier, config.windowSeconds, blockFlow)
+        .incrementWrongAttemptsCount(
+            tenantId, userIdentifier, config.getAttemptsWindowSeconds(), blockFlow)
         .andThen(passwordPinDao.getWrongAttemptsCount(tenantId, userIdentifier, blockFlow))
         .flatMap(
             newWrongAttemptsCount -> {
-              if (newWrongAttemptsCount >= config.maxAttempts) {
+              if (newWrongAttemptsCount >= config.getAttemptsAllowed()) {
                 return blockUserAndCleanup(
-                    userIdentifier, tenantId, blockFlow, config.blockIntervalSeconds);
+                    userIdentifier, tenantId, blockFlow, config.getBlockIntervalSeconds());
               }
               return Single.error(error);
             });
@@ -270,8 +260,6 @@ public class PasswordAuth {
                 MAX_LOGIN_ATTEMPTS_EXCEEDED.getCustomException(
                     Map.of("retry_after", unblockedAt))));
   }
-
-  private record BlockConfig(int maxAttempts, int windowSeconds, int blockIntervalSeconds) {}
 
   private UserDto buildUserDto(V2SignInUpRequestDto requestDto) {
     UserDto.UserDtoBuilder userDtoBuilder = UserDto.builder();
