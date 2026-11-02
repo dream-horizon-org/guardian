@@ -13,7 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <app.release.artifact>/target/guardian</app.release.artifact>
-    <google.guava.version>33.3.1-jre</google.guava.version>
+    <google.guava.version>33.7.1-jre</google.guava.version>
     <google-api-client.version>2.7.0</google-api-client.version>
     <fusionauth-jwt.version>5.3.3</fusionauth-jwt.version>
     <slf4j.version>2.0.7</slf4j.version>
